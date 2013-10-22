@@ -170,6 +170,14 @@ struct Socket
         }
     }
 
+    void disconnect(const char[] endpoint)
+    {
+        import std.string;
+        if (zmq_disconnect(m_socket.handle, toStringz(endpoint)) != 0) {
+            throw new ZmqException;
+        }
+    }
+
     // TODO: DONTWAIT and SNDMORE flags
     void send(const void[] data)
     {
