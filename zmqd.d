@@ -1,10 +1,19 @@
 module zmqd;
 
+import std.typecons;
 import deimos.zmq.zmq;
 
 
 version(Windows) {
     alias SOCKET = size_t;
+}
+
+
+Tuple!(int, "major", int, "minor", int, "patch") zmqVersion()
+{
+    typeof(return) v;
+    zmq_version(&v.major, &v.minor, &v.patch);
+    return v;
 }
 
 
