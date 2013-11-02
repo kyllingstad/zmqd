@@ -186,6 +186,13 @@ struct Socket
         }
     }
 
+    void send(Message msg)
+    {
+        if (zmq_msg_send(msg.handle, m_socket.handle, 0) < 0) {
+            throw new ZmqException;
+        }
+    }
+
     size_t receive(void[] data)
     {
         const len = zmq_recv(m_socket.handle, data.ptr, data.length, 0);
@@ -195,6 +202,15 @@ struct Socket
         } else {
             throw new ZmqException;
         }
+    }
+
+    Message receive()
+    {
+        auto msg = Message();
+        if (zmq_msg_recv(msg.handle, m_socket.handle, 0) < 0) {
+            throw new ZmqException;
+        }
+        return msg;
     }
 
     @property SocketType type() { return getOption!SocketType(ZMQ_TYPE); }
@@ -447,6 +463,134 @@ unittest
 }
 
 
+struct Message
+{
+    static Message opCall()
+    {
+        Message m;
+        if (zmq_msg_init(&m.m_msg.msg) != 0) {
+            throw new ZmqException;
+        }
+        m.m_msg.initialized = true;
+        return m;
+    }
+
+    unittest
+    {
+        auto msg = Message();
+        assert(msg.size == 0);
+        assert(msg.data.length == 0);
+    }
+
+    this(size_t size)
+    {
+        if (zmq_msg_init_size(&m_msg.msg, size) != 0) {
+            throw new ZmqException;
+        }
+        m_msg.initialized = true;
+    }
+
+    unittest
+    {
+        auto msg = Message(123);
+        assert(msg.size == 123);
+    }
+
+    void close()
+    {
+        if (zmq_msg_close(handle) != 0) {
+            throw new ZmqException;
+        }
+        m_msg.initialized = false;
+    }
+
+    @property size_t size() nothrow
+    {
+        return zmq_msg_size(handle);
+    }
+
+    unittest
+    {
+        auto msg = Message(123);
+        assert(msg.size == 123);
+    }
+
+    @property ubyte[] data() nothrow
+    {
+        return (cast(ubyte*) zmq_msg_data(handle))[0 .. size];
+    }
+
+    unittest
+    {
+        auto msg = Message(3);
+        assert(msg.data.length == 3);
+        auto myData = cast(ubyte[]) [34, 9, 172];
+        msg.data[] = myData;
+        assert(msg.data == myData);
+    }
+
+    @property char[] dataText()
+    {
+        import std.utf: validate;
+        auto s = cast(char[]) data;
+        validate(s);
+        return s;
+    }
+
+    unittest
+    {
+        auto msg = Message(12);
+        assert(msg.dataText.length == 12);
+        msg.dataText[] = "Hello World!";
+        assert(msg.dataText == "Hello World!");
+    }
+
+    @property inout(zmq_msg_t)* handle() inout nothrow
+    {
+        return &m_msg.msg;
+    }
+
+private:
+    struct Msg
+    {
+        bool initialized;
+        zmq_msg_t msg;
+        ~this()
+        {
+            if (initialized) {
+                auto r = zmq_msg_close(&msg);
+                assert(r == 0, "zmq_msg_close failed: Invalid message");
+            }
+        }
+    }
+    RefCounted!Msg m_msg;
+}
+
+unittest
+{
+    const url = uniqueUrl("inproc");
+    auto s1 = Socket(SocketType.pair);
+    auto s2 = Socket(SocketType.pair);
+    s1.bind(url);
+    s2.connect(url);
+
+
+    auto m1a = Message(123);
+    m1a.data[] = 'a';
+    s1.send(m1a);
+    auto m2a = s2.receive();
+    assert(m2a.size == 123);
+    foreach (e; m2a.data) assert(e == 'a');
+
+    auto m1b = Message(10);
+    m1b.data[] = 'b';
+    s1.send(m1b);
+    auto m2b = s2.receive();
+    assert(m2b.size == 10);
+    foreach (e; m2b.data) assert(e == 'b');
+}
+
+
 
 class ZmqException : Exception
 {
@@ -502,4 +646,11 @@ private:
         ~this() { if (this.handle != null) this.free(this.handle); }
     }
     RefCounted!Payload m_payload;
+}
+
+
+version(unittest) private string uniqueUrl(string p, int n = __LINE__)
+{
+    import std.uuid;
+    return p ~ "://" ~ randomUUID().toString();
 }
