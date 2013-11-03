@@ -186,7 +186,7 @@ struct Socket
         }
     }
 
-    void send(Message msg)
+    void send(ref Message msg)
     {
         if (zmq_msg_send(msg.handle, m_socket.handle, 0) < 0) {
             throw new ZmqException;
@@ -204,13 +204,11 @@ struct Socket
         }
     }
 
-    Message receive()
+    void receive(ref Message msg)
     {
-        auto msg = Message();
         if (zmq_msg_recv(msg.handle, m_socket.handle, 0) < 0) {
             throw new ZmqException;
         }
-        return msg;
     }
 
     @property SocketType type() { return getOption!SocketType(ZMQ_TYPE); }
@@ -468,10 +466,10 @@ struct Message
     static Message opCall()
     {
         Message m;
-        if (zmq_msg_init(&m.m_msg.msg) != 0) {
+        if (zmq_msg_init(&m.m_msg) != 0) {
             throw new ZmqException;
         }
-        m.m_msg.initialized = true;
+        m.m_initialized = true;
         return m;
     }
 
@@ -479,15 +477,14 @@ struct Message
     {
         auto msg = Message();
         assert(msg.size == 0);
-        assert(msg.data.length == 0);
     }
 
     this(size_t size)
     {
-        if (zmq_msg_init_size(&m_msg.msg, size) != 0) {
+        if (zmq_msg_init_size(&m_msg, size) != 0) {
             throw new ZmqException;
         }
-        m_msg.initialized = true;
+        m_initialized = true;
     }
 
     unittest
@@ -496,17 +493,29 @@ struct Message
         assert(msg.size == 123);
     }
 
+    @disable this(this);
+
+    ~this() nothrow
+    {
+        if (m_initialized) {
+            auto rc = zmq_msg_close(&m_msg);
+            assert(rc == 0, "zmq_msg_close failed: Invalid message");
+        }
+    }
+
     void close()
     {
-        if (zmq_msg_close(handle) != 0) {
-            throw new ZmqException;
+        if (m_initialized) {
+            if (zmq_msg_close(&m_msg) != 0) {
+                throw new ZmqException;
+            }
+            m_initialized = false;
         }
-        m_msg.initialized = false;
     }
 
     @property size_t size() nothrow
     {
-        return zmq_msg_size(handle);
+        return zmq_msg_size(&m_msg);
     }
 
     unittest
@@ -517,7 +526,7 @@ struct Message
 
     @property ubyte[] data() nothrow
     {
-        return (cast(ubyte*) zmq_msg_data(handle))[0 .. size];
+        return (cast(ubyte*) zmq_msg_data(&m_msg))[0 .. size];
     }
 
     unittest
@@ -545,25 +554,19 @@ struct Message
         assert(msg.dataText == "Hello World!");
     }
 
-    @property inout(zmq_msg_t)* handle() inout nothrow
+    @property bool more()
     {
-        return &m_msg.msg;
+        return !!zmq_msg_more(&m_msg);
+    }
+
+    @property inout(zmq_msg_t)* handle() inout pure nothrow
+    {
+        return &m_msg;
     }
 
 private:
-    struct Msg
-    {
-        bool initialized;
-        zmq_msg_t msg;
-        ~this()
-        {
-            if (initialized) {
-                auto r = zmq_msg_close(&msg);
-                assert(r == 0, "zmq_msg_close failed: Invalid message");
-            }
-        }
-    }
-    RefCounted!Msg m_msg;
+    bool m_initialized;
+    zmq_msg_t m_msg;
 }
 
 unittest
@@ -574,18 +577,19 @@ unittest
     s1.bind(url);
     s2.connect(url);
 
-
     auto m1a = Message(123);
     m1a.data[] = 'a';
     s1.send(m1a);
-    auto m2a = s2.receive();
+    auto m2a = Message();
+    s2.receive(m2a);
     assert(m2a.size == 123);
     foreach (e; m2a.data) assert(e == 'a');
 
     auto m1b = Message(10);
     m1b.data[] = 'b';
     s1.send(m1b);
-    auto m2b = s2.receive();
+    auto m2b = Message();
+    s2.receive(m2b);
     assert(m2b.size == 10);
     foreach (e; m2b.data) assert(e == 'b');
 }
