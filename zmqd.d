@@ -239,13 +239,6 @@ struct Socket
         }
         return buf[0 .. len];
     }
-    @property char[] identityText()
-    {
-        auto s = cast(char[]) identity;
-        import std.utf;
-        validate(s);
-        return s;
-    }
     @property void identity(const ubyte[] value) { setOption(ZMQ_IDENTITY, value); }
     @property void identity(const  char[] value) { setOption(ZMQ_IDENTITY, value); }
 
@@ -379,7 +372,6 @@ unittest
     assert(s.receiveHWM == 1000);
     assert(s.threadAffinity == 0);
     assert(s.identity == null);
-    assert(s.identityText == "");
     assert(s.rate == 100);
     assert(s.recoveryInterval == 10_000);
     assert(s.sendBufferSize == 0);
@@ -408,10 +400,8 @@ unittest
     assert(s.threadAffinity == 1);
     s.identity = cast(ubyte[]) [ 65, 66, 67 ];
     assert(s.identity == [65, 66, 67]);
-    assert(s.identityText == "ABC");
     s.identity = "foo";
     assert(s.identity == [102, 111, 111]);
-    assert(s.identityText == "foo");
     s.rate = 200;
     assert(s.rate == 200);
     s.recoveryInterval = 5_000;
@@ -551,22 +541,6 @@ struct Message
         assert(msg.data == myData);
     }
 
-    @property char[] dataText()
-    {
-        import std.utf: validate;
-        auto s = cast(char[]) data;
-        validate(s);
-        return s;
-    }
-
-    unittest
-    {
-        auto msg = Message(12);
-        assert(msg.dataText.length == 12);
-        msg.dataText[] = "Hello World!";
-        assert(msg.dataText == "Hello World!");
-    }
-
     @property bool more() nothrow
     {
         return !!trusted!zmq_msg_more(&m_msg);
@@ -607,6 +581,26 @@ unittest
     foreach (e; m2b.data) assert(e == 'b');
 }
 
+
+inout(char)[] asString(inout(ubyte)[] data) @safe pure
+{
+    auto s = cast(typeof(return)) data;
+    import std.utf: validate;
+    validate(s);
+    return s;
+}
+
+unittest
+{
+    auto a = cast(ubyte[]) ['f', 'o', 'o'];
+    assert (asString(a) == "foo");
+    assert (cast(void*) asString(a).ptr == a.ptr);
+
+    import std.exception: assertThrown;
+    import std.utf: UTFException;
+    auto b = cast(ubyte[]) [100, 252, 1];
+    assertThrown!UTFException(asString(b));
+}
 
 
 class ZmqException : Exception
