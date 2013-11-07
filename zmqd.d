@@ -9,19 +9,20 @@ version(Windows) {
 }
 
 
-Tuple!(int, "major", int, "minor", int, "patch") zmqVersion()
+Tuple!(int, "major", int, "minor", int, "patch") zmqVersion() @safe nothrow
 {
     typeof(return) v;
-    zmq_version(&v.major, &v.minor, &v.patch);
+    trusted!zmq_version(&v.major, &v.minor, &v.patch);
     return v;
 }
 
 
 struct Context
 {
+@safe:
     static Context opCall()
     {
-        if (auto c = zmq_ctx_new()) {
+        if (auto c = trusted!zmq_ctx_new()) {
             Context ctx;
             ctx.m_resource = Resource(c, &zmq_ctx_destroy);
             return ctx;
@@ -55,12 +56,12 @@ struct Context
         setOption(ZMQ_MAX_SOCKETS, value);
     }
 
-    @property void* handle()
+    @property inout(void)* handle() inout pure nothrow
     {
         return m_resource.handle;
     }
 
-    @property bool initialized()
+    @property bool initialized() const pure nothrow
     {
         return m_resource.initialized;
     }
@@ -68,7 +69,7 @@ struct Context
 private:
     int getOption(int option)
     {
-        immutable value =  zmq_ctx_get(m_resource.handle, option);
+        immutable value = trusted!zmq_ctx_get(m_resource.handle, option);
         if (value < 0) {
             throw new ZmqException;
         }
@@ -77,7 +78,7 @@ private:
 
     void setOption(int option, int value)
     {
-        if (zmq_ctx_set(m_resource.handle, option, value) != 0) {
+        if (trusted!zmq_ctx_set(m_resource.handle, option, value) != 0) {
             throw new ZmqException;
         }
     }
@@ -86,7 +87,7 @@ private:
 }
 
 
-Context defaultContext()
+Context defaultContext() @trusted
 {
     // For future reference: This is the low-lock singleton pattern. See:
     // http://davesdprogramming.wordpress.com/2013/05/06/low-lock-singletons/
@@ -130,6 +131,7 @@ enum SocketType
 
 struct Socket
 {
+@safe:
     this(SocketType type)
     {
         this(defaultContext(), type);
@@ -137,8 +139,10 @@ struct Socket
 
     this(Context ctx, SocketType type)
     {
-        if (auto s = zmq_socket(ctx.handle, type)) {
-            m_context = ctx;
+        if (auto s = trusted!zmq_socket(ctx.handle, type)) {
+            // TODO: Replace the next line with the one below for DMD 2.064
+            (Context c) @trusted { m_context = c; } (ctx);
+            // m_context = ctx;
             m_type = type;
             m_socket = Resource(s, &zmq_close);
         } else {
@@ -149,7 +153,7 @@ struct Socket
     void bind(const char[] endpoint)
     {
         import std.string;
-        if (zmq_bind(m_socket.handle, toStringz(endpoint)) != 0) {
+        if (trusted!zmq_bind(m_socket.handle, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
     }
@@ -157,7 +161,7 @@ struct Socket
     void unbind(const char[] endpoint)
     {
         import std.string;
-        if (zmq_unbind(m_socket.handle, toStringz(endpoint)) != 0) {
+        if (trusted!zmq_unbind(m_socket.handle, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
     }
@@ -165,7 +169,7 @@ struct Socket
     void connect(const char[] endpoint)
     {
         import std.string;
-        if (zmq_connect(m_socket.handle, toStringz(endpoint)) != 0) {
+        if (trusted!zmq_connect(m_socket.handle, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
     }
@@ -173,7 +177,7 @@ struct Socket
     void disconnect(const char[] endpoint)
     {
         import std.string;
-        if (zmq_disconnect(m_socket.handle, toStringz(endpoint)) != 0) {
+        if (trusted!zmq_disconnect(m_socket.handle, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
     }
@@ -181,21 +185,21 @@ struct Socket
     // TODO: DONTWAIT and SNDMORE flags
     void send(const void[] data)
     {
-        if (zmq_send(m_socket.handle, data.ptr, data.length, 0) < 0) {
+        if (trusted!zmq_send(m_socket.handle, data.ptr, data.length, 0) < 0) {
             throw new ZmqException;
         }
     }
 
     void send(ref Message msg)
     {
-        if (zmq_msg_send(msg.handle, m_socket.handle, 0) < 0) {
+        if (trusted!zmq_msg_send(msg.handle, m_socket.handle, 0) < 0) {
             throw new ZmqException;
         }
     }
 
     size_t receive(void[] data)
     {
-        const len = zmq_recv(m_socket.handle, data.ptr, data.length, 0);
+        const len = trusted!zmq_recv(m_socket.handle, data.ptr, data.length, 0);
         if (len >= 0) {
             import std.conv;
             return to!size_t(len);
@@ -206,7 +210,7 @@ struct Socket
 
     void receive(ref Message msg)
     {
-        if (zmq_msg_recv(msg.handle, m_socket.handle, 0) < 0) {
+        if (trusted!zmq_msg_recv(msg.handle, m_socket.handle, 0) < 0) {
             throw new ZmqException;
         }
     }
@@ -224,8 +228,10 @@ struct Socket
     @property ulong threadAffinity() { return getOption!ulong(ZMQ_AFFINITY); }
     @property void threadAffinity(ulong value) { setOption(ZMQ_AFFINITY, value); }
 
-    @property ubyte[] identity()
+    @property ubyte[] identity() @trusted
     {
+        // This function is not @safe because it calls a @system function
+        // (zmq_getsockopt) and takes the address of a local (len).
         auto buf = new ubyte[255];
         size_t len = buf.length;
         if (zmq_getsockopt(m_socket.handle, ZMQ_IDENTITY, buf.ptr, &len) != 0) {
@@ -292,8 +298,10 @@ struct Socket
     }
     @property FD fd() { return getOption!FD(ZMQ_FD); }
     @property int events() { return getOption!int(ZMQ_EVENTS); }
-    @property char[] lastEndpoint()
+    @property char[] lastEndpoint() @trusted
     {
+        // This function is not @safe because it calls a @system function
+        // (zmq_getsockopt) and takes the address of a local (len).
         auto buf = new char[1024];
         size_t len = buf.length;
         if (zmq_getsockopt(m_socket.handle, ZMQ_LAST_ENDPOINT, buf.ptr, &len) != 0) {
@@ -311,7 +319,7 @@ struct Socket
     void unsubscribe(const  char[] filterPrefix) { setOption(ZMQ_UNSUBSCRIBE, filterPrefix); }
 
 private:
-    T getOption(T)(int option)
+    T getOption(T)(int option) @trusted
     {
         T buf;
         auto len = T.sizeof;
@@ -323,13 +331,17 @@ private:
     }
     void setOption()(int option, const void[] value)
     {
-        zmq_setsockopt(m_socket.handle, option, value.ptr, value.length);
+        if (trusted!zmq_setsockopt(m_socket.handle, option, value.ptr, value.length) != 0) {
+            throw new ZmqException;
+        }
     }
 
     import std.traits;
-    void setOption(T)(int option, T value) if (isScalarType!T)
+    void setOption(T)(int option, T value) @trusted if (isScalarType!T)
     {
-        zmq_setsockopt(m_socket.handle, option, &value, value.sizeof);
+        if (zmq_setsockopt(m_socket.handle, option, &value, value.sizeof) != 0) {
+            throw new ZmqException;
+        }
     }
 
     Context m_context;
@@ -463,10 +475,11 @@ unittest
 
 struct Message
 {
+@safe:
     static Message opCall()
     {
         Message m;
-        if (zmq_msg_init(&m.m_msg) != 0) {
+        if (trusted!zmq_msg_init(&m.m_msg) != 0) {
             throw new ZmqException;
         }
         m.m_initialized = true;
@@ -481,7 +494,7 @@ struct Message
 
     this(size_t size)
     {
-        if (zmq_msg_init_size(&m_msg, size) != 0) {
+        if (trusted!zmq_msg_init_size(&m_msg, size) != 0) {
             throw new ZmqException;
         }
         m_initialized = true;
@@ -498,7 +511,7 @@ struct Message
     ~this() nothrow
     {
         if (m_initialized) {
-            auto rc = zmq_msg_close(&m_msg);
+            immutable rc = trusted!zmq_msg_close(&m_msg);
             assert(rc == 0, "zmq_msg_close failed: Invalid message");
         }
     }
@@ -506,7 +519,7 @@ struct Message
     void close()
     {
         if (m_initialized) {
-            if (zmq_msg_close(&m_msg) != 0) {
+            if (trusted!zmq_msg_close(&m_msg) != 0) {
                 throw new ZmqException;
             }
             m_initialized = false;
@@ -515,7 +528,7 @@ struct Message
 
     @property size_t size() nothrow
     {
-        return zmq_msg_size(&m_msg);
+        return trusted!zmq_msg_size(&m_msg);
     }
 
     unittest
@@ -524,7 +537,7 @@ struct Message
         assert(msg.size == 123);
     }
 
-    @property ubyte[] data() nothrow
+    @property ubyte[] data() @trusted nothrow
     {
         return (cast(ubyte*) zmq_msg_data(&m_msg))[0 .. size];
     }
@@ -554,9 +567,9 @@ struct Message
         assert(msg.dataText == "Hello World!");
     }
 
-    @property bool more()
+    @property bool more() nothrow
     {
-        return !!zmq_msg_more(&m_msg);
+        return !!trusted!zmq_msg_more(&m_msg);
     }
 
     @property inout(zmq_msg_t)* handle() inout pure nothrow
@@ -598,12 +611,19 @@ unittest
 
 class ZmqException : Exception
 {
-    this(string file = __FILE__, int line = __LINE__)
+@safe:
+    this(string file = __FILE__, int line = __LINE__) nothrow
     {
         import core.stdc.errno, std.conv;
         this.errno = core.stdc.errno.errno;
-        super(to!string(zmq_strerror(this.errno)), file, line);
+        string msg;
+        try {
+            msg = trusted!(to!string)(trusted!zmq_strerror(this.errno));
+        } catch (Exception e) { /* We never get here */ }
+        assert(msg.length);     // Still, let's assert as much.
+        super(msg, file, line);
     }
+
     immutable int errno;
 }
 
@@ -612,44 +632,162 @@ private:
 
 struct Resource
 {
-    import std.typecons: RefCounted;
-    alias extern(C) int function(void*) CFreeFunction;
+    alias extern(C) int function(void*) nothrow CFreeFunction;
 
-    this(void* handle, CFreeFunction freeFunc)
-        in { assert(handle !is null); } body
+    this(void* ptr, CFreeFunction freeFunc) @safe pure nothrow
+        in { assert(ptr !is null); } body
     {
-        m_payload = Payload(handle, freeFunc);
+        m_payload = new Payload(1, ptr, freeFunc);
     }
 
-    @property bool initialized()
+    this(this) @safe pure nothrow
     {
-        return handle !is null;
-    }
-
-    void free()
-    {
-        if (initialized) {
-            if (m_payload.free(m_payload.handle) != 0) {
-                throw new ZmqException;
-            }
-            m_payload.handle = null;
-            m_payload.free = null;
+        if (m_payload !is null) {
+            ++(m_payload.refCount);
         }
     }
 
-    @property void* handle()
+    ~this() @safe nothrow
     {
-        return m_payload.handle;
+        detach();
+    }
+
+    ref Resource opAssign(Resource rhs) @safe
+    {
+        if (detach() != 0) {
+            throw new ZmqException;
+        }
+        m_payload = rhs.m_payload;
+        if (m_payload !is null) {
+            ++(m_payload.refCount);
+        }
+        return this;
+    }
+
+    @property bool initialized() const @safe pure nothrow
+    {
+        return (m_payload !is null) && (m_payload.handle !is null);
+    }
+
+    void free() @safe
+    {
+        if (m_payload !is null && m_payload.free() != 0) {
+            throw new ZmqException;
+        }
+    }
+
+    @property inout(void)* handle() inout @safe pure nothrow
+    {
+        if (m_payload !is null) {
+            return m_payload.handle;
+        } else {
+            return null;
+        }
     }
 
 private:
+    int detach() @safe nothrow
+    {
+        int rc = 0;
+        if (m_payload !is null) {
+            if (--(m_payload.refCount) < 1) {
+                rc = m_payload.free();
+            }
+            m_payload = null;
+        }
+        return rc;
+    }
+
     struct Payload
     {
+        int refCount;
         void* handle;
-        CFreeFunction free;
-        ~this() { if (this.handle != null) this.free(this.handle); }
+        CFreeFunction freeFunc;
+
+        int free() @trusted nothrow
+        {
+            int rc = 0;
+            if (handle !is null) {
+                rc = freeFunc(handle);
+                handle = null;
+                freeFunc = null;
+            }
+            return rc;
+        }
     }
-    RefCounted!Payload m_payload;
+    Payload* m_payload;
+}
+
+unittest
+{
+    import std.exception: assertNotThrown, assertThrown;
+    static extern(C) int myFree(void* p) nothrow
+    {
+        auto v = cast(int*) p;
+        if (*v == 0) {
+            return -1;
+        } else {
+            *v = 0;
+            return 0;
+        }
+    }
+
+    int i = 1;
+
+    {
+        // Test constructor and properties.
+        auto ra = Resource(&i, &myFree);
+        assert (i == 1);
+        assert (ra.initialized);
+        assert (ra.handle == &i);
+
+        // Test postblit constructor
+        auto rb = ra;
+        assert (i == 1);
+        assert (rb.initialized);
+        assert (rb.handle == &i);
+
+        {
+            // Test properties and free() with default-initialized object.
+            Resource rc;
+            assert (!rc.initialized);
+            assert (rc.handle == null);
+            assertNotThrown(rc.free());
+
+            // Test assignment, both with and without detachment
+            rc = rb;
+            assert (i == 1);
+            assert (rc.initialized);
+            assert (rc.handle == &i);
+
+            int j = 2;
+            auto rd = Resource(&j, &myFree);
+            assert (rd.handle == &j);
+            rd = rb;
+            assert (j == 0);
+            assert (i == 1);
+            assert (rd.handle == &i);
+
+            // Test explicit free()
+            int k = 3;
+            auto re = Resource(&k, &myFree);
+            assertNotThrown(re.free());
+            assert(k == 0);
+
+            // Test failure to free and assign (myFree(&k) fails when k == 0)
+            re = Resource(&k, &myFree);
+            assertThrown!ZmqException(re.free()); // We defined free(k == 0) as an error
+            re = Resource(&k, &myFree);
+            assertThrown!ZmqException(re = rb);
+        }
+
+        // i should not be "freed" yet
+        assert (i == 1);
+        assert (ra.handle == &i);
+        assert (rb.handle == &i);
+    }
+    // ...but now it should.
+    assert (i == 0);
 }
 
 
@@ -657,4 +795,35 @@ version(unittest) private string uniqueUrl(string p, int n = __LINE__)
 {
     import std.uuid;
     return p ~ "://" ~ randomUUID().toString();
+}
+
+
+private auto trusted(alias func, Args...)(Args args) @trusted
+{
+    return func(args);
+}
+
+
+// std.string.toStringz() is unsafe, so we provide our own implementation
+// tailored to the string sizes we are likely to encounter here.
+// Note that this implementation requires that the string be used immediately
+// upon return, and not stored, as the buffer will be reused most of the time.
+const char* zeroTermString(const char[] s) @safe nothrow
+{
+    import std.algorithm: max;
+    static char[] buf;
+    immutable len = s.length + 1;
+    if (buf.length < len) buf.length = max(len, 1023);
+    buf[0 .. s.length] = s;
+    buf[s.length] = '\0';
+    return buf.ptr;
+}
+
+unittest
+{
+    auto c1 = zeroTermString("Hello World!");
+    assert (c1[0 .. 13] == "Hello World!\0");
+    auto c2 = zeroTermString("foo");
+    assert (c2[0 .. 4] == "foo\0");
+    assert (c1 == c2);
 }
