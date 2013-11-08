@@ -1,9 +1,10 @@
 ∅MQD – a ∅MQ wrapper for the D programming language
 ===================================================
 
-∅MQD is a D library that wraps the low-level C API of the [∅MQ](http://zeromq.org)
-messaging library.  It is a rather thin wrapper that maps closely to the
-C API, while making it safer, easier and more pleasant to use.  Here's how:
+∅MQD is a [D](http://dlang.org) library that wraps the low-level C API of
+the [∅MQ](http://zeromq.org) messaging framework.  It is a rather thin
+wrapper that maps closely to the C API, while making it safer, easier and
+more pleasant to use.  Here's how:
 
   * Errors are signalled by means of exceptions rather than return codes.
   * Functions are appropriately marked with `@safe`/`@trusted`/`@system`,
@@ -21,7 +22,8 @@ both familiar to ∅MQ users and natural to D users.
 
 What you need is:
 
-  * An up-to-date D compiler (last tested with DMD 2.063)
+  * An up-to-date [D compiler](http://wiki.dlang.org/Compilers) (last
+    tested with DMD 2.063)
   * The [∅MQ libraries](http://zeromq.org/intro:get-the-software)
   * The [∅MQ bindings](https://github.com/D-Programming-Deimos/ZeroMQ)
     from Deimos
