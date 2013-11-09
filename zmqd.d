@@ -1,3 +1,57 @@
+/**
+A thin wrapper around the low-level C API of the $(LINK2 http://zeromq.org,$(ZMQ))
+messaging framework, for the $(LINK2 http://dlang.org,D programming language).
+
+Most functions in this module have a one-to-one relationship with functions
+in the underlying C API.  Some adaptations have been made to make the API
+safer, easier and more pleasant to use, namely:
+$(UL
+    $(LI
+        Errors are signalled by means of exceptions rather than return
+        codes.  In particular, the $(REF ZmqException) class provides
+        a standard textual message for any error condition, but it also
+        provides access to the $(D errno) code set by the C function
+        that reported the error.)
+    $(LI
+        Functions are appropriately marked with $(D @safe), $(D pure)
+        and $(D nothrow), thus easing their use in high-level D code.)
+    $(LI
+        Memory and resources (i.e. contexts, sockets and messages) are
+        automatically managed, thus preventing leaks.)
+    $(LI
+        Context, socket and message options are implemented as properties.)
+)
+The names of functions and types in $(ZMQD) are very similar to those in
+$(ZMQ), but they follow the D naming conventions.  For example,
+$(D zmq_msg_send()) becomes $(D zmqd.Message.send()) and so on.  Thus,
+the library should feel both familiar to $(ZMQ) users and natural to D
+users.
+
+Due to the one-to-one relationship with the C API, this documentation has
+intentionally been kept sparse. There is really no reason to repeat the
+contents of the $(LINK2 http://api.zeromq.org/3-2:_start,$(ZMQ) reference manual)
+here.  Instead, the documentation for each function contains a "Corresponds to"
+section that links to the appropriate page in the $(ZMQ) reference, and any
+details given here mostly concern the D-specific adaptations that have been
+made.
+
+Authors:
+    $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
+Copyright:
+    Copyright (c) 2013, Lars T. Kyllingstad
+License:
+    $(ZMQD) is released under the $(LINK2 http://www.boost.org/LICENSE_1_0.txt,
+    Boost Software License, version 1.0).$(BR)
+    Please refer to the $(LINK2 http://zeromq.org/area:licensing,$(ZMQ) site)
+    for details about $(ZMQ) licensing.
+Macros:
+    D      = <code>$0</code>
+    REF    = $(D $(LINK2 #$1,$1))
+    STDREF = $(D $(LINK2 http://dlang.org/phobos/std_$1.html#.$2,std.$1.$2))
+    ZMQREF = $(D $(LINK2 http://api.zeromq.org/3-2:$1,$1))
+    ZMQ    = ∅MQ
+    ZMQD   = $(ZMQ)D
+*/
 module zmqd;
 
 import std.typecons;
@@ -9,6 +63,15 @@ version(Windows) {
 }
 
 
+/**
+Reports the $(ZMQ) library version.
+
+Returns:
+    A $(STDREF typecons,Tuple) with three integer fields that represent the
+    three versioning levels: $(D major), $(D minor) and $(D patch).
+Corresponds_to:
+    $(ZMQREF zmq_version())
+*/
 Tuple!(int, "major", int, "minor", int, "patch") zmqVersion() @safe nothrow
 {
     typeof(return) v;
@@ -17,9 +80,40 @@ Tuple!(int, "major", int, "minor", int, "patch") zmqVersion() @safe nothrow
 }
 
 
+/**
+An object that encapsulates a $(ZMQ) context.
+
+In most programs, it is not necessary to use this type directly,
+as $(REF Socket) will use a default global context if not explicitly
+provided with one.  See $(REF defaultContext) for details.
+
+A default-initialized $(D Context) is not a valid $(ZMQ) context; it
+must always be explicitly initialized with $(REF _Context.opCall):
+---
+Context ctx;        // Not a valid context yet
+ctx = Context();    // ...but now it is.
+---
+$(D Context) objects can be passed around by value, and two copies will
+refer to the same context.  The underlying context is managed using
+reference counting, so that when the last copy of a $(D Context) goes
+out of scope, the context is automatically destroyed.
+
+See_also:
+    $(REF defaultContext)
+*/
 struct Context
 {
 @safe:
+    /**
+    Creates a new $(ZMQ) context.
+
+    Returns:
+        A $(REF Context) object that encapsulates the new context.
+    Throws:
+        $(REF ZmqException) on failure to create the context.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_new())
+    */
     static Context opCall()
     {
         if (auto c = trusted!zmq_ctx_new()) {
@@ -31,39 +125,126 @@ struct Context
         }
     }
 
+    ///
+    unittest
+    {
+        auto ctx = Context();
+        assert (ctx.initialized);
+    }
+
+    /**
+    Destroys the $(ZMQ) context.
+
+    It is normally not necessary to do this manually, as the context will
+    be destroyed automatically when the last reference to it goes out of
+    scope.
+
+    Throws:
+        $(REF ZmqException) on error.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_destroy())
+    */
     void destroy()
     {
         m_resource.free();
     }
 
+    ///
+    unittest
+    {
+        auto ctx = Context();
+        assert (ctx.initialized);
+        ctx.destroy();
+        assert (!ctx.initialized);
+    }
+
+    /**
+    The number of I/O threads.
+
+    Throws:
+        $(REF ZmqException) on failure to retrieve or set the property.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
+        $(D ZMQ_IO_THREADS).
+    */
     @property int ioThreads()
     {
         return getOption(ZMQ_IO_THREADS);
     }
 
+    /// ditto
     @property void ioThreads(int value)
     {
         setOption(ZMQ_IO_THREADS, value);
     }
 
+    ///
+    unittest
+    {
+        auto ctx = Context();
+        ctx.ioThreads = 3;
+        assert (ctx.ioThreads == 3);
+    }
+
+    /**
+    The maximum number of sockets.
+
+    Throws:
+        $(REF ZmqException) on failure to retrieve or set the property.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
+        $(D ZMQ_MAX_SOCKETS).
+    */
     @property int maxSockets()
     {
         return getOption(ZMQ_MAX_SOCKETS);
     }
 
+    /// ditto
     @property void maxSockets(int value)
     {
         setOption(ZMQ_MAX_SOCKETS, value);
     }
 
+    ///
+    unittest
+    {
+        auto ctx = Context();
+        ctx.maxSockets = 512;
+        assert (ctx.maxSockets == 512);
+    }
+
+    /**
+    The $(D void*) pointer used by the underlying C API to refer to the context.
+
+    This should only be used if you intend to call any of the $(ZMQ) C
+    functions manually.
+
+    If the object has not been initialized, this function returns $(D null).
+    */
     @property inout(void)* handle() inout pure nothrow
     {
         return m_resource.handle;
     }
 
+    /**
+    Whether this $(REF Context) object has been _initialized, i.e. whether it
+    refers to a valid $(ZMQ) context.
+    */
     @property bool initialized() const pure nothrow
     {
         return m_resource.initialized;
+    }
+
+    ///
+    @trusted unittest // TODO: Remove @trusted for DMD 2.064
+    {
+        Context ctx;
+        assert (!ctx.initialized);
+        ctx = Context();
+        assert (ctx.initialized);
+        ctx.destroy();
+        assert (!ctx.initialized);
     }
 
 private:
@@ -603,9 +784,27 @@ unittest
 }
 
 
+/**
+A class for exceptions thrown when any of the underlying $(ZMQ) C functions
+report an error.
+
+The exception provides a standard error message obtained with
+$(ZMQREF zmq_strerror()), as well as the $(D errno) code set by the $(ZMQ)
+function which reported the error.
+*/
 class ZmqException : Exception
 {
 @safe:
+    /**
+    The $(D errno) code that was set by the $(ZMQ) function that reported
+    the error.
+
+    Corresponds_to:
+        $(ZMQREF zmq_errno())
+    */
+    immutable int errno;
+
+private:
     this(string file = __FILE__, int line = __LINE__) nothrow
     {
         import core.stdc.errno, std.conv;
@@ -617,8 +816,6 @@ class ZmqException : Exception
         assert(msg.length);     // Still, let's assert as much.
         super(msg, file, line);
     }
-
-    immutable int errno;
 }
 
 
