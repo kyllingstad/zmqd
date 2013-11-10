@@ -27,7 +27,7 @@ $(D zmq_msg_send()) becomes $(D zmqd.Message.send()) and so on.  Thus,
 the library should feel both familiar to $(ZMQ) users and natural to D
 users.
 
-Due to the one-to-one relationship with the C API, this documentation has
+Due to the close correspondence with the C API, this documentation has
 intentionally been kept sparse. There is really no reason to repeat the
 contents of the $(LINK2 http://api.zeromq.org/3-2:_start,$(ZMQ) reference manual)
 here.  Instead, the documentation for each function contains a "Corresponds to"
@@ -46,11 +46,14 @@ License:
     for details about $(ZMQ) licensing.
 Macros:
     D      = <code>$0</code>
+    EM     = <em>$0</em>
+    LDOTS  = &hellip;
+    QUOTE  = <blockquote>$0</blockquote>
     REF    = $(D $(LINK2 #$1,$1))
     STDREF = $(D $(LINK2 http://dlang.org/phobos/std_$1.html#.$2,std.$1.$2))
-    ZMQREF = $(D $(LINK2 http://api.zeromq.org/3-2:$1,$1))
-    ZMQ    = ∅MQ
+    ZMQ    = &#x2205;MQ
     ZMQD   = $(ZMQ)D
+    ZMQREF = $(D $(LINK2 http://api.zeromq.org/3-2:$1,$1))
 */
 module zmqd;
 
@@ -268,6 +271,31 @@ private:
 }
 
 
+/**
+A global context which is used by default by all sockets, unless they are
+explicitly constructed with a different context.
+
+The $(ZMQ) Guide $(LINK2 http://zguide.zeromq.org/page:all#Getting-the-Context-Right,
+has the following to say) about context creation:
+$(QUOTE
+    You should create and use exactly one context in your process.
+    [$(LDOTS)] If at runtime a process has two contexts, these are
+    like separate $(ZMQ) instances. If that's explicitly what you
+    want, OK, but otherwise remember: $(EM Do one $(D zmq_ctx_new())
+    at the start of your main line code, and one $(D zmq_ctx_destroy())
+    at the end.)
+)
+By using $(D defaultContext()), this is exactly what you achieve.  The
+context is created the first time the function is called, and is
+automatically destroyed when the program ends.
+
+This function is thread safe.
+
+Throws:
+    $(REF ZmqException) on failure to create the context.
+See_also:
+    $(REF Context)
+*/
 Context defaultContext() @trusted
 {
     // For future reference: This is the low-lock singleton pattern. See:
@@ -294,35 +322,70 @@ unittest
 }
 
 
+/**
+The various socket types.
+
+These are described in the $(ZMQREF zmq_socket()) reference.  They are
+almost always referred to by their abbreviation (e.g. REQ for a "request"
+socket), so those names are used here as well.
+*/
 enum SocketType
 {
-    req     = ZMQ_REQ,
-    rep     = ZMQ_REP,
-    dealer  = ZMQ_DEALER,
-    router  = ZMQ_ROUTER,
-    pub     = ZMQ_PUB,
-    sub     = ZMQ_SUB,
-    xpub    = ZMQ_XPUB,
-    xsub    = ZMQ_XSUB,
-    push    = ZMQ_PUSH,
-    pull    = ZMQ_PULL,
-    pair    = ZMQ_PAIR,
+    req     = ZMQ_REQ,      ///
+    rep     = ZMQ_REP,      ///
+    dealer  = ZMQ_DEALER,   ///
+    router  = ZMQ_ROUTER,   ///
+    pub     = ZMQ_PUB,      ///
+    sub     = ZMQ_SUB,      ///
+    xpub    = ZMQ_XPUB,     ///
+    xsub    = ZMQ_XSUB,     ///
+    push    = ZMQ_PUSH,     ///
+    pull    = ZMQ_PULL,     ///
+    pair    = ZMQ_PAIR,     ///
 }
 
 
+/**
+An object that encapsulates a $(ZMQ) socket.
+
+A default-initialized $(D Socket) is not a valid $(ZMQ) socket; it
+must always be explicitly initialized with a constructor (see
+$(REF _Socket.this)):
+---
+Socket s;                     // Not a valid socket yet
+s = Socket(SocketType.push);  // ...but now it is.
+---
+$(D Socket) objects can be passed around by value, and two copies will
+refer to the same socket.  The underlying socket is managed using
+reference counting, so that when the last copy of a $(D Socket) goes
+out of scope, the socket is automatically closed.
+*/
 struct Socket
 {
 @safe:
+    /**
+    Creates a new $(ZMQ) socket.
+
+    If $(D context) is not specified, the default context (as returned
+    by $(REF defaultContext)) is used.
+
+    Throws:
+        $(REF ZmqException) on failure to create the socket or to create
+        the default context.
+    Corresponds_to:
+        $(ZMQREF zmq_socket())
+    */
     this(SocketType type)
     {
         this(defaultContext(), type);
     }
 
-    this(Context ctx, SocketType type)
+    /// ditto
+    this(Context context, SocketType type)
     {
-        if (auto s = trusted!zmq_socket(ctx.handle, type)) {
+        if (auto s = trusted!zmq_socket(context.handle, type)) {
             // TODO: Replace the next line with the one below for DMD 2.064
-            (Context c) @trusted { m_context = c; } (ctx);
+            (Context c) @trusted { m_context = c; } (context);
             // m_context = ctx;
             m_type = type;
             m_socket = Resource(s, &zmq_close);
