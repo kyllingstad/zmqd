@@ -31,9 +31,17 @@ Due to the close correspondence with the C API, this documentation has
 intentionally been kept sparse. There is really no reason to repeat the
 contents of the $(LINK2 http://api.zeromq.org/3-2:_start,$(ZMQ) reference manual)
 here.  Instead, the documentation for each function contains a "Corresponds to"
-section that links to the appropriate page in the $(ZMQ) reference, and any
-details given here mostly concern the D-specific adaptations that have been
-made.
+section that links to the appropriate page in the $(ZMQ) reference.  Any
+details given in the present documentation mostly concern the D-specific
+adaptations that have been made.
+
+Also note that the examples only use the INPROC and IPC transports.  The
+reason for this is that the examples double as unittests, and we want to
+avoid firewall troubles and other issues that could arise with the use of
+network protocols such as TCP, PGM, etc.  Anyway, they are only short
+snippets that demonstrate the syntax; for more comprehensive and realistic
+examples, please refer to the $(LINK2 http://zguide.zeromq.org/page:all,
+$(ZMQ) Guide).
 
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
@@ -113,7 +121,7 @@ struct Context
     Returns:
         A $(REF Context) object that encapsulates the new context.
     Throws:
-        $(REF ZmqException) on failure to create the context.
+        $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
         $(ZMQREF zmq_ctx_new())
     */
@@ -143,7 +151,7 @@ struct Context
     scope.
 
     Throws:
-        $(REF ZmqException) on error.
+        $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
         $(ZMQREF zmq_ctx_destroy())
     */
@@ -165,7 +173,7 @@ struct Context
     The number of I/O threads.
 
     Throws:
-        $(REF ZmqException) on failure to retrieve or set the property.
+        $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
         $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
         $(D ZMQ_IO_THREADS).
@@ -193,7 +201,7 @@ struct Context
     The maximum number of sockets.
 
     Throws:
-        $(REF ZmqException) on failure to retrieve or set the property.
+        $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
         $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
         $(D ZMQ_MAX_SOCKETS).
@@ -292,7 +300,7 @@ automatically destroyed when the program ends.
 This function is thread safe.
 
 Throws:
-    $(REF ZmqException) on failure to create the context.
+    $(REF ZmqException) if $(ZMQ) reports an error.
 See_also:
     $(REF Context)
 */
@@ -370,8 +378,7 @@ struct Socket
     by $(REF defaultContext)) is used.
 
     Throws:
-        $(REF ZmqException) on failure to create the socket or to create
-        the default context.
+        $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
         $(ZMQREF zmq_socket())
     */
@@ -416,7 +423,7 @@ struct Socket
     method manually.
 
     Throws:
-        $(REF ZmqException) on error.
+        $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
         $(ZMQREF zmq_close())
     */
@@ -434,36 +441,96 @@ struct Socket
         assert (!s.initialized);
     }
 
+    /**
+    Starts accepting incoming connections on $(D endpoint).
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_bind())
+    */
     void bind(const char[] endpoint)
     {
-        import std.string;
         if (trusted!zmq_bind(m_socket.handle, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
     }
 
+    ///
+    unittest
+    {
+        auto s = Socket(SocketType.pub);
+        s.bind("inproc://zmq_bind_example");
+    }
+
+    /**
+    Stops accepting incoming connections on $(D endpoint).
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_unbind())
+    */
     void unbind(const char[] endpoint)
     {
-        import std.string;
         if (trusted!zmq_unbind(m_socket.handle, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
     }
 
+    ///
+    unittest
+    {
+        auto s = Socket(SocketType.pub);
+        s.bind("ipc://zmq_unbind_example");
+        // Do some work...
+        s.unbind("ipc://zmq_unbind_example");
+    }
+
+    /**
+    Creates an outgoing connection to $(D endpoint).
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_connect())
+    */
     void connect(const char[] endpoint)
     {
-        import std.string;
         if (trusted!zmq_connect(m_socket.handle, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
     }
 
+    ///
+    unittest
+    {
+        auto s = Socket(SocketType.sub);
+        s.connect("ipc://zmq_connect_example");
+    }
+
+    /**
+    Disconnects the socket from $(D endpoint).
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_disconnect())
+    */
     void disconnect(const char[] endpoint)
     {
-        import std.string;
         if (trusted!zmq_disconnect(m_socket.handle, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
+    }
+
+    ///
+    unittest
+    {
+        auto s = Socket(SocketType.sub);
+        s.connect("ipc://zmq_disconnect_example");
+        // Do some work...
+        s.disconnect("ipc://zmq_disconnect_example");
     }
 
     // TODO: DONTWAIT and SNDMORE flags
