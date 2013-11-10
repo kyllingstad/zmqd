@@ -394,6 +394,46 @@ struct Socket
         }
     }
 
+    /// With default context:
+    unittest
+    {
+        auto sck = Socket(SocketType.push);
+        assert (sck.initialized);
+    }
+    /// With explicit context:
+    unittest
+    {
+        auto ctx = Context();
+        auto sck = Socket(ctx, SocketType.push);
+        assert (sck.initialized);
+    }
+
+    /**
+    Closes the $(ZMQ) socket.
+
+    Note that the socket will be automatically closed when the last reference
+    to it goes out of scope, so it is often not necessary to call this
+    method manually.
+
+    Throws:
+        $(REF ZmqException) on error.
+    Corresponds_to:
+        $(ZMQREF zmq_close())
+    */
+    void close()
+    {
+        m_socket.free();
+    }
+
+    ///
+    unittest
+    {
+        auto s = Socket(SocketType.pair);
+        assert (s.initialized);
+        s.close();
+        assert (!s.initialized);
+    }
+
     void bind(const char[] endpoint)
     {
         import std.string;
@@ -554,6 +594,39 @@ struct Socket
     void subscribe(const  char[] filterPrefix) { setOption(ZMQ_SUBSCRIBE, filterPrefix); }
     void unsubscribe(const ubyte[] filterPrefix) { setOption(ZMQ_UNSUBSCRIBE, filterPrefix); }
     void unsubscribe(const  char[] filterPrefix) { setOption(ZMQ_UNSUBSCRIBE, filterPrefix); }
+
+    /**
+    The $(D void*) pointer used by the underlying C API to refer to the socket.
+
+    This should only be used if you intend to call any of the $(ZMQ) C
+    functions manually.
+
+    If the object has not been initialized, this function returns $(D null).
+    */
+    @property inout(void)* handle() inout pure nothrow
+    {
+        return m_socket.handle;
+    }
+
+    /**
+    Whether this $(REF Socket) object has been _initialized, i.e. whether it
+    refers to a valid $(ZMQ) socket.
+    */
+    @property bool initialized() const pure nothrow
+    {
+        return m_socket.initialized;
+    }
+
+    ///
+    @trusted unittest // TODO: Remove @trusted for DMD 2.064
+    {
+        Socket sck;
+        assert (!sck.initialized);
+        sck = Socket(SocketType.sub);
+        assert (sck.initialized);
+        sck.close();
+        assert (!sck.initialized);
+    }
 
 private:
     T getOption(T)(int option) @trusted
