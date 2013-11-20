@@ -460,7 +460,7 @@ struct Socket
     unittest
     {
         auto s = Socket(SocketType.pub);
-        s.bind("inproc://zmq_bind_example");
+        s.bind("inproc://zmqd_bind_example");
     }
 
     /**
@@ -482,9 +482,9 @@ struct Socket
     unittest
     {
         auto s = Socket(SocketType.pub);
-        s.bind("ipc://zmq_unbind_example");
+        s.bind("ipc://zmqd_unbind_example");
         // Do some work...
-        s.unbind("ipc://zmq_unbind_example");
+        s.unbind("ipc://zmqd_unbind_example");
     }
 
     /**
@@ -506,7 +506,7 @@ struct Socket
     unittest
     {
         auto s = Socket(SocketType.sub);
-        s.connect("ipc://zmq_connect_example");
+        s.connect("ipc://zmqd_connect_example");
     }
 
     /**
@@ -528,19 +528,52 @@ struct Socket
     unittest
     {
         auto s = Socket(SocketType.sub);
-        s.connect("ipc://zmq_disconnect_example");
+        s.connect("ipc://zmqd_disconnect_example");
         // Do some work...
-        s.disconnect("ipc://zmq_disconnect_example");
+        s.disconnect("ipc://zmqd_disconnect_example");
     }
 
+    /**
+    Sends a message part.
+
+    The $(D char[]) overload is a convenience function that simply casts the
+    string to $(D ubyte[]).
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_send())
+    */
     // TODO: DONTWAIT and SNDMORE flags
-    void send(const void[] data)
+    void send(const ubyte[] data)
     {
         if (trusted!zmq_send(m_socket.handle, data.ptr, data.length, 0) < 0) {
             throw new ZmqException;
         }
     }
 
+    /// ditto
+    void send(const char[] data) @trusted
+    {
+        send(cast(ubyte[]) data);
+    }
+
+    ///
+    unittest
+    {
+        auto sck = Socket(SocketType.pub);
+        sck.send(cast(ubyte[]) [11, 226, 92]);
+        sck.send("Hello World!");
+    }
+
+    /**
+    Sends a message part.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_send())
+    */
     void send(ref Message msg)
     {
         if (trusted!zmq_msg_send(msg.handle, m_socket.handle, 0) < 0) {
@@ -548,7 +581,24 @@ struct Socket
         }
     }
 
-    size_t receive(void[] data)
+    ///
+    unittest
+    {
+        auto sck = Socket(SocketType.pub);
+        auto msg = Message(12);
+        msg.data.asString()[] = "Hello World!";
+        sck.send(msg);
+    }
+
+    /**
+    Receives a message part.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_recv())
+    */
+    size_t receive(ubyte[] data)
     {
         const len = trusted!zmq_recv(m_socket.handle, data.ptr, data.length, 0);
         if (len >= 0) {
@@ -559,6 +609,31 @@ struct Socket
         }
     }
 
+    ///
+    unittest
+    {
+        // Sender
+        auto snd = Socket(SocketType.req);
+        snd.connect("ipc://zmqd_receive_example");
+        snd.send("Hello World!");
+
+        // Receiver
+        import std.string: representation;
+        auto rcv = Socket(SocketType.rep);
+        rcv.bind("ipc://zmqd_receive_example");
+        char[12] buf;
+        rcv.receive(buf.representation);
+        assert (buf[] == "Hello World!");
+    }
+
+    /**
+    Receives a message part.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_recv())
+    */
     void receive(ref Message msg)
     {
         if (trusted!zmq_msg_recv(msg.handle, m_socket.handle, 0) < 0) {
@@ -566,19 +641,102 @@ struct Socket
         }
     }
 
+    ///
+    unittest
+    {
+        // Sender
+        auto snd = Socket(SocketType.req);
+        snd.connect("ipc://zmqd_msg_receive_example");
+        snd.send("Hello World!");
+
+        // Receiver
+        import std.string: representation;
+        auto rcv = Socket(SocketType.rep);
+        rcv.bind("ipc://zmqd_msg_receive_example");
+        auto msg = Message();
+        rcv.receive(msg);
+        assert (msg.data.asString() == "Hello World!");
+    }
+
+    /**
+    The socket _type.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_getsockopt()) with $(D ZMQ_TYPE).
+    */
     @property SocketType type() { return getOption!SocketType(ZMQ_TYPE); }
 
-    @property bool receiveMore() { return !!getOption!int(ZMQ_RCVMORE); }
+    ///
+    unittest
+    {
+        auto sck = Socket(SocketType.xpub);
+        assert (sck.type == SocketType.xpub);
+    }
 
+    /**
+    Whether there are _more message data parts to follow.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_getsockopt()) with $(D ZMQ_RCVMORE).
+    */
+    @property bool more() { return !!getOption!int(ZMQ_RCVMORE); }
+
+    // TODO: Better unittest/example
+    unittest
+    {
+        auto sck = Socket(SocketType.req);
+        assert (!sck.more);
+    }
+
+    /**
+    Misc. socket properties.
+
+    Each of these has a one-to-one correspondence with an option passed to
+    $(ZMQREF zmq_msg_getsockopt()) and $(ZMQREF zmq_msg_setsockopt()). For
+    example, $(D identity) corresponds to $(D ZMQ_IDENTITY),
+    $(D receiveBufferSize) corresponds to $(D ZMQ_RCVBUF), etc.
+
+    Notes:
+    $(UL
+        $(LI For convenience, the setter for the $(D identity) property
+            accepts strings.  To retrieve a string with the getter, use
+            the $(REF asString) function.
+            ---
+            sck.identity = "foobar";
+            assert (sck.identity.asString() == "foobar");
+            ---
+            )
+        $(LI The $(D fd) property is an $(D int) on POSIX and a $(D SOCKET)
+            on Windows.)
+        $(LI The $(D ZMQ_SUBSCRIBE) and $(D ZMQ_UNSUBSCRIBE) options are
+            treated differently from the others; see $(REF Socket.subscribe)
+            and $(REF Socket.unsubscribe))
+    )
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_getsockopt()) and $(ZMQREF zmq_msg_setsockopt()).
+    */
     @property int sendHWM() { return getOption!int(ZMQ_SNDHWM); }
+    /// ditto
     @property void sendHWM(int value) { setOption(ZMQ_SNDHWM, value); }
 
+    /// ditto
     @property int receiveHWM() { return getOption!int(ZMQ_RCVHWM); }
+    /// ditto
     @property void receiveHWM(int value) { setOption(ZMQ_RCVHWM, value); }
 
+    /// ditto
     @property ulong threadAffinity() { return getOption!ulong(ZMQ_AFFINITY); }
+    /// ditto
     @property void threadAffinity(ulong value) { setOption(ZMQ_AFFINITY, value); }
 
+    /// ditto
     @property ubyte[] identity() @trusted
     {
         // This function is not @safe because it calls a @system function
@@ -590,58 +748,95 @@ struct Socket
         }
         return buf[0 .. len];
     }
+    /// ditto
     @property void identity(const ubyte[] value) { setOption(ZMQ_IDENTITY, value); }
+    /// ditto
     @property void identity(const  char[] value) { setOption(ZMQ_IDENTITY, value); }
 
+    /// ditto
     @property int rate() { return getOption!int(ZMQ_RATE); }
+    /// ditto
     @property void rate(int value) { setOption(ZMQ_RATE, value); }
 
+    /// ditto
     @property int recoveryInterval() { return getOption!int(ZMQ_RECOVERY_IVL); }
+    /// ditto
     @property void recoveryInterval(int value) { setOption(ZMQ_RECOVERY_IVL, value); }
 
+    /// ditto
     @property int sendBufferSize() { return getOption!int(ZMQ_SNDBUF); }
+    /// ditto
     @property void sendBufferSize(int value) { setOption(ZMQ_SNDBUF, value); }
 
+    /// ditto
     @property int receiveBufferSize() { return getOption!int(ZMQ_RCVBUF); }
+    /// ditto
     @property void receiveBufferSize(int value) { setOption(ZMQ_RCVBUF, value); }
 
+    /// ditto
     @property int linger() { return getOption!int(ZMQ_LINGER); }
+    /// ditto
     @property void linger(int value) { setOption(ZMQ_LINGER, value); }
 
+    /// ditto
     @property int reconnectionInterval() { return getOption!int(ZMQ_RECONNECT_IVL); }
+    /// ditto
     @property void reconnectionInterval(int value) { setOption(ZMQ_RECONNECT_IVL, value); }
 
+    /// ditto
     @property int maxReconnectionInterval() { return getOption!int(ZMQ_RECONNECT_IVL_MAX); }
+    /// ditto
     @property void maxReconnectionInterval(int value) { setOption(ZMQ_RECONNECT_IVL_MAX, value); }
 
+    /// ditto
     @property int backlog() { return getOption!int(ZMQ_BACKLOG); }
+    /// ditto
     @property void backlog(int value) { setOption(ZMQ_BACKLOG, value); }
 
+    /// ditto
     @property long maxMsgSize() { return getOption!long(ZMQ_MAXMSGSIZE); }
+    /// ditto
     @property void maxMsgSize(long value) { setOption(ZMQ_MAXMSGSIZE, value); }
 
+    /// ditto
     @property int multicastHops() { return getOption!int(ZMQ_MULTICAST_HOPS); }
+    /// ditto
     @property void multicastHops(int value) { setOption(ZMQ_MULTICAST_HOPS, value); }
 
+    /// ditto
     @property int receiveTimeout() { return getOption!int(ZMQ_RCVTIMEO); }
+    /// ditto
     @property void receiveTimeout(int value) { setOption(ZMQ_RCVTIMEO, value); }
 
+    /// ditto
     @property int sendTimeout() { return getOption!int(ZMQ_SNDTIMEO); }
+    /// ditto
     @property void sendTimeout(int value) { setOption(ZMQ_SNDTIMEO, value); }
 
+    /// ditto
     @property bool ipv4Only() { return !!getOption!int(ZMQ_IPV4ONLY); }
+    /// ditto
     @property void ipv4Only(bool value) { setOption(ZMQ_IPV4ONLY, value ? 1 : 0); }
 
+    /// ditto
     @property bool delayAttachOnConnect() { return !!getOption!int(ZMQ_DELAY_ATTACH_ON_CONNECT); }
+    /// ditto
     @property void delayAttachOnConnect(bool value) { setOption(ZMQ_DELAY_ATTACH_ON_CONNECT, value ? 1 : 0); }
+
 
     version (Windows) {
         alias FD = SOCKET;
     } else version (Posix) {
         alias FD = int;
     }
+
+    /// ditto
     @property FD fd() { return getOption!FD(ZMQ_FD); }
+
+    /// ditto
     @property int events() { return getOption!int(ZMQ_EVENTS); }
+
+    /// ditto
     @property char[] lastEndpoint() @trusted
     {
         // This function is not @safe because it calls a @system function
@@ -657,10 +852,150 @@ struct Socket
     // TODO: Some low-level options are missing still, plus setters for
     // ZMQ_ROUTER_MANDATORY and ZMQ_XPUB_VERBOSE.
 
+    unittest
+    {
+        // We test all the socket options by checking that they have their default value.
+        auto s = Socket(SocketType.xpub);
+        const e = "inproc://unittest2";
+        s.bind(e);
+        assert(s.type == SocketType.xpub);
+        assert(s.sendHWM == 1000);
+        assert(s.receiveHWM == 1000);
+        assert(s.threadAffinity == 0);
+        assert(s.identity == null);
+        assert(s.rate == 100);
+        assert(s.recoveryInterval == 10_000);
+        assert(s.sendBufferSize == 0);
+        assert(s.receiveBufferSize == 0);
+        assert(s.linger == -1);
+        assert(s.reconnectionInterval == 100);
+        assert(s.maxReconnectionInterval == 0);
+        assert(s.backlog == 100);
+        assert(s.maxMsgSize == -1);
+        assert(s.multicastHops == 1);
+        assert(s.receiveTimeout == -1);
+        assert(s.sendTimeout == -1);
+        assert(s.ipv4Only);
+        assert(!s.delayAttachOnConnect);
+        version(Posix) {
+            assert(s.fd > 2); // 0, 1 and 2 are the standard streams
+        }
+        assert(s.lastEndpoint == e);
+
+        // Test setters and getters together
+        s.sendHWM = 500;
+        assert(s.sendHWM == 500);
+        s.receiveHWM = 600;
+        assert(s.receiveHWM == 600);
+        s.threadAffinity = 1;
+        assert(s.threadAffinity == 1);
+        s.identity = cast(ubyte[]) [ 65, 66, 67 ];
+        assert(s.identity == [65, 66, 67]);
+        s.identity = "foo";
+        assert(s.identity == [102, 111, 111]);
+        s.rate = 200;
+        assert(s.rate == 200);
+        s.recoveryInterval = 5_000;
+        assert(s.recoveryInterval == 5_000);
+        s.sendBufferSize = 500;
+        assert(s.sendBufferSize == 500);
+        s.receiveBufferSize = 600;
+        assert(s.receiveBufferSize == 600);
+        s.linger = 0;
+        assert(s.linger == 0);
+        s.linger = 100;
+        assert(s.linger == 100);
+        s.reconnectionInterval = 200;
+        assert(s.reconnectionInterval == 200);
+        s.maxReconnectionInterval = 300;
+        assert(s.maxReconnectionInterval == 300);
+        s.backlog = 50;
+        assert(s.backlog == 50);
+        s.maxMsgSize = 1000;
+        assert(s.maxMsgSize == 1000);
+        s.multicastHops = 2;
+        assert(s.multicastHops == 2);
+        s.receiveTimeout = 3_000;
+        assert(s.receiveTimeout == 3_000);
+        s.sendTimeout = 2_000;
+        assert(s.sendTimeout == 2_000);
+        s.ipv4Only = false;
+        assert(!s.ipv4Only);
+        s.delayAttachOnConnect = true;
+        assert(s.delayAttachOnConnect);
+    }
+
+    /**
+    Establishes a message filter.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_setsockopt()) with $(D ZMQ_SUBSCRIBE).
+    */
     void subscribe(const ubyte[] filterPrefix) { setOption(ZMQ_SUBSCRIBE, filterPrefix); }
+    /// ditto
     void subscribe(const  char[] filterPrefix) { setOption(ZMQ_SUBSCRIBE, filterPrefix); }
+
+    ///
+    unittest
+    {
+        // Create a subscriber that accepts all messages that start with
+        // the prefixes "foo" or "bar".
+        auto sck = Socket(SocketType.sub);
+        sck.subscribe("foo");
+        sck.subscribe("bar");
+    }
+
+    @trusted unittest
+    {
+        void sleep(int ms) {
+            import core.thread, core.time;
+            Thread.sleep(dur!"msecs"(ms));
+        }
+        auto pub = Socket(SocketType.pub);
+        pub.bind("inproc://zmqd_subscribe_unittest");
+        auto sub = Socket(SocketType.sub);
+        sub.connect("inproc://zmqd_subscribe_unittest");
+
+        pub.send("Hello");
+        sleep(100);
+        sub.subscribe("He");
+        sub.subscribe(cast(ubyte[])['W', 'o']);
+        sleep(100);
+        pub.send("Heeee");
+        pub.send("World");
+        sleep(100);
+        ubyte[5] buf;
+        sub.receive(buf);
+        assert(buf.asString() == "Heeee");
+        sub.receive(buf);
+        assert(buf.asString() == "World");
+    }
+
+    /**
+    Removes a message filter.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_setsockopt()) with $(D ZMQ_SUBSCRIBE).
+    */
     void unsubscribe(const ubyte[] filterPrefix) { setOption(ZMQ_UNSUBSCRIBE, filterPrefix); }
+    /// ditto
     void unsubscribe(const  char[] filterPrefix) { setOption(ZMQ_UNSUBSCRIBE, filterPrefix); }
+
+    ///
+    unittest
+    {
+        // Subscribe to messages that start with "foo" or "bar".
+        auto sck = Socket(SocketType.sub);
+        sck.subscribe("foo");
+        sck.subscribe("bar");
+        // ...
+        // From now on, only accept messages that start with "bar"
+        sck.unsubscribe("foo");
+    }
 
     /**
     The $(D void*) pointer used by the underlying C API to refer to the socket.
@@ -733,118 +1068,13 @@ unittest
     s1.bind("inproc://unittest");
     s2.connect("inproc://unittest");
     s1.send("Hello World!");
-    char[12] cbuf;
-    const clen = s2.receive(cbuf[]);
-    assert (clen == 12);
-    assert (cbuf == "Hello World!");
-    s2.send([1.0, 3.14, 9.81, 2.718]);
-    double[3] dbuf;
-    const dlen = s1.receive(dbuf[]);
-    assert (dlen == 4*double.sizeof);
-    assert (dbuf == [1.0, 3.14, 9.81]);
+    ubyte[12] buf;
+    const len = s2.receive(buf[]);
+    assert (len == 12);
+    assert (buf == "Hello World!");
 }
 
-unittest
-{
-    // We test all the socket options by checking that they have their default value.
-    auto s = Socket(SocketType.xpub);
-    const e = "inproc://unittest2";
-    s.bind(e);
-    assert(s.type == SocketType.xpub);
-    assert(!s.receiveMore);
-    assert(s.sendHWM == 1000);
-    assert(s.receiveHWM == 1000);
-    assert(s.threadAffinity == 0);
-    assert(s.identity == null);
-    assert(s.rate == 100);
-    assert(s.recoveryInterval == 10_000);
-    assert(s.sendBufferSize == 0);
-    assert(s.receiveBufferSize == 0);
-    assert(s.linger == -1);
-    assert(s.reconnectionInterval == 100);
-    assert(s.maxReconnectionInterval == 0);
-    assert(s.backlog == 100);
-    assert(s.maxMsgSize == -1);
-    assert(s.multicastHops == 1);
-    assert(s.receiveTimeout == -1);
-    assert(s.sendTimeout == -1);
-    assert(s.ipv4Only);
-    assert(!s.delayAttachOnConnect);
-    version(Posix) {
-        assert(s.fd > 2); // 0, 1 and 2 are the standard streams
-    }
-    assert(s.lastEndpoint == e);
 
-    // Test setters and getters together
-    s.sendHWM = 500;
-    assert(s.sendHWM == 500);
-    s.receiveHWM = 600;
-    assert(s.receiveHWM == 600);
-    s.threadAffinity = 1;
-    assert(s.threadAffinity == 1);
-    s.identity = cast(ubyte[]) [ 65, 66, 67 ];
-    assert(s.identity == [65, 66, 67]);
-    s.identity = "foo";
-    assert(s.identity == [102, 111, 111]);
-    s.rate = 200;
-    assert(s.rate == 200);
-    s.recoveryInterval = 5_000;
-    assert(s.recoveryInterval == 5_000);
-    s.sendBufferSize = 500;
-    assert(s.sendBufferSize == 500);
-    s.receiveBufferSize = 600;
-    assert(s.receiveBufferSize == 600);
-    s.linger = 0;
-    assert(s.linger == 0);
-    s.linger = 100;
-    assert(s.linger == 100);
-    s.reconnectionInterval = 200;
-    assert(s.reconnectionInterval == 200);
-    s.maxReconnectionInterval = 300;
-    assert(s.maxReconnectionInterval == 300);
-    s.backlog = 50;
-    assert(s.backlog == 50);
-    s.maxMsgSize = 1000;
-    assert(s.maxMsgSize == 1000);
-    s.multicastHops = 2;
-    assert(s.multicastHops == 2);
-    s.receiveTimeout = 3_000;
-    assert(s.receiveTimeout == 3_000);
-    s.sendTimeout = 2_000;
-    assert(s.sendTimeout == 2_000);
-    s.ipv4Only = false;
-    assert(!s.ipv4Only);
-    s.delayAttachOnConnect = true;
-    assert(s.delayAttachOnConnect);
-}
-
-unittest
-{
-    // See http://zguide.zeromq.org/page:all#Getting-the-Message-Out for an
-    // explanation of why we need sleep().
-    void sleep(int ms) {
-        import core.thread, core.time;
-        Thread.sleep(dur!"msecs"(ms));
-    }
-    auto pub = Socket(SocketType.pub);
-    auto sub = Socket(SocketType.sub);
-    pub.bind("inproc://unittest3");
-    sub.connect("inproc://unittest3");
-    pub.send("Hello");
-    sleep(100);
-    sub.subscribe("He");
-    sub.subscribe(cast(ubyte[])['W', 'o']);
-    sleep(100);
-    pub.send("Heeee");
-    pub.send("World");
-    sleep(100);
-    char bbuf[5];
-    char cbuf[5];
-    sub.receive(bbuf);
-    sub.receive(cbuf);
-    assert(bbuf[] == cast(ubyte[])['H', 'e', 'e', 'e', 'e']);
-    assert(cbuf[] == "World");
-}
 
 
 struct Message
@@ -966,6 +1196,20 @@ unittest
 }
 
 
+/**
+Utility function which interprets and validates a byte array as a UTF-8 string.
+
+Most of $(ZMQD)'s message API deals in $(D ubyte[]) arrays, but very often,
+the message _data contains plain text.  $(D asString()) allows for easy and
+safe interpretation of raw _data as characters.  It checks that $(D data) is
+a valid UTF-8 encoded string, and returns a $(D char[]) array that refers to
+the same memory region.
+
+Throws:
+    $(STDREF utf,UTFException) if $(D data) is not a valid UTF-8 string.
+See_also:
+    $(STDREF string,representation), which performs the opposite operation.
+*/
 inout(char)[] asString(inout(ubyte)[] data) @safe pure
 {
     auto s = cast(typeof(return)) data;
@@ -974,11 +1218,29 @@ inout(char)[] asString(inout(ubyte)[] data) @safe pure
     return s;
 }
 
+///
 unittest
 {
-    auto a = cast(ubyte[]) ['f', 'o', 'o'];
-    assert (asString(a) == "foo");
-    assert (cast(void*) asString(a).ptr == a.ptr);
+    auto s1 = Socket(SocketType.pair);
+    s1.bind("ipc://zmqd_asString_example");
+    auto s2 = Socket(SocketType.pair);
+    s2.connect("ipc://zmqd_asString_example");
+
+    auto msg = Message(12);
+    msg.data.asString()[] = "Hello World!";
+    s1.send(msg);
+
+    ubyte[12] buf;
+    s2.receive(buf);
+    assert(buf.asString() == "Hello World!");
+}
+
+unittest
+{
+    auto bytes = cast(ubyte[]) ['f', 'o', 'o'];
+    auto text = bytes.asString();
+    assert (text == "foo");
+    assert (cast(void*) bytes.ptr == cast(void*) text.ptr);
 
     import std.exception: assertThrown;
     import std.utf: UTFException;
@@ -1041,7 +1303,9 @@ struct Resource
         }
     }
 
-    ~this() @safe nothrow
+    // TODO: This function could be @safe, if not for a weird compiler bug.
+    // https://d.puremagic.com/issues/show_bug.cgi?id=11505
+    ~this() @trusted nothrow
     {
         detach();
     }
