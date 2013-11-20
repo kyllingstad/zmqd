@@ -228,9 +228,6 @@ struct Context
     /**
     The $(D void*) pointer used by the underlying C API to refer to the context.
 
-    This should only be used if you intend to call any of the $(ZMQ) C
-    functions manually.
-
     If the object has not been initialized, this function returns $(D null).
     */
     @property inout(void)* handle() inout pure nothrow
@@ -1000,9 +997,6 @@ struct Socket
     /**
     The $(D void*) pointer used by the underlying C API to refer to the socket.
 
-    This should only be used if you intend to call any of the $(ZMQ) C
-    functions manually.
-
     If the object has not been initialized, this function returns $(D null).
     */
     @property inout(void)* handle() inout pure nothrow
@@ -1075,11 +1069,37 @@ unittest
 }
 
 
+/**
+An object that encapsulates a $(ZMQ) message.
 
+This $(D struct) is a wrapper around a $(D zmq_msg_t) object.  Unlike
+$(REF Context) and $(REF Socket), it does $(EM not) perform reference
+counting, because $(ZMQ) messages have a form of reference counting of
+their own.  A $(D Message) cannot be copied by normal assignment; use
+$(REF Message.copy) for this.
 
+A default-initialized $(D Message) is not a valid $(ZMQ) message; it
+must always be explicitly initialized with $(REF _Message.opCall) or
+$(REF _Message.this):
+---
+Message msg1;               // Invalid message
+auto msg2 = Message();      // Empty message
+auto msg3 = Message(1024);  // 1K message
+---
+When a $(D Message) goes out of scope, $(ZMQREF zmq_msg_close()) is
+called on the underlying $(D zmq_msg_t).
+*/
 struct Message
 {
 @safe:
+    /**
+    Initialises an empty $(ZMQ) message.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_init())
+    */
     static Message opCall()
     {
         Message m;
@@ -1090,12 +1110,21 @@ struct Message
         return m;
     }
 
+    ///
     unittest
     {
         auto msg = Message();
         assert(msg.size == 0);
     }
 
+    /**
+    Initialises a $(ZMQ) message of a specified size.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_init_size())
+    */
     this(size_t size)
     {
         if (trusted!zmq_msg_init_size(&m_msg, size) != 0) {
@@ -1104,6 +1133,7 @@ struct Message
         m_initialized = true;
     }
 
+    ///
     unittest
     {
         auto msg = Message(123);
@@ -1112,6 +1142,16 @@ struct Message
 
     @disable this(this);
 
+    /**
+    Releases the $(ZMQ) message when the $(D Message) is destroyed.
+
+    This destructor never throws, which means that any errors will go
+    undetected.  If this is undesirable, call $(REF Message.close) before
+    the $(D Message) is destroyed.
+
+    Corresponds_to:
+        $(ZMQREF zmq_msg_close())
+    */
     ~this() nothrow
     {
         if (m_initialized) {
@@ -1120,6 +1160,18 @@ struct Message
         }
     }
 
+    /**
+    Releases the $(ZMQ) message.
+
+    Note that the message will be automatically released when the $(D Message)
+    object is destroyed, so it is often not necessary to call this method
+    manually.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_close())
+    */
     void close()
     {
         if (m_initialized) {
@@ -1130,36 +1182,59 @@ struct Message
         }
     }
 
+    /**
+    The message content size in bytes.
+
+    Corresponds_to:
+        $(ZMQREF zmq_msg_size())
+    */
     @property size_t size() nothrow
     {
         return trusted!zmq_msg_size(&m_msg);
     }
 
+    ///
     unittest
     {
         auto msg = Message(123);
         assert(msg.size == 123);
     }
 
+    /**
+    Retrieves the message content.
+
+    Corresponds_to:
+        $(ZMQREF zmq_msg_data())
+    */
     @property ubyte[] data() @trusted nothrow
     {
         return (cast(ubyte*) zmq_msg_data(&m_msg))[0 .. size];
     }
 
+    ///
     unittest
     {
+        import std.string: representation;
         auto msg = Message(3);
         assert(msg.data.length == 3);
-        auto myData = cast(ubyte[]) [34, 9, 172];
-        msg.data[] = myData;
-        assert(msg.data == myData);
+        msg.data[] = "foo".representation; // Slice operator -> array copy.
+        assert(msg.data.asString() == "foo");
     }
 
+    /**
+    Whether there are more message parts to retrieve.
+
+    Corresponds_to:
+        $(ZMQREF zmq_msg_more())
+    */
     @property bool more() nothrow
     {
         return !!trusted!zmq_msg_more(&m_msg);
     }
 
+    /**
+    A pointer to the underlying $(D zmq_msg_t).
+    */
     @property inout(zmq_msg_t)* handle() inout pure nothrow
     {
         return &m_msg;
