@@ -29,8 +29,8 @@ users.
 
 Due to the close correspondence with the C API, this documentation has
 intentionally been kept sparse. There is really no reason to repeat the
-contents of the $(LINK2 http://api.zeromq.org/3-2:_start,$(ZMQ) reference manual)
-here.  Instead, the documentation for each function contains a "Corresponds to"
+contents of the $(ZMQAPI __start,$(ZMQ) reference manual) here.
+Instead, the documentation for each function contains a "Corresponds to"
 section that links to the appropriate page in the $(ZMQ) reference.  Any
 details given in the present documentation mostly concern the D-specific
 adaptations that have been made.
@@ -60,8 +60,9 @@ Macros:
     REF    = $(D $(LINK2 #$1,$1))
     STDREF = $(D $(LINK2 http://dlang.org/phobos/std_$1.html#.$2,std.$1.$2))
     ZMQ    = &#x2205;MQ
+    ZMQAPI = $(LINK2 http://api.zeromq.org/3-2:$1,$+)
     ZMQD   = $(ZMQ)D
-    ZMQREF = $(D $(LINK2 http://api.zeromq.org/3-2:$1,$1))
+    ZMQREF = $(D $(ZMQAPI $1,$1))
 */
 module zmqd;
 
