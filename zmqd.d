@@ -1184,6 +1184,46 @@ struct Message
     }
 
     /**
+    Copies a message.
+
+    $(D copy()) returns a new $(D Message) object, while $(D copyTo(dest))
+    copies this $(D Message) into $(D dest).  $(D dest) must be a valid
+    (i.e. initialised) $(D Message).
+
+    Warning:
+        These functions may not do what you think they do.  Please refer
+        to $(ZMQAPI zmq_msg_copy(),the $(ZMQ) manual) for details.
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_copy())
+    */
+    Message copy()
+    {
+        auto cp = Message();
+        copyTo(cp);
+        return cp;
+    }
+
+    /// ditto
+    void copyTo(ref Message dest)
+    {
+        if (trusted!zmq_msg_copy(&dest.m_msg, &m_msg) != 0) {
+            throw new ZmqException;
+        }
+    }
+
+    ///
+    unittest
+    {
+        import std.string: representation;
+        auto msg1 = Message(3);
+        msg1.data[] = "foo".representation;
+        auto msg2 = msg1.copy();
+        assert (msg1.data.asString() == "foo");
+    }
+
+    /**
     The message content size in bytes.
 
     Corresponds_to:
