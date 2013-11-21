@@ -1184,11 +1184,11 @@ struct Message
     }
 
     /**
-    Copies a message.
+    Copies message content to another message.
 
     $(D copy()) returns a new $(D Message) object, while $(D copyTo(dest))
-    copies this $(D Message) into $(D dest).  $(D dest) must be a valid
-    (i.e. initialised) $(D Message).
+    copies the contents of this $(D Message) into $(D dest).  $(D dest) must
+    be a valid (i.e. initialised) $(D Message).
 
     Warning:
         These functions may not do what you think they do.  Please refer
@@ -1220,7 +1220,7 @@ struct Message
         auto msg1 = Message(3);
         msg1.data[] = "foo".representation;
         auto msg2 = msg1.copy();
-        assert (msg1.data.asString() == "foo");
+        assert (msg2.data.asString() == "foo");
     }
 
     /**
