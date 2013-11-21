@@ -1224,6 +1224,44 @@ struct Message
     }
 
     /**
+    Moves message content to another message.
+
+    $(D move()) returns a new $(D Message) object, while $(D moveTo(dest))
+    moves the contents of this $(D Message) to $(D dest).  $(D dest) must
+    be a valid (i.e. initialised) $(D Message).
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_move())
+    */
+    Message move()
+    {
+        auto m = Message();
+        moveTo(m);
+        return m;
+    }
+
+    /// ditto
+    void moveTo(ref Message dest)
+    {
+        if (trusted!zmq_msg_move(&dest.m_msg, &m_msg) != 0) {
+            throw new ZmqException;
+        }
+    }
+
+    ///
+    unittest
+    {
+        import std.string: representation;
+        auto msg1 = Message(3);
+        msg1.data[] = "foo".representation;
+        auto msg2 = msg1.move();
+        assert (msg1.size == 0);
+        assert (msg2.data.asString() == "foo");
+    }
+
+    /**
     The message content size in bytes.
 
     Corresponds_to:
