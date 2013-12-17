@@ -534,26 +534,50 @@ struct Socket
     /**
     Sends a message part.
 
-    The $(D char[]) overload is a convenience function that simply casts the
-    string to $(D ubyte[]).
+    $(D _send) blocks until the message has been queued on the socket.
+    $(D trySend) performs the operation in non-blocking mode, and returns
+    a $(D bool) value that signifies whether the message was queued on the
+    socket.
+
+    The $(D char[]) overload is a convenience function that simply casts
+    the string argument to $(D ubyte[]).
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
-        $(ZMQREF zmq_send())
+        $(ZMQREF zmq_send()) (with the $(D ZMQ_DONTWAIT) flag, in the case
+        of $(D trySend)).
     */
-    // TODO: DONTWAIT and SNDMORE flags
-    void send(const ubyte[] data)
+    void send(const ubyte[] data, bool more = false)
     {
-        if (trusted!zmq_send(m_socket.handle, data.ptr, data.length, 0) < 0) {
+        immutable flags = more ? ZMQ_SNDMORE : 0;
+        if (trusted!zmq_send(m_socket.handle, data.ptr, data.length, flags) < 0) {
             throw new ZmqException;
         }
     }
 
     /// ditto
-    void send(const char[] data) @trusted
+    void send(const char[] data, bool more = false) @trusted
     {
-        send(cast(ubyte[]) data);
+        send(cast(ubyte[]) data, more);
+    }
+
+    /// ditto
+    bool trySend(const ubyte[] data, bool more = false)
+    {
+        immutable flags = ZMQ_DONTWAIT | (more ? ZMQ_SNDMORE : 0);
+        if (trusted!zmq_send(m_socket.handle, data.ptr, data.length, flags) < 0) {
+            import core.stdc.errno;
+            if (errno == EAGAIN) return false;
+            else throw new ZmqException;
+        }
+        return true;
+    }
+
+    /// ditto
+    bool trySend(const char[] data, bool more = false) @trusted
+    {
+        return trySend(cast(ubyte[]) data, more);
     }
 
     ///
@@ -567,16 +591,35 @@ struct Socket
     /**
     Sends a message part.
 
+    $(D _send) blocks until the message has been queued on the socket.
+    $(D trySend) performs the operation in non-blocking mode, and returns
+    a $(D bool) value that signifies whether the message was queued on the
+    socket.
+
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
-        $(ZMQREF zmq_msg_send())
+        $(ZMQREF zmq_msg_send()) (with the $(D ZMQ_DONTWAIT) flag, in the case
+        of $(D trySend)).
     */
-    void send(ref Message msg)
+    void send(ref Message msg, bool more = false)
     {
-        if (trusted!zmq_msg_send(msg.handle, m_socket.handle, 0) < 0) {
+        immutable flags = more ? ZMQ_SNDMORE : 0;
+        if (trusted!zmq_msg_send(msg.handle, m_socket.handle, flags) < 0) {
             throw new ZmqException;
         }
+    }
+
+    /// ditto
+    bool trySend(ref Message msg, bool more = false)
+    {
+        immutable flags = ZMQ_DONTWAIT | (more ? ZMQ_SNDMORE : 0);
+        if (trusted!zmq_msg_send(msg.handle, m_socket.handle, flags) < 0) {
+            import core.stdc.errno;
+            if (errno == EAGAIN) return false;
+            else throw new ZmqException;
+        }
+        return true;
     }
 
     ///
@@ -591,19 +634,42 @@ struct Socket
     /**
     Receives a message part.
 
+    $(D _receive) blocks until the request can be satisfied.
+    $(D tryReceive) performs the operation in non-blocking mode, and returns
+    a $(D bool) value that signifies whether a message was received.
+
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
-        $(ZMQREF zmq_recv())
+        $(ZMQREF zmq_recv()) (with the $(D ZMQ_DONTWAIT) flag, in the case
+        of $(D tryReceive)).
+
     */
     size_t receive(ubyte[] data)
     {
-        const len = trusted!zmq_recv(m_socket.handle, data.ptr, data.length, 0);
+        immutable len = trusted!zmq_recv(m_socket.handle, data.ptr, data.length, 0);
         if (len >= 0) {
             import std.conv;
             return to!size_t(len);
         } else {
             throw new ZmqException;
+        }
+    }
+
+    /// ditto
+    Tuple!(size_t, bool) tryReceive(ubyte[] data)
+    {
+        immutable len = trusted!zmq_recv(m_socket.handle, data.ptr, data.length, ZMQ_DONTWAIT);
+        if (len >= 0) {
+            import std.conv;
+            return typeof(return)(to!size_t(len), true);
+        } else {
+            import core.stdc.errno;
+            if (errno == EAGAIN) {
+                return typeof(return)(0, false);
+            } else {
+                throw new ZmqException;
+            }
         }
     }
 
@@ -619,23 +685,68 @@ struct Socket
         import std.string: representation;
         auto rcv = Socket(SocketType.rep);
         rcv.bind("ipc://zmqd_receive_example");
-        char[12] buf;
-        rcv.receive(buf.representation);
-        assert (buf[] == "Hello World!");
+        char[256] buf;
+        immutable len  = rcv.receive(buf.representation);
+        assert (buf[0 .. len] == "Hello World!");
+    }
+
+    @trusted unittest
+    {
+        auto snd = Socket(SocketType.pair);
+        snd.bind("ipc://zmqd_tryReceive_example");
+        auto rcv = Socket(SocketType.pair);
+        rcv.connect("ipc://zmqd_tryReceive_example");
+
+        ubyte[256] buf;
+        auto r1 = rcv.tryReceive(buf);
+        assert (!r1[1]);
+
+        import core.thread, core.time, std.string;
+        snd.send("Hello World!");
+        Thread.sleep(100.msecs); // Wait for message to be transferred...
+        auto r2 = rcv.tryReceive(buf);
+        assert (r2[1] && buf[0 .. r2[0]] == "Hello World!".representation);
     }
 
     /**
     Receives a message part.
 
+    $(D _receive) blocks until the request can be satisfied.
+    $(D tryReceive) performs the operation in non-blocking mode, and returns
+    a $(D bool) value that signifies whether a message was received.
+
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
-        $(ZMQREF zmq_msg_recv())
+        $(ZMQREF zmq_msg_recv()) (with the $(D ZMQ_DONTWAIT) flag, in the case
+        of $(D tryReceive)).
+
     */
-    void receive(ref Message msg)
+    size_t receive(ref Message msg)
     {
-        if (trusted!zmq_msg_recv(msg.handle, m_socket.handle, 0) < 0) {
+        immutable len = trusted!zmq_msg_recv(msg.handle, m_socket.handle, 0);
+        if (len >= 0) {
+            import std.conv;
+            return to!size_t(len);
+        } else {
             throw new ZmqException;
+        }
+    }
+
+    /// ditto
+    Tuple!(size_t, bool) tryReceive(ref Message msg)
+    {
+        immutable len = trusted!zmq_msg_recv(msg.handle, m_socket.handle, ZMQ_DONTWAIT);
+        if (len >= 0) {
+            import std.conv;
+            return typeof(return)(to!size_t(len), true);
+        } else {
+            import core.stdc.errno;
+            if (errno == EAGAIN) {
+                return typeof(return)(0, false);
+            } else {
+                throw new ZmqException;
+            }
         }
     }
 
@@ -654,6 +765,24 @@ struct Socket
         auto msg = Message();
         rcv.receive(msg);
         assert (msg.data.asString() == "Hello World!");
+    }
+
+    @trusted unittest
+    {
+        auto snd = Socket(SocketType.pair);
+        snd.bind("ipc://zmqd_msg_tryReceive_example");
+        auto rcv = Socket(SocketType.pair);
+        rcv.connect("ipc://zmqd_msg_tryReceive_example");
+
+        auto msg = Message();
+        auto r1 = rcv.tryReceive(msg);
+        assert (!r1[1]);
+
+        import core.thread, core.time, std.string;
+        snd.send("Hello World!");
+        Thread.sleep(100.msecs); // Wait for message to be transferred...
+        auto r2 = rcv.tryReceive(msg);
+        assert (r2[1] && msg.data[0 .. r2[0]] == "Hello World!".representation);
     }
 
     /**
