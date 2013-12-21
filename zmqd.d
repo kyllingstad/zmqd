@@ -1198,6 +1198,25 @@ unittest
 
 
 /**
+Starts the built-in $(ZMQ) _proxy.
+
+Corresponds_to:
+    $(ZMQREF zmq_proxy())
+*/
+void proxy(ref Socket frontend, ref Socket backend) @safe nothrow
+{
+    trusted!zmq_proxy(frontend.handle, backend.handle, null);
+}
+
+/// ditto
+void proxy(ref Socket frontend, ref Socket backend, ref Socket capture)
+    @safe nothrow
+{
+    trusted!zmq_proxy(frontend.handle, backend.handle, capture.handle);
+}
+
+
+/**
 An object that encapsulates a $(ZMQ) message.
 
 This $(D struct) is a wrapper around a $(D zmq_msg_t) object.  Unlike
