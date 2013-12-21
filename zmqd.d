@@ -43,6 +43,8 @@ snippets that demonstrate the syntax; for more comprehensive and realistic
 examples, please refer to the $(LINK2 http://zguide.zeromq.org/page:all,
 $(ZMQ) Guide).
 
+Version:
+    0.1 ($(ZMQ) 3.2 compatible)
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
 Copyright:
