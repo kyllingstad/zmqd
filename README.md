@@ -18,6 +18,8 @@ but they follow the D naming conventions.  For example, `zmq_msg_send()`
 becomes `zmqd.Message.send()` and so on.  Thus, the library should feel
 both familiar to ∅MQ users and natural to D users.
 
+The documentation may be browsed online at http://kyllingstad.github.io/zmqd/.
+
 ## Requirements ##
 
 What you need is:
