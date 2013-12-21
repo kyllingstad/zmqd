@@ -331,23 +331,21 @@ unittest
 /**
 The various socket types.
 
-These are described in the $(ZMQREF zmq_socket()) reference.  They are
-almost always referred to by their abbreviation (e.g. REQ for a "request"
-socket), so those names are used here as well.
+These are described in the $(ZMQREF zmq_socket()) reference.
 */
 enum SocketType
 {
-    req     = ZMQ_REQ,      ///
-    rep     = ZMQ_REP,      ///
-    dealer  = ZMQ_DEALER,   ///
-    router  = ZMQ_ROUTER,   ///
-    pub     = ZMQ_PUB,      ///
-    sub     = ZMQ_SUB,      ///
-    xpub    = ZMQ_XPUB,     ///
-    xsub    = ZMQ_XSUB,     ///
-    push    = ZMQ_PUSH,     ///
-    pull    = ZMQ_PULL,     ///
-    pair    = ZMQ_PAIR,     ///
+    req     = ZMQ_REQ,      /// Corresponds to $(D ZMQ_REQ)
+    rep     = ZMQ_REP,      /// Corresponds to $(D ZMQ_REP)
+    dealer  = ZMQ_DEALER,   /// Corresponds to $(D ZMQ_DEALER)
+    router  = ZMQ_ROUTER,   /// Corresponds to $(D ZMQ_ROUTER)
+    pub     = ZMQ_PUB,      /// Corresponds to $(D ZMQ_PUB)
+    sub     = ZMQ_SUB,      /// Corresponds to $(D ZMQ_SUB)
+    xpub    = ZMQ_XPUB,     /// Corresponds to $(D ZMQ_XPUB)
+    xsub    = ZMQ_XSUB,     /// Corresponds to $(D ZMQ_XSUB)
+    push    = ZMQ_PUSH,     /// Corresponds to $(D ZMQ_PUSH)
+    pull    = ZMQ_PULL,     /// Corresponds to $(D ZMQ_PULL)
+    pair    = ZMQ_PAIR,     /// Corresponds to $(D ZMQ_PAIR)
 }
 
 
