@@ -48,10 +48,9 @@ Version:
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
 Copyright:
-    Copyright (c) 2013, Lars T. Kyllingstad
+    Copyright (c) 2013, Lars T. Kyllingstad. All rights reserved.
 License:
-    $(ZMQD) is released under the $(LINK2 http://www.boost.org/LICENSE_1_0.txt,
-    Boost Software License, version 1.0).$(BR)
+    $(ZMQD) is released under a BSD licence (see LICENCE.txt for details).$(BR)
     Please refer to the $(LINK2 http://zeromq.org/area:licensing,$(ZMQ) site)
     for details about $(ZMQ) licensing.
 Macros:
