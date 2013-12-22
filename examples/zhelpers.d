@@ -7,6 +7,6 @@ string sRecv(ref Socket socket)
 {
     ubyte[256] buffer;
     immutable size = socket.receive(buffer);
-    import std.algorithm: max;
-    return buffer[0 .. max(size,256)].idup.asString();
+    import std.algorithm: min;
+    return buffer[0 .. min(size,256)].idup.asString();
 }
