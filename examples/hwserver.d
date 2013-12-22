@@ -1,6 +1,6 @@
 // Hello World server
 import core.thread, core.time;
-import std.stdio, std.string;
+import std.stdio;
 import zmqd;
 
 void main()
@@ -14,6 +14,6 @@ void main()
         responder.receive(buffer);
         writeln("Received Hello");
         Thread.sleep(1.seconds);
-        responder.send("World".representation);
+        responder.send("World");
     }
 }

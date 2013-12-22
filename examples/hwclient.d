@@ -1,5 +1,5 @@
 // Hello World client
-import std.stdio, std.string;
+import std.stdio;
 import zmqd;
 
 void main()
@@ -10,7 +10,7 @@ void main()
 
     for (int requestNbr = 0; requestNbr < 10; ++requestNbr) {
         writefln("Sending Hello %d…", requestNbr);
-        requester.send("Hello".representation);
+        requester.send("Hello");
         ubyte[10] buffer;
         requester.receive(buffer);
         writefln("Received World %d", requestNbr);
