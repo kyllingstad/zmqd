@@ -633,9 +633,12 @@ struct Socket
     /**
     Receives a message part.
 
-    $(D _receive) blocks until the request can be satisfied.
+    $(D _receive) blocks until the request can be satisfied, and returns the
+    number of bytes in the message.
     $(D tryReceive) performs the operation in non-blocking mode, and returns
-    a $(D bool) value that signifies whether a message was received.
+    a $(STDREF typecons,Tuple) which contains the size of the message along
+    with a $(D bool) value that signifies whether a message was received.
+    (If the latter is $(D false), the former is always set to zero.)
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -710,9 +713,12 @@ struct Socket
     /**
     Receives a message part.
 
-    $(D _receive) blocks until the request can be satisfied.
+    $(D _receive) blocks until the request can be satisfied, and returns the
+    number of bytes in the message.
     $(D tryReceive) performs the operation in non-blocking mode, and returns
-    a $(D bool) value that signifies whether a message was received.
+    a $(STDREF typecons,Tuple) which contains the size of the message along
+    with a $(D bool) value that signifies whether a message was received.
+    (If the latter is $(D false), the former is always set to zero.)
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
