@@ -1131,6 +1131,36 @@ struct Socket
     }
 
     /**
+    Spawns a PAIR socket that publishes socket state changes (events) over
+    the INPROC transport to the given endpoint.
+
+    Which event types should be published may be selected by bitwise-ORing
+    together different $(REF EventType) flags in the $(D event) parameter.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_socket_monitor())
+    See_also:
+        $(REF EventType), which is a set of flags that can be ORed together
+        to select which event types should be published.
+    */
+    void monitor(const char[] endpoint, EventType events = EventType.all) @safe
+    {
+        if (trusted!zmq_socket_monitor(m_socket.handle, zeroTermString(endpoint), events) < 0) {
+            throw new ZmqException;
+        }
+    }
+
+    ///
+    unittest
+    {
+        auto sck = Socket(SocketType.pub);
+        sck.monitor("inproc://zmqd_monitor_unittest",
+                    EventType.accepted | EventType.closed);
+    }
+
+    /**
     The $(D void*) pointer used by the underlying C API to refer to the socket.
 
     If the object has not been initialized, this function returns $(D null).
@@ -1202,6 +1232,28 @@ unittest
     const len = s2.receive(buf[]);
     assert (len == 12);
     assert (buf == "Hello World!");
+}
+
+
+/**
+Socket event types.
+
+These are used together with $(FREF Socket.monitor), and are described
+in the $(ZMQREF zmq_socket_monitor()) reference.
+*/
+enum EventType
+{
+    connected       = ZMQ_EVENT_CONNECTED,      /// Corresponds to $(D ZMQ_EVENT_CONNECTED).
+    connectDelayed  = ZMQ_EVENT_CONNECT_DELAYED,/// Corresponds to $(D ZMQ_EVENT_CONNECT_DELAYED).
+    connectRetried  = ZMQ_EVENT_CONNECT_RETRIED,/// Corresponds to $(D ZMQ_EVENT_CONNECT_RETRIED).
+    listening       = ZMQ_EVENT_LISTENING,      /// Corresponds to $(D ZMQ_EVENT_LISTENING).
+    bindFailed      = ZMQ_EVENT_BIND_FAILED,    /// Corresponds to $(D ZMQ_EVENT_BIND_FAILED).
+    accepted        = ZMQ_EVENT_ACCEPTED,       /// Corresponds to $(D ZMQ_EVENT_ACCEPTED).
+    acceptFailed    = ZMQ_EVENT_ACCEPT_FAILED,  /// Corresponds to $(D ZMQ_EVENT_ACCEPT_FAILED).
+    closed          = ZMQ_EVENT_CLOSED,         /// Corresponds to $(D ZMQ_EVENT_CLOSED).
+    closeFailed     = ZMQ_EVENT_CLOSE_FAILED,   /// Corresponds to $(D ZMQ_EVENT_CLOSE_FAILED).
+    disconnected    = ZMQ_EVENT_DISCONNECTED,   /// Corresponds to $(D ZMQ_EVENT_DISCONNECTED).
+    all             = ZMQ_EVENT_ALL             /// Corresponds to $(D ZMQ_EVENT_ALL).
 }
 
 
