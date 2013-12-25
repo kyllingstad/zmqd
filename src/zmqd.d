@@ -58,6 +58,7 @@ Macros:
     EM     = <em>$0</em>
     LDOTS  = &hellip;
     QUOTE  = <blockquote>$0</blockquote>
+    FREF   = $(D $(LINK2 #$1,$1()))
     REF    = $(D $(LINK2 #$1,$1))
     STDREF = $(D $(LINK2 http://dlang.org/phobos/std_$1.html#.$2,std.$1.$2))
     ZMQ    = &#x2205;MQ
@@ -98,10 +99,10 @@ An object that encapsulates a $(ZMQ) context.
 
 In most programs, it is not necessary to use this type directly,
 as $(REF Socket) will use a default global context if not explicitly
-provided with one.  See $(REF defaultContext) for details.
+provided with one.  See $(FREF defaultContext) for details.
 
 A default-initialized $(D Context) is not a valid $(ZMQ) context; it
-must always be explicitly initialized with $(REF _Context.opCall):
+must always be explicitly initialized with $(FREF _Context.opCall):
 ---
 Context ctx;        // Not a valid context yet
 ctx = Context();    // ...but now it is.
@@ -112,7 +113,7 @@ reference counting, so that when the last copy of a $(D Context) goes
 out of scope, the context is automatically destroyed.
 
 See_also:
-    $(REF defaultContext)
+    $(FREF defaultContext)
 */
 struct Context
 {
@@ -355,7 +356,7 @@ An object that encapsulates a $(ZMQ) socket.
 
 A default-initialized $(D Socket) is not a valid $(ZMQ) socket; it
 must always be explicitly initialized with a constructor (see
-$(REF _Socket.this)):
+$(FREF _Socket.this)):
 ---
 Socket s;                     // Not a valid socket yet
 s = Socket(SocketType.push);  // ...but now it is.
@@ -372,7 +373,7 @@ struct Socket
     Creates a new $(ZMQ) socket.
 
     If $(D context) is not specified, the default context (as returned
-    by $(REF defaultContext)) is used.
+    by $(FREF defaultContext)) is used.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -836,7 +837,7 @@ struct Socket
     $(UL
         $(LI For convenience, the setter for the $(D identity) property
             accepts strings.  To retrieve a string with the getter, use
-            the $(REF asString) function.
+            the $(FREF asString) function.
             ---
             sck.identity = "foobar";
             assert (sck.identity.asString() == "foobar");
@@ -845,8 +846,8 @@ struct Socket
         $(LI The $(D fd) property is an $(D int) on POSIX and a $(D SOCKET)
             on Windows.)
         $(LI The $(D ZMQ_SUBSCRIBE) and $(D ZMQ_UNSUBSCRIBE) options are
-            treated differently from the others; see $(REF Socket.subscribe)
-            and $(REF Socket.unsubscribe))
+            treated differently from the others; see $(FREF Socket.subscribe)
+            and $(FREF Socket.unsubscribe))
     )
 
     Throws:
@@ -1230,11 +1231,11 @@ This $(D struct) is a wrapper around a $(D zmq_msg_t) object.  Unlike
 $(REF Context) and $(REF Socket), it does $(EM not) perform reference
 counting, because $(ZMQ) messages have a form of reference counting of
 their own.  A $(D Message) cannot be copied by normal assignment; use
-$(REF Message.copy) for this.
+$(FREF Message.copy) for this.
 
 A default-initialized $(D Message) is not a valid $(ZMQ) message; it
-must always be explicitly initialized with $(REF _Message.opCall) or
-$(REF _Message.this):
+must always be explicitly initialized with $(FREF _Message.opCall) or
+$(FREF _Message.this):
 ---
 Message msg1;               // Invalid message
 auto msg2 = Message();      // Empty message
@@ -1300,7 +1301,7 @@ struct Message
     Releases the $(ZMQ) message when the $(D Message) is destroyed.
 
     This destructor never throws, which means that any errors will go
-    undetected.  If this is undesirable, call $(REF Message.close) before
+    undetected.  If this is undesirable, call $(FREF Message.close) before
     the $(D Message) is destroyed.
 
     Corresponds_to:
