@@ -1142,8 +1142,7 @@ struct Socket
     Corresponds_to:
         $(ZMQREF zmq_socket_monitor())
     See_also:
-        $(REF EventType), which is a set of flags that can be ORed together
-        to select which event types should be published.
+        $(FREF receiveEvent), which receives and parses event messages.
     */
     void monitor(const char[] endpoint, EventType events = EventType.all) @safe
     {
@@ -1232,28 +1231,6 @@ unittest
     const len = s2.receive(buf[]);
     assert (len == 12);
     assert (buf == "Hello World!");
-}
-
-
-/**
-Socket event types.
-
-These are used together with $(FREF Socket.monitor), and are described
-in the $(ZMQREF zmq_socket_monitor()) reference.
-*/
-enum EventType
-{
-    connected       = ZMQ_EVENT_CONNECTED,      /// Corresponds to $(D ZMQ_EVENT_CONNECTED).
-    connectDelayed  = ZMQ_EVENT_CONNECT_DELAYED,/// Corresponds to $(D ZMQ_EVENT_CONNECT_DELAYED).
-    connectRetried  = ZMQ_EVENT_CONNECT_RETRIED,/// Corresponds to $(D ZMQ_EVENT_CONNECT_RETRIED).
-    listening       = ZMQ_EVENT_LISTENING,      /// Corresponds to $(D ZMQ_EVENT_LISTENING).
-    bindFailed      = ZMQ_EVENT_BIND_FAILED,    /// Corresponds to $(D ZMQ_EVENT_BIND_FAILED).
-    accepted        = ZMQ_EVENT_ACCEPTED,       /// Corresponds to $(D ZMQ_EVENT_ACCEPTED).
-    acceptFailed    = ZMQ_EVENT_ACCEPT_FAILED,  /// Corresponds to $(D ZMQ_EVENT_ACCEPT_FAILED).
-    closed          = ZMQ_EVENT_CLOSED,         /// Corresponds to $(D ZMQ_EVENT_CLOSED).
-    closeFailed     = ZMQ_EVENT_CLOSE_FAILED,   /// Corresponds to $(D ZMQ_EVENT_CLOSE_FAILED).
-    disconnected    = ZMQ_EVENT_DISCONNECTED,   /// Corresponds to $(D ZMQ_EVENT_DISCONNECTED).
-    all             = ZMQ_EVENT_ALL             /// Corresponds to $(D ZMQ_EVENT_ALL).
 }
 
 
@@ -1557,6 +1534,305 @@ unittest
 
 
 /**
+Socket event types.
+
+These are used together with $(FREF Socket.monitor), and are described
+in the $(ZMQREF zmq_socket_monitor()) reference.
+*/
+enum EventType
+{
+    connected       = ZMQ_EVENT_CONNECTED,      /// Corresponds to $(D ZMQ_EVENT_CONNECTED).
+    connectDelayed  = ZMQ_EVENT_CONNECT_DELAYED,/// Corresponds to $(D ZMQ_EVENT_CONNECT_DELAYED).
+    connectRetried  = ZMQ_EVENT_CONNECT_RETRIED,/// Corresponds to $(D ZMQ_EVENT_CONNECT_RETRIED).
+    listening       = ZMQ_EVENT_LISTENING,      /// Corresponds to $(D ZMQ_EVENT_LISTENING).
+    bindFailed      = ZMQ_EVENT_BIND_FAILED,    /// Corresponds to $(D ZMQ_EVENT_BIND_FAILED).
+    accepted        = ZMQ_EVENT_ACCEPTED,       /// Corresponds to $(D ZMQ_EVENT_ACCEPTED).
+    acceptFailed    = ZMQ_EVENT_ACCEPT_FAILED,  /// Corresponds to $(D ZMQ_EVENT_ACCEPT_FAILED).
+    closed          = ZMQ_EVENT_CLOSED,         /// Corresponds to $(D ZMQ_EVENT_CLOSED).
+    closeFailed     = ZMQ_EVENT_CLOSE_FAILED,   /// Corresponds to $(D ZMQ_EVENT_CLOSE_FAILED).
+    disconnected    = ZMQ_EVENT_DISCONNECTED,   /// Corresponds to $(D ZMQ_EVENT_DISCONNECTED).
+    all             = ZMQ_EVENT_ALL             /// Corresponds to $(D ZMQ_EVENT_ALL).
+}
+
+
+/**
+Receives a message on the given socket and interprets it as a socket
+state change event.
+
+$(D socket) must be a PAIR socket which is connected to an endpoint
+created via a $(FREF Socket.monitor) call.  $(D receiveEvent()) receives
+one message on the socket, parses its contents according to the
+specification in the $(ZMQREF zmq_socket_monitor()) reference,
+and returns the event information as an $(REF Event) object.
+
+The function will attempt to detect whether the received message
+is in fact an event message, by checking that its length is equal
+to $(D zmq_event_t.sizeof) and that the value of the
+$(D zmq_event_t.event) field is valid.  If this is not the case,
+an $(REF InvalidEventException) is thrown.
+
+Throws:
+    $(REF ZmqException) if $(ZMQ) reports an error.$(BR)
+    $(REF InvalidEventException) if the received message could not
+    be interpreted as an event message.
+See_also:
+    $(FREF Socket.monitor), for monitoring socket state changes.
+*/
+Event receiveEvent(Socket socket) @system
+{
+    auto msg = Message();
+    if (socket.receive(msg) != zmq_event_t.sizeof) {
+        throw new InvalidEventException;
+    }
+    try {
+        auto zmqEvent = cast(zmq_event_t*) msg.data.ptr;
+        import std.conv: to;
+        immutable type = to!EventType(zmqEvent.event);
+        const(char)* addr;
+        int value;
+        final switch (type) {
+            case EventType.connected:
+                addr  = zmqEvent.data.connected.addr;
+                value = zmqEvent.data.connected.fd;
+                break;
+            case EventType.connectDelayed:
+                addr  = zmqEvent.data.connect_delayed.addr;
+                value = zmqEvent.data.connect_delayed.err;
+                break;
+            case EventType.connectRetried:
+                addr  = zmqEvent.data.connect_retried.addr;
+                value = zmqEvent.data.connect_retried.interval;
+                break;
+            case EventType.listening:
+                addr  = zmqEvent.data.listening.addr;
+                value = zmqEvent.data.listening.fd;
+                break;
+            case EventType.bindFailed:
+                addr  = zmqEvent.data.bind_failed.addr;
+                value = zmqEvent.data.bind_failed.err;
+                break;
+            case EventType.accepted:
+                addr  = zmqEvent.data.accepted.addr;
+                value = zmqEvent.data.accepted.fd;
+                break;
+            case EventType.acceptFailed:
+                addr  = zmqEvent.data.accept_failed.addr;
+                value = zmqEvent.data.accept_failed.err;
+                break;
+            case EventType.closed:
+                addr  = zmqEvent.data.closed.addr;
+                value = zmqEvent.data.closed.fd;
+                break;
+            case EventType.closeFailed:
+                addr  = zmqEvent.data.close_failed.addr;
+                value = zmqEvent.data.close_failed.err;
+                break;
+            case EventType.disconnected:
+                addr  = zmqEvent.data.disconnected.addr;
+                value = zmqEvent.data.disconnected.fd;
+                break;
+            case EventType.all: // Unlikely, but...
+                throw new Exception(null);
+        }
+        return Event(type, addr !is null ? to!string(addr) : null, value);
+    } catch (Exception e) {
+        // Any exception thrown within the try block signifies that there
+        // is something wrong with the event message.
+        throw new InvalidEventException;
+    }
+}
+
+unittest
+{
+    Event[] events;
+    void eventCollector()
+    {
+        auto coll = Socket(SocketType.pair);
+        coll.connect("inproc://zmqd_receiveEvent_unittest_monitor");
+        do {
+            events ~= receiveEvent(coll);
+        } while (events[$-1].type != EventType.closed);
+    }
+    import core.thread;
+    auto collector = new Thread(&eventCollector);
+    collector.start();
+
+    static void eventGenerator()
+    {
+        auto sck1 = Socket(SocketType.pair);
+        sck1.monitor("inproc://zmqd_receiveEvent_unittest_monitor");
+        sck1.bind("ipc://zmqd_receiveEvent_unittest");
+        import core.time;
+        Thread.sleep(100.msecs);
+        auto sck2 = Socket(SocketType.pair);
+        sck2.connect("ipc://zmqd_receiveEvent_unittest");
+        Thread.sleep(100.msecs);
+        sck2.disconnect("ipc://zmqd_receiveEvent_unittest");
+        Thread.sleep(100.msecs);
+        sck1.unbind("ipc://zmqd_receiveEvent_unittest");
+    }
+    eventGenerator();
+    collector.join();
+    assert (events.length == 3);
+    foreach (ev; events) {
+        assert (ev.address == "ipc://zmqd_receiveEvent_unittest");
+    }
+    assert (events[0].type == EventType.listening);
+    assert (events[1].type == EventType.accepted);
+    assert (events[2].type == EventType.closed);
+    import std.exception;
+    assertNotThrown!Error(events[0].fd);
+    assertThrown!Error(events[0].errno);
+    assertThrown!Error(events[0].interval);
+}
+
+
+/**
+Information about a socket state change.
+
+Corresponds_to:
+    $(ZMQAPI zmq_socket_monitor,$(D zmq_event_t))
+See_also:
+    $(FREF receiveEvent)
+*/
+struct Event
+{
+    /**
+    The event type.
+
+    Corresponds_to:
+        $(D zmq_event_t.event)
+    */
+    @property EventType type() const @safe pure nothrow
+    {
+        return m_type;
+    }
+
+    /**
+    The peer address.
+
+    Corresponds_to:
+        $(D zmq_event_t.data.xyz.addr), where $(D xyz) is the event-specific union.
+    */
+    @property string address() const @safe pure nothrow
+    {
+        return m_address;
+    }
+
+    /**
+    The socket file descriptor.
+
+    This property function may only be called if $(REF Event.type) is one of:
+    $(D connected), $(D listening), $(D accepted), $(D closed) or $(D disonnected).
+
+    Throws:
+        $(D Error) if the property is called for a wrong event type.
+    Corresponds_to:
+        $(D zmq_event_t.data.xyz.addr), where $(D xyz) is the event-specific union.
+    */
+    @property Socket.FD fd() const @safe pure nothrow
+    {
+        final switch (m_type) {
+            case EventType.connected     :
+            case EventType.listening     :
+            case EventType.accepted      :
+            case EventType.closed        :
+            case EventType.disconnected  : return cast(typeof(return)) m_value;
+            case EventType.connectDelayed:
+            case EventType.connectRetried:
+            case EventType.bindFailed    :
+            case EventType.acceptFailed  :
+            case EventType.closeFailed   : throw invalidProperty();
+            case EventType.all           :
+        }
+        assert (false);
+    }
+
+    /**
+    The $(D errno) code for the error which triggered the event.
+
+    This property function may only be called if $(REF Event.type) is one of:
+    $(D connectDelayed), $(D bindFailed), $(D acceptFailed) or $(D closeFailed).
+
+    Throws:
+        $(D Error) if the property is called for a wrong event type.
+    Corresponds_to:
+        $(D zmq_event_t.data.xyz.addr), where $(D xyz) is the event-specific union.
+    */
+    @property int errno() const @safe pure nothrow
+    {
+        final switch (m_type) {
+            case EventType.connectDelayed:
+            case EventType.bindFailed    :
+            case EventType.acceptFailed  :
+            case EventType.closeFailed   : return m_value;
+            case EventType.connected     :
+            case EventType.connectRetried:
+            case EventType.listening     :
+            case EventType.accepted      :
+            case EventType.closed        :
+            case EventType.disconnected  : throw invalidProperty();
+            case EventType.all           :
+        }
+        assert (false);
+    }
+
+    /**
+    The socket file descriptor.
+
+    This property function may only be called if $(REF Event.type) is
+    $(D connectRetried).
+
+    Throws:
+        $(D Error) if the property is called for a wrong event type.
+    Corresponds_to:
+        $(D zmq_event_t.data.connect_retried.interval)
+    */
+    @property int interval() const @safe pure nothrow
+    {
+        final switch (m_type) {
+            case EventType.connectRetried: return m_value;
+            case EventType.connected     :
+            case EventType.connectDelayed:
+            case EventType.listening     :
+            case EventType.bindFailed    :
+            case EventType.accepted      :
+            case EventType.acceptFailed  :
+            case EventType.closed        :
+            case EventType.closeFailed   :
+            case EventType.disconnected  : throw invalidProperty();
+            case EventType.all           :
+        }
+        assert (false);
+    }
+
+private:
+    this(EventType type, string address, int value)
+    {
+        m_type = type;
+        m_address = address;
+        m_value = value;
+    }
+
+    Error invalidProperty(string name = __FUNCTION__)() const @safe pure nothrow
+    {
+        try {
+            import std.conv: text;
+            return new Error(text("Property '", name,
+                                  "' not available for event type '",
+                                  m_type, "'"));
+        } catch (Exception e) {
+            assert(false);
+        }
+    }
+
+    EventType m_type;
+    string m_address;
+    int m_value;
+}
+
+
+/**
 Utility function which interprets and validates a byte array as a UTF-8 string.
 
 Most of $(ZMQD)'s message API deals in $(D ubyte[]) arrays, but very often,
@@ -1640,6 +1916,20 @@ private:
         } catch (Exception e) { /* We never get here */ }
         assert(msg.length);     // Still, let's assert as much.
         super(msg, file, line);
+    }
+}
+
+
+/**
+Exception thrown by $(FREF receiveEvent) on failure to interpret a
+received message as an event description.
+*/
+class InvalidEventException : Exception
+{
+private:
+    this(string file = __FILE__, int line = __LINE__) nothrow
+    {
+        super("The received message is not an event message", file, line);
     }
 }
 
