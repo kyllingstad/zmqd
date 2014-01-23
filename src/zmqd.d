@@ -48,7 +48,7 @@ Version:
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
 Copyright:
-    Copyright (c) 2013, Lars T. Kyllingstad. All rights reserved.
+    Copyright (c) 2013–2014, Lars T. Kyllingstad. All rights reserved.
 License:
     $(ZMQD) is released under a BSD licence (see LICENCE.txt for details).$(BR)
     Please refer to the $(LINK2 http://zeromq.org/area:licensing,$(ZMQ) site)
