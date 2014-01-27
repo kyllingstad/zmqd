@@ -829,7 +829,7 @@ struct Socket
     Misc. socket properties.
 
     Each of these has a one-to-one correspondence with an option passed to
-    $(ZMQREF zmq_msg_getsockopt()) and $(ZMQREF zmq_msg_setsockopt()). For
+    $(ZMQREF zmq_getsockopt()) and $(ZMQREF zmq_setsockopt()). For
     example, $(D identity) corresponds to $(D ZMQ_IDENTITY),
     $(D receiveBufferSize) corresponds to $(D ZMQ_RCVBUF), etc.
 
