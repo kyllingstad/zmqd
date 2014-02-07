@@ -1850,7 +1850,8 @@ inout(char)[] asString(inout(ubyte)[] data) @safe pure
 {
     auto s = cast(typeof(return)) data;
     import std.utf: validate;
-    validate(s);
+    validate(cast(const(char[]))s); //until dmd #12089 fix
+//    validate(s);
     return s;
 }
 
