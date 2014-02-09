@@ -582,7 +582,7 @@ rcv.receive(msg);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_getsockopt()">zmq_msg_getsockopt()</a></code> with <code>ZMQ_TYPE</code>.</div></section>
+<code><a href="http://api.zeromq.org/3-2:zmq_getsockopt()">zmq_getsockopt()</a></code> with <code>ZMQ_TYPE</code>.</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> sck = Socket(SocketType.xpub);
 <font color=blue>assert</font> (sck.type == SocketType.xpub);
@@ -596,7 +596,7 @@ rcv.receive(msg);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_getsockopt()">zmq_msg_getsockopt()</a></code> with <code>ZMQ_RCVMORE</code>.</div></section>
+<code><a href="http://api.zeromq.org/3-2:zmq_getsockopt()">zmq_getsockopt()</a></code> with <code>ZMQ_RCVMORE</code>.</div></section>
 
 </section>
 <section class="member"><h1><code><a name="Socket.sendHWM"></a>@property @safe int sendHWM();
@@ -667,7 +667,7 @@ rcv.receive(msg);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_getsockopt()">zmq_msg_getsockopt()</a></code> and <code><a href="http://api.zeromq.org/3-2:zmq_msg_setsockopt()">zmq_msg_setsockopt()</a></code>.</div></section>
+<code><a href="http://api.zeromq.org/3-2:zmq_getsockopt()">zmq_getsockopt()</a></code> and <code><a href="http://api.zeromq.org/3-2:zmq_setsockopt()">zmq_setsockopt()</a></code>.</div></section>
 
 </section>
 <section class="member"><h1><code><a name="Socket.subscribe"></a>@safe void subscribe(const ubyte[] filterPrefix);
@@ -1128,7 +1128,7 @@ received message as an event description.</p>
                 <footer>
                     <div class="ddoc_paragraphs">Copyright (c) 2013–2014, Lars T. Kyllingstad. All rights reserved.
 </div>
-                    <p>This documentation was generated on Sun Feb  9 19:24:24 2014
+                    <p>This documentation was generated on Sun Feb  9 19:36:41 2014
  with
                        <a href="https://github.com/kyllingstad/ltkdoc">LTKdoc 0.1</a>.</p>
                 </footer>
