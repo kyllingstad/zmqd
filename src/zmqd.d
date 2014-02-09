@@ -797,7 +797,7 @@ struct Socket
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
-        $(ZMQREF zmq_msg_getsockopt()) with $(D ZMQ_TYPE).
+        $(ZMQREF zmq_getsockopt()) with $(D ZMQ_TYPE).
     */
     @property SocketType type() { return getOption!SocketType(ZMQ_TYPE); }
 
@@ -814,7 +814,7 @@ struct Socket
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
-        $(ZMQREF zmq_msg_getsockopt()) with $(D ZMQ_RCVMORE).
+        $(ZMQREF zmq_getsockopt()) with $(D ZMQ_RCVMORE).
     */
     @property bool more() { return !!getOption!int(ZMQ_RCVMORE); }
 
@@ -853,7 +853,7 @@ struct Socket
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
-        $(ZMQREF zmq_msg_getsockopt()) and $(ZMQREF zmq_msg_setsockopt()).
+        $(ZMQREF zmq_getsockopt()) and $(ZMQREF zmq_setsockopt()).
     */
     @property int sendHWM() { return getOption!int(ZMQ_SNDHWM); }
     /// ditto
