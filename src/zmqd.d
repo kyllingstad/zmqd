@@ -1816,8 +1816,8 @@ struct Event
     /**
     The $(D errno) code for the error which triggered the event.
 
-    This property function may only be called if $(REF Event.type) is one of:
-    $(D connectDelayed), $(D bindFailed), $(D acceptFailed) or $(D closeFailed).
+    This property function may only be called if $(REF Event.type) is either
+    $(D bindFailed), $(D acceptFailed) or $(D closeFailed).
 
     Throws:
         $(D Error) if the property is called for a wrong event type.
@@ -1827,11 +1827,11 @@ struct Event
     @property int errno() const @safe pure nothrow
     {
         final switch (m_type) {
-            case EventType.connectDelayed:
             case EventType.bindFailed    :
             case EventType.acceptFailed  :
             case EventType.closeFailed   : return m_value;
             case EventType.connected     :
+            case EventType.connectDelayed:
             case EventType.connectRetried:
             case EventType.listening     :
             case EventType.accepted      :
