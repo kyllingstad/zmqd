@@ -60,6 +60,7 @@ Macros:
     QUOTE  = <blockquote>$0</blockquote>
     FREF   = $(D $(LINK2 #$1,$1()))
     REF    = $(D $(LINK2 #$1,$1))
+    COREF  = $(D $(LINK2 http://dlang.org/phobos/core_$1.html#.$2,core.$1.$2))
     STDREF = $(D $(LINK2 http://dlang.org/phobos/std_$1.html#.$2,std.$1.$2))
     ZMQ    = &#x2205;MQ
     ZMQAPI = $(LINK2 http://api.zeromq.org/3-2:$1,$+)
@@ -68,6 +69,7 @@ Macros:
 */
 module zmqd;
 
+import core.time;
 import std.typecons;
 import deimos.zmq.zmq;
 
@@ -843,6 +845,11 @@ struct Socket
             assert (sck.identity.asString() == "foobar");
             ---
             )
+        $(LI The $(D linger), $(D receiveTimeout) and $(D sendTimeout)
+            properties may have the special value $(COREF time,Duration.max),
+            which in this context specifies an infinite duration.  This  is
+            translated to an option value of -1 in the C API (and it is also
+            the default value for all of them).)
         $(LI The $(D fd) property is an $(D int) on POSIX and a $(D SOCKET)
             on Windows.)
         $(LI The $(D ZMQ_SUBSCRIBE) and $(D ZMQ_UNSUBSCRIBE) options are
@@ -851,7 +858,10 @@ struct Socket
     )
 
     Throws:
-        $(REF ZmqException) if $(ZMQ) reports an error.
+        $(REF ZmqException) if $(ZMQ) reports an error.$(BR)
+        $(STDREF conv,ConvOverflowException) if a given $(D Duration) is
+        longer than the number of milliseconds that will fit in an $(D int)
+        (only applies to properties of $(COREF time,Duration) type).
     Corresponds_to:
         $(ZMQREF zmq_getsockopt()) and $(ZMQREF zmq_setsockopt()).
     */
@@ -892,9 +902,16 @@ struct Socket
     @property void rate(int value) { setOption(ZMQ_RATE, value); }
 
     /// ditto
-    @property int recoveryInterval() { return getOption!int(ZMQ_RECOVERY_IVL); }
+    @property Duration recoveryInterval()
+    {
+        return msecs(getOption!int(ZMQ_RECOVERY_IVL));
+    }
     /// ditto
-    @property void recoveryInterval(int value) { setOption(ZMQ_RECOVERY_IVL, value); }
+    @property void recoveryInterval(Duration value)
+    {
+        import std.conv: to;
+        setOption(ZMQ_RECOVERY_IVL, to!int(value.total!"msecs"()));
+    }
 
     /// ditto
     @property int sendBufferSize() { return getOption!int(ZMQ_SNDBUF); }
@@ -907,19 +924,42 @@ struct Socket
     @property void receiveBufferSize(int value) { setOption(ZMQ_RCVBUF, value); }
 
     /// ditto
-    @property int linger() { return getOption!int(ZMQ_LINGER); }
+    @property Duration linger()
+    {
+        const auto value = getOption!int(ZMQ_LINGER);
+        return value == -1 ? Duration.max : value.msecs;
+    }
     /// ditto
-    @property void linger(int value) { setOption(ZMQ_LINGER, value); }
+    @property void linger(Duration value)
+    {
+        import std.conv: to;
+        setOption(ZMQ_LINGER,
+                  value == Duration.max ? -1 : to!int(value.total!"msecs"()));
+    }
 
     /// ditto
-    @property int reconnectionInterval() { return getOption!int(ZMQ_RECONNECT_IVL); }
+    @property Duration reconnectionInterval()
+    {
+        return getOption!int(ZMQ_RECONNECT_IVL).msecs;
+    }
     /// ditto
-    @property void reconnectionInterval(int value) { setOption(ZMQ_RECONNECT_IVL, value); }
+    @property void reconnectionInterval(Duration value)
+    {
+        import std.conv: to;
+        setOption(ZMQ_RECONNECT_IVL, to!int(value.total!"msecs"()));
+    }
 
     /// ditto
-    @property int maxReconnectionInterval() { return getOption!int(ZMQ_RECONNECT_IVL_MAX); }
+    @property Duration maxReconnectionInterval()
+    {
+        return getOption!int(ZMQ_RECONNECT_IVL_MAX).msecs;
+    }
     /// ditto
-    @property void maxReconnectionInterval(int value) { setOption(ZMQ_RECONNECT_IVL_MAX, value); }
+    @property void maxReconnectionInterval(Duration value)
+    {
+        import std.conv: to;
+        setOption(ZMQ_RECONNECT_IVL_MAX, to!int(value.total!"msecs"()));
+    }
 
     /// ditto
     @property int backlog() { return getOption!int(ZMQ_BACKLOG); }
@@ -937,14 +977,32 @@ struct Socket
     @property void multicastHops(int value) { setOption(ZMQ_MULTICAST_HOPS, value); }
 
     /// ditto
-    @property int receiveTimeout() { return getOption!int(ZMQ_RCVTIMEO); }
+    @property Duration receiveTimeout()
+    {
+        const value = getOption!int(ZMQ_RCVTIMEO);
+        return value == -1 ? Duration.max : value.msecs;
+    }
     /// ditto
-    @property void receiveTimeout(int value) { setOption(ZMQ_RCVTIMEO, value); }
+    @property void receiveTimeout(Duration value)
+    {
+        import std.conv: to;
+        setOption(ZMQ_RCVTIMEO,
+                  value == Duration.max ? -1 : to!int(value.total!"msecs"()));
+    }
 
     /// ditto
-    @property int sendTimeout() { return getOption!int(ZMQ_SNDTIMEO); }
+    @property Duration sendTimeout()
+    {
+        const value = getOption!int(ZMQ_SNDTIMEO);
+        return value == -1 ? Duration.max : value.msecs;
+    }
     /// ditto
-    @property void sendTimeout(int value) { setOption(ZMQ_SNDTIMEO, value); }
+    @property void sendTimeout(Duration value)
+    {
+        import std.conv: to;
+        setOption(ZMQ_SNDTIMEO,
+                  value == Duration.max ? -1 : to!int(value.total!"msecs"()));
+    }
 
     /// ditto
     @property bool ipv4Only() { return !!getOption!int(ZMQ_IPV4ONLY); }
@@ -991,23 +1049,24 @@ struct Socket
         auto s = Socket(SocketType.xpub);
         const e = "inproc://unittest2";
         s.bind(e);
+        import core.time;
         assert(s.type == SocketType.xpub);
         assert(s.sendHWM == 1000);
         assert(s.receiveHWM == 1000);
         assert(s.threadAffinity == 0);
         assert(s.identity == null);
         assert(s.rate == 100);
-        assert(s.recoveryInterval == 10_000);
+        assert(s.recoveryInterval == 10.seconds);
         assert(s.sendBufferSize == 0);
         assert(s.receiveBufferSize == 0);
-        assert(s.linger == -1);
-        assert(s.reconnectionInterval == 100);
-        assert(s.maxReconnectionInterval == 0);
+        assert(s.linger == Duration.max);
+        assert(s.reconnectionInterval == 100.msecs);
+        assert(s.maxReconnectionInterval == Duration.zero);
         assert(s.backlog == 100);
         assert(s.maxMsgSize == -1);
         assert(s.multicastHops == 1);
-        assert(s.receiveTimeout == -1);
-        assert(s.sendTimeout == -1);
+        assert(s.receiveTimeout == Duration.max);
+        assert(s.sendTimeout == Duration.max);
         assert(s.ipv4Only);
         assert(!s.delayAttachOnConnect);
         version(Posix) {
@@ -1028,30 +1087,36 @@ struct Socket
         assert(s.identity == [102, 111, 111]);
         s.rate = 200;
         assert(s.rate == 200);
-        s.recoveryInterval = 5_000;
-        assert(s.recoveryInterval == 5_000);
+        s.recoveryInterval = 5.seconds;
+        assert(s.recoveryInterval == 5_000.msecs);
         s.sendBufferSize = 500;
         assert(s.sendBufferSize == 500);
         s.receiveBufferSize = 600;
         assert(s.receiveBufferSize == 600);
-        s.linger = 0;
-        assert(s.linger == 0);
-        s.linger = 100;
-        assert(s.linger == 100);
-        s.reconnectionInterval = 200;
-        assert(s.reconnectionInterval == 200);
-        s.maxReconnectionInterval = 300;
-        assert(s.maxReconnectionInterval == 300);
+        s.linger = Duration.zero;
+        assert(s.linger == Duration.zero);
+        s.linger = 100_000.usecs;
+        assert(s.linger == 100.msecs);
+        s.linger = Duration.max;
+        assert(s.linger == Duration.max);
+        s.reconnectionInterval = 200_000.usecs;
+        assert(s.reconnectionInterval == 200.msecs);
+        s.maxReconnectionInterval = 300_000.usecs;
+        assert(s.maxReconnectionInterval == 300.msecs);
         s.backlog = 50;
         assert(s.backlog == 50);
         s.maxMsgSize = 1000;
         assert(s.maxMsgSize == 1000);
         s.multicastHops = 2;
         assert(s.multicastHops == 2);
-        s.receiveTimeout = 3_000;
-        assert(s.receiveTimeout == 3_000);
-        s.sendTimeout = 2_000;
-        assert(s.sendTimeout == 2_000);
+        s.receiveTimeout = 3.seconds;
+        assert(s.receiveTimeout == 3_000_000.usecs);
+        s.receiveTimeout = Duration.max;
+        assert(s.receiveTimeout == Duration.max);
+        s.sendTimeout = 2_000_000.usecs;
+        assert(s.sendTimeout == 2.seconds);
+        s.sendTimeout = Duration.max;
+        assert(s.sendTimeout == Duration.max);
         s.ipv4Only = false;
         assert(!s.ipv4Only);
         s.delayAttachOnConnect = true;
@@ -1778,7 +1843,7 @@ struct Event
     }
 
     /**
-    The socket file descriptor.
+    The reconnect interval.
 
     This property function may only be called if $(REF Event.type) is
     $(D connectRetried).
@@ -1788,10 +1853,10 @@ struct Event
     Corresponds_to:
         $(D zmq_event_t.data.connect_retried.interval)
     */
-    @property int interval() const @safe pure nothrow
+    @property Duration interval() const @safe pure nothrow
     {
         final switch (m_type) {
-            case EventType.connectRetried: return m_value;
+            case EventType.connectRetried: return m_value.msecs;
             case EventType.connected     :
             case EventType.connectDelayed:
             case EventType.listening     :
