@@ -1342,18 +1342,25 @@ struct Message
 {
 @safe:
     /**
-    Initialises an empty $(ZMQ) message.
+    Initialises a $(ZMQ) message of a specified size.
+    Zero size (default) results in empty message.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
         $(ZMQREF zmq_msg_init())
+        $(ZMQREF zmq_msg_init_size())
     */
-    static Message opCall()
+    static Message opCall(size_t size = 0)
     {
         Message m;
-        if (trusted!zmq_msg_init(&m.m_msg) != 0) {
-            throw new ZmqException;
+        if (size) {
+            if (trusted!zmq_msg_init_size(&m.m_msg, size) != 0)
+                throw new ZmqException;
+        }
+        else {
+            if (trusted!zmq_msg_init(&m.m_msg) != 0)
+                throw new ZmqException;
         }
         m.m_initialized = true;
         return m;
@@ -1364,22 +1371,6 @@ struct Message
     {
         auto msg = Message();
         assert(msg.size == 0);
-    }
-
-    /**
-    Initialises a $(ZMQ) message of a specified size.
-
-    Throws:
-        $(REF ZmqException) if $(ZMQ) reports an error.
-    Corresponds_to:
-        $(ZMQREF zmq_msg_init_size())
-    */
-    this(size_t size)
-    {
-        if (trusted!zmq_msg_init_size(&m_msg, size) != 0) {
-            throw new ZmqException;
-        }
-        m_initialized = true;
     }
 
     ///
