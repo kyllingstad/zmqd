@@ -791,29 +791,24 @@ must always be explicitly initialized with <code><a href="#Message.opCall">Messa
 When a <code>Message</code> goes out of scope, <code><a href="http://api.zeromq.org/3-2:zmq_msg_close()">zmq_msg_close()</a></code> is
 called on the underlying <code>zmq_msg_t</code>.</div>
 
-<section class="members"><h1>Members</h1><section class="member"><h1><code><a name="Message.opCall"></a>static @safe Message opCall();
+<section class="members"><h1>Members</h1><section class="member"><h1><code><a name="Message.opCall"></a>static @safe Message opCall(size_t size = 0);
 </code></h1>
-<p class="summary">Initialises an empty &#x2205;MQ message.
+<p class="summary">Initialises a &#x2205;MQ message.
 </p>
+<div class="ddoc_paragraphs"><code>size</code> specifies the size of the message.  If <code>size</code> is
+    zero, the message will be empty.
+
+</div>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_init()">zmq_msg_init()</a></code></div></section>
+<code><a href="http://api.zeromq.org/3-2:zmq_msg_init()">zmq_msg_init()</a></code> if <code>size == 0</code> and
+        <code><a href="http://api.zeromq.org/3-2:zmq_msg_init_size()">zmq_msg_init_size()</a></code> if <code>size &gt; 0</code>.</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> msg = Message();
 <font color=blue>assert</font>(msg.size == 0);
 </pre>
-</div></section>
-</section>
-<section class="member"><h1><code><a name="Message.this"></a> this(size_t size);
-</code></h1>
-<p class="summary">Initialises a &#x2205;MQ message of a specified size.
-</p>
-<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
-</div></section>
-<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_init_size()">zmq_msg_init_size()</a></code></div></section>
-<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+</div></section><section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> msg = Message(123);
 <font color=blue>assert</font>(msg.size == 123);
 </pre>
@@ -1136,7 +1131,7 @@ received message as an event description.</p>
                 <footer>
                     <div class="ddoc_paragraphs">Copyright (c) 2013–2014, Lars T. Kyllingstad. All rights reserved.
 </div>
-                    <p>This documentation was generated on Sun Feb  9 23:27:28 2014
+                    <p>This documentation was generated on Tue Mar  4 22:31:04 2014
  with
                        <a href="https://github.com/kyllingstad/ltkdoc">LTKdoc 0.1</a>.</p>
                 </footer>
