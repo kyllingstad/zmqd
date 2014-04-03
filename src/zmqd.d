@@ -850,8 +850,6 @@ struct Socket
             which in this context specifies an infinite duration.  This  is
             translated to an option value of -1 in the C API (and it is also
             the default value for all of them).)
-        $(LI The $(D fd) property is an $(D int) on POSIX and a $(D SOCKET)
-            on Windows.)
         $(LI The $(D ZMQ_SUBSCRIBE) and $(D ZMQ_UNSUBSCRIBE) options are
             treated differently from the others; see $(FREF Socket.subscribe)
             and $(FREF Socket.unsubscribe))
@@ -1013,13 +1011,6 @@ struct Socket
     @property bool delayAttachOnConnect() { return !!getOption!int(ZMQ_DELAY_ATTACH_ON_CONNECT); }
     /// ditto
     @property void delayAttachOnConnect(bool value) { setOption(ZMQ_DELAY_ATTACH_ON_CONNECT, value ? 1 : 0); }
-
-
-    version (Windows) {
-        alias FD = SOCKET;
-    } else version (Posix) {
-        alias FD = int;
-    }
 
     /// ditto
     @property FD fd() { return getOption!FD(ZMQ_FD); }
@@ -1297,6 +1288,20 @@ unittest
     assert (len == 12);
     assert (buf == "Hello World!");
 }
+
+
+version (Windows) {
+    alias PlatformFD = SOCKET;
+} else version (Posix) {
+    alias PlatformFD = int;
+}
+
+/**
+The native socket file descriptor type.
+
+This is an alias for $(D SOCKET) on Windows and $(D int) on POSIX systems.
+*/
+alias FD = PlatformFD;
 
 
 /**
@@ -1789,7 +1794,7 @@ struct Event
     Corresponds_to:
         $(D zmq_event_t.data.xyz.addr), where $(D xyz) is the event-specific union.
     */
-    @property Socket.FD fd() const @safe pure nothrow
+    @property FD fd() const @safe pure nothrow
     {
         final switch (m_type) {
             case EventType.connected     :
