@@ -1,0 +1,6 @@
+*.o
+*.swp
+deimos
+*.html
+.dub
+__test__library__
