@@ -75,7 +75,7 @@ import deimos.zmq.zmq;
 
 
 version(Windows) {
-    alias SOCKET = size_t;
+    import std.c.windows.winsock: SOCKET;
 }
 
 
