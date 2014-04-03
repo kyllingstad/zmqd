@@ -1892,6 +1892,63 @@ private:
 
 
 /**
+Input/output multiplexing.
+
+This function is a bare-bones wrapper around $(ZMQREF zmq_poll()), using a
+plain array of $(D zmq_pollitem_t) structures to hold the socket handles
+and the event flags.  This array is passed straight to the C function, thus
+avoiding additional allocations.  $(REF Socket.handle) can be used to populate
+the $(D zmq_pollitem_t.socket) field, or $(STDREF socket,Socket.handle) can be
+used to populate $(D zmq_pollitem_t.fd) for standard socket support.
+
+The $(D timeout) parameter may have the special value
+$(COREF time,Duration.max), which in this context specifies an infinite
+duration.  This is translated to an argument value of -1 in the C API.
+
+Returns:
+    The number of $(D zmq_pollitem_t) structures with events signalled
+    in $(D revents), or 0 if no events have been signalled.
+Throws:
+    $(REF ZmqException) if $(ZMQ) reports an error.
+Corresponds_to:
+    $(ZMQREF zmq_poll())
+*/
+uint poll(zmq_pollitem_t[] items, Duration timeout) @safe
+{
+    import std.conv: to;
+    const n = trusted!zmq_poll(
+        items.ptr,
+        to!int(items.length),
+        timeout == Duration.max ? -1 : to!int(timeout.total!"msecs"()));
+    if (n < 0) throw new ZmqException;
+    return cast(uint) n;
+}
+
+///
+unittest
+{
+    auto socket1 = zmqd.Socket(zmqd.SocketType.pair);
+    socket1.bind("ipc://zmqd_poll_example");
+
+    import std.socket;
+    auto socket2 = new std.socket.Socket(
+        AddressFamily.INET,
+        std.socket.SocketType.DGRAM);
+    socket2.bind(new InternetAddress(InternetAddress.ADDR_ANY, 5678));
+
+    auto items = [
+        zmq_pollitem_t(socket1.handle, 0, ZMQ_POLLIN, 0),
+        zmq_pollitem_t(null, socket2.handle, ZMQ_POLLIN | ZMQ_POLLOUT, 0)
+    ];
+    const n = poll(items, 100.msecs);
+    assert (n == 1);
+    assert (items[0].revents == 0);
+    assert (items[1].revents == ZMQ_POLLOUT);
+    socket2.close();
+}
+
+
+/**
 Utility function which interprets and validates a byte array as a UTF-8 string.
 
 Most of $(ZMQD)'s message API deals in $(D ubyte[]) arrays, but very often,
