@@ -1333,12 +1333,14 @@ their own.  A $(D Message) cannot be copied by normal assignment; use
 $(FREF Message.copy) for this.
 
 A default-initialized $(D Message) is not a valid $(ZMQ) message; it
-must always be explicitly initialized with $(FREF _Message.opCall) or
-$(FREF _Message.this):
+should always be explicitly initialized with $(FREF _Message.opCall).
+Alternatively, it may be initialized later using $(FREF _Message.reinit).
 ---
 Message msg1;               // Invalid message
 auto msg2 = Message();      // Empty message
 auto msg3 = Message(1024);  // 1K message
+msg1.reinit(2048);          // msg1 now has size 2K
+msg2.reinit(2048);          // ...and so does msg2
 ---
 When a $(D Message) goes out of scope, $(ZMQREF zmq_msg_close()) is
 called on the underlying $(D zmq_msg_t).
@@ -1361,16 +1363,7 @@ struct Message
     static Message opCall(size_t size = 0)
     {
         Message m;
-        if (size) {
-            if (trusted!zmq_msg_init_size(&m.m_msg, size) != 0) {
-                throw new ZmqException;
-            }
-        } else {
-            if (trusted!zmq_msg_init(&m.m_msg) != 0) {
-                throw new ZmqException;
-            }
-        }
-        m.m_initialized = true;
+        m.init(size);
         return m;
     }
 
@@ -1386,6 +1379,38 @@ struct Message
     {
         auto msg = Message(123);
         assert(msg.size == 123);
+    }
+
+    /**
+    Reinitialises a $(ZMQ) message.
+
+    This function will release the message if it has already been initialised,
+    and then initialise it anew with the specified size.  Existing message
+    content will be lost.
+
+    $(D size) specifies the size of the message.  If $(D size) is
+    zero, the message will be empty.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_close()) followed by
+        $(ZMQREF zmq_msg_init()) if $(D size == 0) or
+        $(ZMQREF zmq_msg_init_size()) if $(D size > 0).
+    */
+    void reinit(size_t size = 0)
+    {
+        close();
+        init(size);
+    }
+
+    ///
+    unittest
+    {
+        auto msg = Message(256);
+        assert (msg.size == 256);
+        msg.reinit(1024);
+        assert (msg.size == 1024);
     }
 
     @disable this(this);
@@ -1567,6 +1592,23 @@ struct Message
     }
 
 private:
+    private void init(size_t size) @safe
+        in { assert (!m_initialized); }
+        out { assert (m_initialized); }
+        body
+    {
+        if (size > 0) {
+            if (trusted!zmq_msg_init_size(&m_msg, size) != 0) {
+                throw new ZmqException;
+            }
+        } else {
+            if (trusted!zmq_msg_init(&m_msg) != 0) {
+                throw new ZmqException;
+            }
+        }
+        m_initialized = true;
+    }
+
     bool m_initialized;
     zmq_msg_t m_msg;
 }
