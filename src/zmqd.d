@@ -696,7 +696,7 @@ struct Socket
         assert (buf[0 .. len] == "Hello World!");
     }
 
-    @trusted unittest
+    @system unittest
     {
         auto snd = Socket(SocketType.pair);
         snd.bind("ipc://zmqd_tryReceive_example");
@@ -776,7 +776,7 @@ struct Socket
         assert (msg.data.asString() == "Hello World!");
     }
 
-    @trusted unittest
+    @system unittest
     {
         auto snd = Socket(SocketType.pair);
         snd.bind("ipc://zmqd_msg_tryReceive_example");
@@ -1137,7 +1137,7 @@ struct Socket
         sck.subscribe("bar");
     }
 
-    @trusted unittest
+    @system unittest
     {
         void sleep(int ms) {
             import core.thread, core.time;
