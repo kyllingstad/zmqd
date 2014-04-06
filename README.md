@@ -25,7 +25,7 @@ The documentation may be browsed online at http://kyllingstad.github.io/zmqd/.
 What you need is:
 
   * An up-to-date [D compiler](http://wiki.dlang.org/Compilers) (last
-    tested with DMD 2.064)
+    tested with DMD 2.065)
   * The [∅MQ libraries](http://zeromq.org/intro:get-the-software)
   * The [∅MQ bindings](https://github.com/D-Programming-Deimos/ZeroMQ)
     from Deimos
