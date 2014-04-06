@@ -4,7 +4,7 @@
     "homepage"      : "https://github.com/kyllingstad/zmqd",
     "copyright"     : "Copyright (c) 2013–2014, Lars T. Kyllingstad",
     "license"       : "BSD 3-clause",
-    "authors"       : [ "Lars Kyllingstad" ],
+    "authors"       : [ "Lars T. Kyllingstad" ],
     "dependencies"  : { "zeromq": "~master" },
     "targetType"    : "library",
     "libs"          : [ "zmq" ]
