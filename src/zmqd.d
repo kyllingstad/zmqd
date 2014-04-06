@@ -1349,7 +1349,7 @@ struct Message
 {
 @safe:
     /**
-    Initialises a $(ZMQ) message.
+    Initializes a $(ZMQ) message.
 
     $(D size) specifies the size of the message.  If $(D size) is
     zero, the message will be empty.
@@ -1382,10 +1382,10 @@ struct Message
     }
 
     /**
-    Reinitialises a $(ZMQ) message.
+    Reinitializes a $(ZMQ) message.
 
-    This function will release the message if it has already been initialised,
-    and then initialise it anew with the specified size.  Existing message
+    This function will release the message if it has already been initialized,
+    and then initialize it anew with the specified size.  Existing message
     content will be lost.
 
     $(D size) specifies the size of the message.  If $(D size) is
@@ -1460,7 +1460,7 @@ struct Message
 
     $(D copy()) returns a new $(D Message) object, while $(D copyTo(dest))
     copies the contents of this $(D Message) into $(D dest).  $(D dest) must
-    be a valid (i.e. initialised) $(D Message).
+    be a valid (i.e. initialized) $(D Message).
 
     Warning:
         These functions may not do what you think they do.  Please refer
@@ -1500,7 +1500,7 @@ struct Message
 
     $(D move()) returns a new $(D Message) object, while $(D moveTo(dest))
     moves the contents of this $(D Message) to $(D dest).  $(D dest) must
-    be a valid (i.e. initialised) $(D Message).
+    be a valid (i.e. initialized) $(D Message).
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
