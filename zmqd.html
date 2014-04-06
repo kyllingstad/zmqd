@@ -118,7 +118,7 @@ snippets that demonstrate the syntax; for more comprehensive and realistic
 examples, please refer to the <a href="http://zguide.zeromq.org/page:all">&#x2205;MQ Guide</a>.
 
 </div>
-<section class="ddoc_section"><h1>Version:</h1><div class="ddoc_paragraphs"> 0.2 (&#x2205;MQ 3.2 compatible)
+<section class="ddoc_section"><h1>Version:</h1><div class="ddoc_paragraphs"> 0.4 (&#x2205;MQ 3.2 compatible)
 </div></section>
 <section class="ddoc_section"><h1>Authors:</h1><div class="ddoc_paragraphs"> <a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
 </div></section>
@@ -787,18 +787,20 @@ their own.  A <code>Message</code> cannot be copied by normal assignment; use
 <br><br>
 
 A default-initialized <code>Message</code> is not a valid &#x2205;MQ message; it
-must always be explicitly initialized with <code><a href="#Message.opCall">Message.opCall()</a></code> or
-<code><a href="#Message.this">Message.this()</a></code>:
+should always be explicitly initialized with <code><a href="#Message.opCall">Message.opCall()</a></code>.
+Alternatively, it may be initialized later using <code><a href="#Message.reinit">Message.reinit()</a></code>.
 <pre class="d_code">Message msg1;               <font color=green>// Invalid message
 </font><font color=blue>auto</font> msg2 = Message();      <font color=green>// Empty message
 </font><font color=blue>auto</font> msg3 = Message(1024);  <font color=green>// 1K message
+</font>msg1.reinit(2048);          <font color=green>// msg1 now has size 2K
+</font>msg2.reinit(2048);          <font color=green>// ...and so does msg2
 </font></pre>
 When a <code>Message</code> goes out of scope, <code><a href="http://api.zeromq.org/3-2:zmq_msg_close()">zmq_msg_close()</a></code> is
 called on the underlying <code>zmq_msg_t</code>.</div>
 
 <section class="members"><h1>Members</h1><section class="member"><h1><code><a name="Message.opCall"></a>static @safe Message opCall(size_t size = 0);
 </code></h1>
-<p class="summary">Initialises a &#x2205;MQ message.
+<p class="summary">Initializes a &#x2205;MQ message.
 </p>
 <div class="ddoc_paragraphs"><code>size</code> specifies the size of the message.  If <code>size</code> is
     zero, the message will be empty.
@@ -816,6 +818,33 @@ called on the underlying <code>zmq_msg_t</code>.</div>
 </div></section><section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> msg = Message(123);
 <font color=blue>assert</font>(msg.size == 123);
+</pre>
+</div></section>
+</section>
+<section class="member"><h1><code><a name="Message.reinit"></a>@safe void reinit(size_t size = 0);
+</code></h1>
+<p class="summary">Reinitializes a &#x2205;MQ message.
+</p>
+<div class="ddoc_paragraphs">This function will release the message if it has already been initialized,
+    and then initialize it anew with the specified size.  Existing message
+    content will be lost.
+<br><br>
+
+    <code>size</code> specifies the size of the message.  If <code>size</code> is
+    zero, the message will be empty.
+
+</div>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/3-2:zmq_msg_close()">zmq_msg_close()</a></code> followed by
+        <code><a href="http://api.zeromq.org/3-2:zmq_msg_init()">zmq_msg_init()</a></code> if <code>size == 0</code> or
+        <code><a href="http://api.zeromq.org/3-2:zmq_msg_init_size()">zmq_msg_init_size()</a></code> if <code>size &gt; 0</code>.</div></section>
+<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+<font color=blue>auto</font> msg = Message(256);
+<font color=blue>assert</font> (msg.size == 256);
+msg.reinit(1024);
+<font color=blue>assert</font> (msg.size == 1024);
 </pre>
 </div></section>
 </section>
@@ -841,7 +870,7 @@ called on the underlying <code>zmq_msg_t</code>.</div>
 </p>
 <div class="ddoc_paragraphs"><code>copy()</code> returns a new <code>Message</code> object, while <code>copyTo(dest)</code>
     copies the contents of this <code>Message</code> into <code>dest</code>.  <code>dest</code> must
-    be a valid (i.e. initialised) <code>Message</code>.
+    be a valid (i.e. initialized) <code>Message</code>.
 
 </div>
 <section class="ddoc_section"><h1>Warning:</h1><div class="ddoc_paragraphs">
@@ -868,7 +897,7 @@ msg1.data[] = <font color=red>"foo"</font>.representation;
 </p>
 <div class="ddoc_paragraphs"><code>move()</code> returns a new <code>Message</code> object, while <code>moveTo(dest)</code>
     moves the contents of this <code>Message</code> to <code>dest</code>.  <code>dest</code> must
-    be a valid (i.e. initialised) <code>Message</code>.
+    be a valid (i.e. initialized) <code>Message</code>.
 
 </div>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
@@ -1182,7 +1211,7 @@ received message as an event description.</p>
                 <footer>
                     <div class="ddoc_paragraphs">Copyright (c) 2013–2014, Lars T. Kyllingstad. All rights reserved.
 </div>
-                    <p>This documentation was generated on Thu Apr  3 23:37:52 2014
+                    <p>This documentation was generated on Sun Apr  6 22:41:25 2014
  with
                        <a href="https://github.com/kyllingstad/ltkdoc">LTKdoc 0.1</a>.</p>
                 </footer>
