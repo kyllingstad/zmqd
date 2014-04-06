@@ -79,6 +79,9 @@ version(Windows) {
 }
 
 
+@safe:
+
+
 /**
 Reports the $(ZMQ) library version.
 
@@ -88,7 +91,7 @@ Returns:
 Corresponds_to:
     $(ZMQREF zmq_version())
 */
-Tuple!(int, "major", int, "minor", int, "patch") zmqVersion() @safe nothrow
+Tuple!(int, "major", int, "minor", int, "patch") zmqVersion() nothrow
 {
     typeof(return) v;
     trusted!zmq_version(&v.major, &v.minor, &v.patch);
@@ -250,7 +253,7 @@ struct Context
     }
 
     ///
-    @trusted unittest // TODO: Remove @trusted for DMD 2.064
+    unittest
     {
         Context ctx;
         assert (!ctx.initialized);
@@ -391,9 +394,7 @@ struct Socket
     this(Context context, SocketType type)
     {
         if (auto s = trusted!zmq_socket(context.handle, type)) {
-            // TODO: Replace the next line with the one below for DMD 2.064
-            (Context c) @trusted { m_context = c; } (context);
-            // m_context = ctx;
+            m_context = context;
             m_type = type;
             m_socket = Resource(s, &zmq_close);
         } else {
@@ -1200,7 +1201,7 @@ struct Socket
     See_also:
         $(FREF receiveEvent), which receives and parses event messages.
     */
-    void monitor(const char[] endpoint, EventType events = EventType.all) @safe
+    void monitor(const char[] endpoint, EventType events = EventType.all)
     {
         if (trusted!zmq_socket_monitor(m_socket.handle, zeroTermString(endpoint), events) < 0) {
             throw new ZmqException;
@@ -1235,7 +1236,7 @@ struct Socket
     }
 
     ///
-    @trusted unittest // TODO: Remove @trusted for DMD 2.064
+    unittest
     {
         Socket sck;
         assert (!sck.initialized);
@@ -1310,14 +1311,13 @@ Starts the built-in $(ZMQ) _proxy.
 Corresponds_to:
     $(ZMQREF zmq_proxy())
 */
-void proxy(ref Socket frontend, ref Socket backend) @safe nothrow
+void proxy(ref Socket frontend, ref Socket backend) nothrow
 {
     trusted!zmq_proxy(frontend.handle, backend.handle, null);
 }
 
 /// ditto
-void proxy(ref Socket frontend, ref Socket backend, ref Socket capture)
-    @safe nothrow
+void proxy(ref Socket frontend, ref Socket backend, ref Socket capture) nothrow
 {
     trusted!zmq_proxy(frontend.handle, backend.handle, capture.handle);
 }
@@ -1592,7 +1592,7 @@ struct Message
     }
 
 private:
-    private void init(size_t size) @safe
+    private void init(size_t size)
         in { assert (!m_initialized); }
         out { assert (m_initialized); }
         body
@@ -1748,7 +1748,7 @@ Event receiveEvent(Socket socket) @system
     }
 }
 
-unittest
+@system unittest
 {
     Event[] events;
     void eventCollector()
@@ -1809,7 +1809,7 @@ struct Event
     Corresponds_to:
         $(D zmq_event_t.event)
     */
-    @property EventType type() const @safe pure nothrow
+    @property EventType type() const pure nothrow
     {
         return m_type;
     }
@@ -1820,7 +1820,7 @@ struct Event
     Corresponds_to:
         $(D zmq_event_t.data.xyz.addr), where $(D xyz) is the event-specific union.
     */
-    @property string address() const @safe pure nothrow
+    @property string address() const pure nothrow
     {
         return m_address;
     }
@@ -1836,7 +1836,7 @@ struct Event
     Corresponds_to:
         $(D zmq_event_t.data.xyz.addr), where $(D xyz) is the event-specific union.
     */
-    @property FD fd() const @safe pure nothrow
+    @property FD fd() const pure nothrow
     {
         final switch (m_type) {
             case EventType.connected     :
@@ -1865,7 +1865,7 @@ struct Event
     Corresponds_to:
         $(D zmq_event_t.data.xyz.addr), where $(D xyz) is the event-specific union.
     */
-    @property int errno() const @safe pure nothrow
+    @property int errno() const pure nothrow
     {
         final switch (m_type) {
             case EventType.bindFailed    :
@@ -1894,7 +1894,7 @@ struct Event
     Corresponds_to:
         $(D zmq_event_t.data.connect_retried.interval)
     */
-    @property Duration interval() const @safe pure nothrow
+    @property Duration interval() const pure nothrow
     {
         final switch (m_type) {
             case EventType.connectRetried: return m_value.msecs;
@@ -1913,14 +1913,14 @@ struct Event
     }
 
 private:
-    this(EventType type, string address, int value)
+    this(EventType type, string address, int value) pure nothrow
     {
         m_type = type;
         m_address = address;
         m_value = value;
     }
 
-    Error invalidProperty(string name = __FUNCTION__)() const @safe pure nothrow
+    Error invalidProperty(string name = __FUNCTION__)() const pure nothrow
     {
         try {
             import std.conv: text;
@@ -1960,7 +1960,7 @@ Throws:
 Corresponds_to:
     $(ZMQREF zmq_poll())
 */
-uint poll(zmq_pollitem_t[] items, Duration timeout) @safe
+uint poll(zmq_pollitem_t[] items, Duration timeout)
 {
     import std.conv: to;
     const n = trusted!zmq_poll(
@@ -1972,7 +1972,7 @@ uint poll(zmq_pollitem_t[] items, Duration timeout) @safe
 }
 
 ///
-unittest
+@system unittest
 {
     auto socket1 = zmqd.Socket(zmqd.SocketType.pair);
     socket1.bind("ipc://zmqd_poll_example");
@@ -2009,7 +2009,7 @@ Throws:
 See_also:
     $(STDREF string,representation), which performs the opposite operation.
 */
-inout(char)[] asString(inout(ubyte)[] data) @safe pure
+inout(char)[] asString(inout(ubyte)[] data) pure
 {
     auto s = cast(typeof(return)) data;
     import std.utf: validate;
@@ -2058,7 +2058,6 @@ function which reported the error.
 */
 class ZmqException : Exception
 {
-@safe:
     /**
     The $(D errno) code that was set by the $(ZMQ) function that reported
     the error.
@@ -2101,29 +2100,29 @@ private:
 
 struct Resource
 {
+@system: // Workaround for DMD issue #12529
     alias extern(C) int function(void*) nothrow CFreeFunction;
+@safe:
 
-    this(void* ptr, CFreeFunction freeFunc) @safe pure nothrow
+    this(void* ptr, CFreeFunction freeFunc) pure nothrow
         in { assert(ptr !is null); } body
     {
         m_payload = new Payload(1, ptr, freeFunc);
     }
 
-    this(this) @safe pure nothrow
+    this(this) pure nothrow
     {
         if (m_payload !is null) {
             ++(m_payload.refCount);
         }
     }
 
-    // TODO: This function could be @safe, if not for a weird compiler bug.
-    // https://d.puremagic.com/issues/show_bug.cgi?id=11505
-    ~this() @trusted nothrow
+    ~this() nothrow
     {
         detach();
     }
 
-    ref Resource opAssign(Resource rhs) @safe
+    ref Resource opAssign(Resource rhs)
     {
         if (detach() != 0) {
             throw new ZmqException;
@@ -2135,19 +2134,19 @@ struct Resource
         return this;
     }
 
-    @property bool initialized() const @safe pure nothrow
+    @property bool initialized() const pure nothrow
     {
         return (m_payload !is null) && (m_payload.handle !is null);
     }
 
-    void free() @safe
+    void free()
     {
         if (m_payload !is null && m_payload.free() != 0) {
             throw new ZmqException;
         }
     }
 
-    @property inout(void)* handle() inout @safe pure nothrow
+    @property inout(void)* handle() inout pure nothrow
     {
         if (m_payload !is null) {
             return m_payload.handle;
@@ -2157,7 +2156,7 @@ struct Resource
     }
 
 private:
-    int detach() @safe nothrow
+    int detach() nothrow
     {
         int rc = 0;
         if (m_payload !is null) {
@@ -2189,7 +2188,7 @@ private:
     Payload* m_payload;
 }
 
-unittest
+@system unittest
 {
     import std.exception: assertNotThrown, assertThrown;
     static extern(C) int myFree(void* p) nothrow
@@ -2279,7 +2278,7 @@ private auto trusted(alias func, Args...)(Args args) @trusted
 // tailored to the string sizes we are likely to encounter here.
 // Note that this implementation requires that the string be used immediately
 // upon return, and not stored, as the buffer will be reused most of the time.
-const char* zeroTermString(const char[] s) @safe nothrow
+const char* zeroTermString(const char[] s) nothrow
 {
     import std.algorithm: max;
     static char[] buf;
@@ -2290,7 +2289,7 @@ const char* zeroTermString(const char[] s) @safe nothrow
     return buf.ptr;
 }
 
-unittest
+@system unittest
 {
     auto c1 = zeroTermString("Hello World!");
     assert (c1[0 .. 13] == "Hello World!\0");
