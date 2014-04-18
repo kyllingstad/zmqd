@@ -19,7 +19,7 @@ void main()
     while (true) {
         import core.time: Duration;
         Message message;
-        poll(items, Duration.max);
+        poll(items);
         if (items[0].revents & ZMQ_POLLIN) {
             do {
                 // Process all parts of the message

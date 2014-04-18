@@ -1960,7 +1960,7 @@ Throws:
 Corresponds_to:
     $(ZMQREF zmq_poll())
 */
-uint poll(zmq_pollitem_t[] items, Duration timeout)
+uint poll(zmq_pollitem_t[] items, Duration timeout = Duration.max)
 {
     import std.conv: to;
     const n = trusted!zmq_poll(

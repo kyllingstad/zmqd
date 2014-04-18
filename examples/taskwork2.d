@@ -25,7 +25,7 @@ void main()
             zmq_pollitem_t(receiver.handle, 0, ZMQ_POLLIN, 0),
             zmq_pollitem_t(controller.handle, 0, ZMQ_POLLIN, 0)
             ];
-        poll(items, Duration.max);
+        poll(items);
         if (items[0].revents & ZMQ_POLLIN) {
             auto str = sRecv(receiver);
             write(str, '.');                    // Show progress
