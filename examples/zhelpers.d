@@ -1,15 +1,23 @@
-// Helper module for example applications.
+/**
+Helper module for example applications.
+
+This module is a partial port of the C header file
+$(LINK2 https://github.com/imatix/zguide/blob/master/examples/C/zhelpers.h,zhelpers.h).
+*/
 module zhelpers;
 
 import zmqd;
 
-string sRecv(ref Socket socket)
+
+
+string sRecv(Socket socket)
 {
     ubyte[256] buffer;
     immutable size = socket.receive(buffer);
     import std.algorithm: min;
     return buffer[0 .. min(size,256)].idup.asString();
 }
+
 
 void sDump(Socket socket)
 {
