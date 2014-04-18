@@ -41,3 +41,13 @@ void sDump(Socket socket)
         writeln();
     } while (socket.more);
 }
+
+
+void sSetId(Socket socket)
+{
+    import std.random: uniform;
+    import std.string: sformat;
+    char[9] identity;
+    sformat(identity[], "%04X-%04X", uniform(0, 0x10000), uniform(0, 0x10000));
+    socket.identity = identity[];
+}
