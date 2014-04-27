@@ -1338,13 +1338,13 @@ $(FREF Frame.copy) for this.
 
 A default-initialized $(D Frame) is not a valid $(ZMQ) message frame; it
 should always be explicitly initialized with $(FREF _Frame.opCall).
-Alternatively, it may be initialized later using $(FREF _Frame.reinit).
+Alternatively, it may be initialized later using $(FREF _Frame.rebuild).
 ---
 Frame msg1;                 // Invalid frame
 auto msg2 = Frame();        // Empty frame
 auto msg3 = Frame(1024);    // 1K frame
-msg1.reinit(2048);          // msg1 now has size 2K
-msg2.reinit(2048);          // ...and so does msg2
+msg1.rebuild(2048);         // msg1 now has size 2K
+msg2.rebuild(2048);         // ...and so does msg2
 ---
 When a $(D Frame) goes out of scope, $(ZMQREF zmq_msg_close()) is
 called on the underlying $(D zmq_msg_t).
@@ -1398,7 +1398,7 @@ struct Frame
     }
 
     /**
-    Reinitializes a $(ZMQ) message frame.
+    Releases the message frame and reinitializes the Frame object.
 
     This function will release the frame if it has already been initialized,
     and then initialize it anew as an empty frame.  Existing frame content
@@ -1409,7 +1409,7 @@ struct Frame
     Corresponds_to:
         $(ZMQREF zmq_msg_close()) followed by $(ZMQREF zmq_msg_init())
     */
-    void reinit()
+    void rebuild()
     {
         close();
         init();
@@ -1420,12 +1420,12 @@ struct Frame
     {
         auto msg = Frame(256);
         assert (msg.size == 256);
-        msg.reinit();
+        msg.rebuild();
         assert (msg.size == 0);
     }
 
     /**
-    Reinitializes a $(ZMQ) message frame.
+    Releases the message frame and reinitializes the Frame object.
 
     This function will release the frame if it has already been initialized,
     and then initialize it anew with the specified size.  Existing frame
@@ -1436,7 +1436,7 @@ struct Frame
     Corresponds_to:
         $(ZMQREF zmq_msg_close()) followed by $(ZMQREF zmq_msg_init_size()).
     */
-    void reinit(size_t size)
+    void rebuild(size_t size)
     {
         close();
         init(size);
@@ -1447,7 +1447,7 @@ struct Frame
     {
         auto msg = Frame(256);
         assert (msg.size == 256);
-        msg.reinit(1024);
+        msg.rebuild(1024);
         assert (msg.size == 1024);
     }
 

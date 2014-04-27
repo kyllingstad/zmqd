@@ -23,7 +23,7 @@ void main()
         if (items[0].revents & ZMQ_POLLIN) {
             do {
                 // Process all parts of the message
-                message.reinit();
+                message.rebuild();
                 frontend.receive(message);
                 backend.send(message, message.more);
             } while (message.more);
@@ -31,7 +31,7 @@ void main()
         if (items[1].revents & ZMQ_POLLIN) {
             do {
                 // Process all parts of the message
-                message.reinit();
+                message.rebuild();
                 backend.receive(message);
                 frontend.send(message, message.more);
             } while (message.more);
