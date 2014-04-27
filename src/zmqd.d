@@ -1353,22 +1353,18 @@ struct Frame
 {
 @safe:
     /**
-    Initializes a $(ZMQ) message frame.
-
-    $(D size) specifies the size of the frame.  If $(D size) is
-    zero, the frame will be empty.
+    Initializes an empty $(ZMQ) message frame.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
-        $(ZMQREF zmq_msg_init()) if $(D size == 0) and
-        $(ZMQREF zmq_msg_init_size()) if $(D size > 0).
+        $(ZMQREF zmq_msg_init())
     */
-    static Frame opCall(size_t size = 0)
+    static Frame opCall()
     {
-        Frame m;
-        m.init(size);
-        return m;
+        Frame f;
+        f.init();
+        return f;
     }
 
     ///
@@ -1376,6 +1372,22 @@ struct Frame
     {
         auto msg = Frame();
         assert(msg.size == 0);
+    }
+
+
+    /**
+    Initializes a $(ZMQ) message frame of a specified size.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_init_size())
+    */
+    static Frame opCall(size_t size)
+    {
+        Frame m;
+        m.init(size);
+        return m;
     }
 
     ///
@@ -1389,20 +1401,42 @@ struct Frame
     Reinitializes a $(ZMQ) message frame.
 
     This function will release the frame if it has already been initialized,
-    and then initialize it anew with the specified size.  Existing frame
-    content will be lost.
-
-    $(D size) specifies the size of the frame.  If $(D size) is
-    zero, the frame will be empty.
+    and then initialize it anew as an empty frame.  Existing frame content
+    will be lost.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
-        $(ZMQREF zmq_msg_close()) followed by
-        $(ZMQREF zmq_msg_init()) if $(D size == 0) or
-        $(ZMQREF zmq_msg_init_size()) if $(D size > 0).
+        $(ZMQREF zmq_msg_close()) followed by $(ZMQREF zmq_msg_init())
     */
-    void reinit(size_t size = 0)
+    void reinit()
+    {
+        close();
+        init();
+    }
+
+    ///
+    unittest
+    {
+        auto msg = Frame(256);
+        assert (msg.size == 256);
+        msg.reinit();
+        assert (msg.size == 0);
+    }
+
+    /**
+    Reinitializes a $(ZMQ) message frame.
+
+    This function will release the frame if it has already been initialized,
+    and then initialize it anew with the specified size.  Existing frame
+    content will be lost.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_close()) followed by $(ZMQREF zmq_msg_init_size()).
+    */
+    void reinit(size_t size)
     {
         close();
         init(size);
@@ -1596,19 +1630,24 @@ struct Frame
     }
 
 private:
+    private void init()
+        in { assert (!m_initialized); }
+        out { assert (m_initialized); }
+        body
+    {
+        if (trusted!zmq_msg_init(&m_msg) != 0) {
+            throw new ZmqException;
+        }
+        m_initialized = true;
+    }
+
     private void init(size_t size)
         in { assert (!m_initialized); }
         out { assert (m_initialized); }
         body
     {
-        if (size > 0) {
-            if (trusted!zmq_msg_init_size(&m_msg, size) != 0) {
-                throw new ZmqException;
-            }
-        } else {
-            if (trusted!zmq_msg_init(&m_msg) != 0) {
-                throw new ZmqException;
-            }
+        if (trusted!zmq_msg_init_size(&m_msg, size) != 0) {
+            throw new ZmqException;
         }
         m_initialized = true;
     }
