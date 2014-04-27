@@ -4,7 +4,7 @@ messaging framework, for the $(LINK2 http://dlang.org,D programming language).
 
 Most functions in this module have a one-to-one relationship with functions
 in the underlying C API.  Some adaptations have been made to make the API
-safer, easier and more pleasant to use, namely:
+safer, easier and more pleasant to use; most importantly:
 $(UL
     $(LI
         Errors are signalled by means of exceptions rather than return
@@ -22,10 +22,14 @@ $(UL
         Context, socket and message options are implemented as properties.)
 )
 The names of functions and types in $(ZMQD) are very similar to those in
-$(ZMQ), but they follow the D naming conventions.  For example,
-$(D zmq_msg_send()) becomes $(D zmqd.Message.send()) and so on.  Thus,
-the library should feel both familiar to $(ZMQ) users and natural to D
-users.
+$(ZMQ), but they follow the D naming conventions.  Thus, the library should
+feel both familiar to $(ZMQ) users and natural to D users.  A notable
+deviation from the C API is that message parts are consistently called
+"frames".  For example, $(D zmq_msg_send()) becomes $(D zmqd.Frame.send())
+and so on.  (Multipart messages were a late addition to $(ZMQ), and the "msg"
+function names were well established at that point.  The library's
+developers have admitted that this is somewhat confusing, and the newer
+CZMQ API consistently uses "frame" in function names.)
 
 Due to the close correspondence with the C API, this documentation has
 intentionally been kept sparse. There is really no reason to repeat the
@@ -535,11 +539,11 @@ struct Socket
     }
 
     /**
-    Sends a message part.
+    Sends a message frame.
 
-    $(D _send) blocks until the message has been queued on the socket.
+    $(D _send) blocks until the frame has been queued on the socket.
     $(D trySend) performs the operation in non-blocking mode, and returns
-    a $(D bool) value that signifies whether the message was queued on the
+    a $(D bool) value that signifies whether the frame was queued on the
     socket.
 
     The $(D char[]) overload is a convenience function that simply casts
@@ -592,11 +596,11 @@ struct Socket
     }
 
     /**
-    Sends a message part.
+    Sends a message frame.
 
-    $(D _send) blocks until the message has been queued on the socket.
+    $(D _send) blocks until the frame has been queued on the socket.
     $(D trySend) performs the operation in non-blocking mode, and returns
-    a $(D bool) value that signifies whether the message was queued on the
+    a $(D bool) value that signifies whether the frame was queued on the
     socket.
 
     Throws:
@@ -605,7 +609,7 @@ struct Socket
         $(ZMQREF zmq_msg_send()) (with the $(D ZMQ_DONTWAIT) flag, in the case
         of $(D trySend)).
     */
-    void send(ref Message msg, bool more = false)
+    void send(ref Frame msg, bool more = false)
     {
         immutable flags = more ? ZMQ_SNDMORE : 0;
         if (trusted!zmq_msg_send(msg.handle, m_socket.handle, flags) < 0) {
@@ -614,7 +618,7 @@ struct Socket
     }
 
     /// ditto
-    bool trySend(ref Message msg, bool more = false)
+    bool trySend(ref Frame msg, bool more = false)
     {
         immutable flags = ZMQ_DONTWAIT | (more ? ZMQ_SNDMORE : 0);
         if (trusted!zmq_msg_send(msg.handle, m_socket.handle, flags) < 0) {
@@ -629,19 +633,19 @@ struct Socket
     unittest
     {
         auto sck = Socket(SocketType.pub);
-        auto msg = Message(12);
+        auto msg = Frame(12);
         msg.data.asString()[] = "Hello World!";
         sck.send(msg);
     }
 
     /**
-    Receives a message part.
+    Receives a message frame.
 
     $(D _receive) blocks until the request can be satisfied, and returns the
-    number of bytes in the message.
+    number of bytes in the frame.
     $(D tryReceive) performs the operation in non-blocking mode, and returns
-    a $(STDREF typecons,Tuple) which contains the size of the message along
-    with a $(D bool) value that signifies whether a message was received.
+    a $(STDREF typecons,Tuple) which contains the size of the frame along
+    with a $(D bool) value that signifies whether a frame was received.
     (If the latter is $(D false), the former is always set to zero.)
 
     Throws:
@@ -715,13 +719,13 @@ struct Socket
     }
 
     /**
-    Receives a message part.
+    Receives a message frame.
 
     $(D _receive) blocks until the request can be satisfied, and returns the
-    number of bytes in the message.
+    number of bytes in the frame.
     $(D tryReceive) performs the operation in non-blocking mode, and returns
-    a $(STDREF typecons,Tuple) which contains the size of the message along
-    with a $(D bool) value that signifies whether a message was received.
+    a $(STDREF typecons,Tuple) which contains the size of the frame along
+    with a $(D bool) value that signifies whether a frame was received.
     (If the latter is $(D false), the former is always set to zero.)
 
     Throws:
@@ -731,7 +735,7 @@ struct Socket
         of $(D tryReceive)).
 
     */
-    size_t receive(ref Message msg)
+    size_t receive(ref Frame msg)
     {
         immutable len = trusted!zmq_msg_recv(msg.handle, m_socket.handle, 0);
         if (len >= 0) {
@@ -743,7 +747,7 @@ struct Socket
     }
 
     /// ditto
-    Tuple!(size_t, bool) tryReceive(ref Message msg)
+    Tuple!(size_t, bool) tryReceive(ref Frame msg)
     {
         immutable len = trusted!zmq_msg_recv(msg.handle, m_socket.handle, ZMQ_DONTWAIT);
         if (len >= 0) {
@@ -771,7 +775,7 @@ struct Socket
         import std.string: representation;
         auto rcv = Socket(SocketType.rep);
         rcv.bind("ipc://zmqd_msg_receive_example");
-        auto msg = Message();
+        auto msg = Frame();
         rcv.receive(msg);
         assert (msg.data.asString() == "Hello World!");
     }
@@ -783,7 +787,7 @@ struct Socket
         auto rcv = Socket(SocketType.pair);
         rcv.connect("ipc://zmqd_msg_tryReceive_example");
 
-        auto msg = Message();
+        auto msg = Frame();
         auto r1 = rcv.tryReceive(msg);
         assert (!r1[1]);
 
@@ -812,7 +816,7 @@ struct Socket
     }
 
     /**
-    Whether there are _more message data parts to follow.
+    Whether there are _more message frames to follow.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -1324,35 +1328,35 @@ void proxy(ref Socket frontend, ref Socket backend, ref Socket capture) nothrow
 
 
 /**
-An object that encapsulates a $(ZMQ) message.
+An object that encapsulates a $(ZMQ) message frame.
 
 This $(D struct) is a wrapper around a $(D zmq_msg_t) object.  Unlike
 $(REF Context) and $(REF Socket), it does $(EM not) perform reference
 counting, because $(ZMQ) messages have a form of reference counting of
-their own.  A $(D Message) cannot be copied by normal assignment; use
-$(FREF Message.copy) for this.
+their own.  A $(D Frame) cannot be copied by normal assignment; use
+$(FREF Frame.copy) for this.
 
-A default-initialized $(D Message) is not a valid $(ZMQ) message; it
-should always be explicitly initialized with $(FREF _Message.opCall).
-Alternatively, it may be initialized later using $(FREF _Message.reinit).
+A default-initialized $(D Frame) is not a valid $(ZMQ) message frame; it
+should always be explicitly initialized with $(FREF _Frame.opCall).
+Alternatively, it may be initialized later using $(FREF _Frame.reinit).
 ---
-Message msg1;               // Invalid message
-auto msg2 = Message();      // Empty message
-auto msg3 = Message(1024);  // 1K message
+Frame msg1;                 // Invalid frame
+auto msg2 = Frame();        // Empty frame
+auto msg3 = Frame(1024);    // 1K frame
 msg1.reinit(2048);          // msg1 now has size 2K
 msg2.reinit(2048);          // ...and so does msg2
 ---
-When a $(D Message) goes out of scope, $(ZMQREF zmq_msg_close()) is
+When a $(D Frame) goes out of scope, $(ZMQREF zmq_msg_close()) is
 called on the underlying $(D zmq_msg_t).
 */
-struct Message
+struct Frame
 {
 @safe:
     /**
-    Initializes a $(ZMQ) message.
+    Initializes a $(ZMQ) message frame.
 
-    $(D size) specifies the size of the message.  If $(D size) is
-    zero, the message will be empty.
+    $(D size) specifies the size of the frame.  If $(D size) is
+    zero, the frame will be empty.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -1360,9 +1364,9 @@ struct Message
         $(ZMQREF zmq_msg_init()) if $(D size == 0) and
         $(ZMQREF zmq_msg_init_size()) if $(D size > 0).
     */
-    static Message opCall(size_t size = 0)
+    static Frame opCall(size_t size = 0)
     {
-        Message m;
+        Frame m;
         m.init(size);
         return m;
     }
@@ -1370,26 +1374,26 @@ struct Message
     ///
     unittest
     {
-        auto msg = Message();
+        auto msg = Frame();
         assert(msg.size == 0);
     }
 
     ///
     unittest
     {
-        auto msg = Message(123);
+        auto msg = Frame(123);
         assert(msg.size == 123);
     }
 
     /**
-    Reinitializes a $(ZMQ) message.
+    Reinitializes a $(ZMQ) message frame.
 
-    This function will release the message if it has already been initialized,
-    and then initialize it anew with the specified size.  Existing message
+    This function will release the frame if it has already been initialized,
+    and then initialize it anew with the specified size.  Existing frame
     content will be lost.
 
-    $(D size) specifies the size of the message.  If $(D size) is
-    zero, the message will be empty.
+    $(D size) specifies the size of the frame.  If $(D size) is
+    zero, the frame will be empty.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -1407,7 +1411,7 @@ struct Message
     ///
     unittest
     {
-        auto msg = Message(256);
+        auto msg = Frame(256);
         assert (msg.size == 256);
         msg.reinit(1024);
         assert (msg.size == 1024);
@@ -1416,11 +1420,11 @@ struct Message
     @disable this(this);
 
     /**
-    Releases the $(ZMQ) message when the $(D Message) is destroyed.
+    Releases the $(ZMQ) message frame when the $(D Frame) is destroyed.
 
     This destructor never throws, which means that any errors will go
-    undetected.  If this is undesirable, call $(FREF Message.close) before
-    the $(D Message) is destroyed.
+    undetected.  If this is undesirable, call $(FREF Frame.close) before
+    the $(D Frame) is destroyed.
 
     Corresponds_to:
         $(ZMQREF zmq_msg_close())
@@ -1429,14 +1433,14 @@ struct Message
     {
         if (m_initialized) {
             immutable rc = trusted!zmq_msg_close(&m_msg);
-            assert(rc == 0, "zmq_msg_close failed: Invalid message");
+            assert(rc == 0, "zmq_msg_close failed: Invalid message frame");
         }
     }
 
     /**
-    Releases the $(ZMQ) message.
+    Releases the $(ZMQ) message frame.
 
-    Note that the message will be automatically released when the $(D Message)
+    Note that the frame will be automatically released when the $(D Frame)
     object is destroyed, so it is often not necessary to call this method
     manually.
 
@@ -1456,11 +1460,11 @@ struct Message
     }
 
     /**
-    Copies message content to another message.
+    Copies frame content to another message frame.
 
-    $(D copy()) returns a new $(D Message) object, while $(D copyTo(dest))
-    copies the contents of this $(D Message) into $(D dest).  $(D dest) must
-    be a valid (i.e. initialized) $(D Message).
+    $(D copy()) returns a new $(D Frame) object, while $(D copyTo(dest))
+    copies the contents of this $(D Frame) into $(D dest).  $(D dest) must
+    be a valid (i.e. initialized) $(D Frame).
 
     Warning:
         These functions may not do what you think they do.  Please refer
@@ -1470,15 +1474,15 @@ struct Message
     Corresponds_to:
         $(ZMQREF zmq_msg_copy())
     */
-    Message copy()
+    Frame copy()
     {
-        auto cp = Message();
+        auto cp = Frame();
         copyTo(cp);
         return cp;
     }
 
     /// ditto
-    void copyTo(ref Message dest)
+    void copyTo(ref Frame dest)
     {
         if (trusted!zmq_msg_copy(&dest.m_msg, &m_msg) != 0) {
             throw new ZmqException;
@@ -1489,33 +1493,33 @@ struct Message
     unittest
     {
         import std.string: representation;
-        auto msg1 = Message(3);
+        auto msg1 = Frame(3);
         msg1.data[] = "foo".representation;
         auto msg2 = msg1.copy();
         assert (msg2.data.asString() == "foo");
     }
 
     /**
-    Moves message content to another message.
+    Moves frame content to another message frame.
 
-    $(D move()) returns a new $(D Message) object, while $(D moveTo(dest))
-    moves the contents of this $(D Message) to $(D dest).  $(D dest) must
-    be a valid (i.e. initialized) $(D Message).
+    $(D move()) returns a new $(D Frame) object, while $(D moveTo(dest))
+    moves the contents of this $(D Frame) to $(D dest).  $(D dest) must
+    be a valid (i.e. initialized) $(D Frame).
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
         $(ZMQREF zmq_msg_move())
     */
-    Message move()
+    Frame move()
     {
-        auto m = Message();
+        auto m = Frame();
         moveTo(m);
         return m;
     }
 
     /// ditto
-    void moveTo(ref Message dest)
+    void moveTo(ref Frame dest)
     {
         if (trusted!zmq_msg_move(&dest.m_msg, &m_msg) != 0) {
             throw new ZmqException;
@@ -1526,7 +1530,7 @@ struct Message
     unittest
     {
         import std.string: representation;
-        auto msg1 = Message(3);
+        auto msg1 = Frame(3);
         msg1.data[] = "foo".representation;
         auto msg2 = msg1.move();
         assert (msg1.size == 0);
@@ -1534,7 +1538,7 @@ struct Message
     }
 
     /**
-    The message content size in bytes.
+    The message frame content size in bytes.
 
     Corresponds_to:
         $(ZMQREF zmq_msg_size())
@@ -1547,12 +1551,12 @@ struct Message
     ///
     unittest
     {
-        auto msg = Message(123);
+        auto msg = Frame(123);
         assert(msg.size == 123);
     }
 
     /**
-    Retrieves the message content.
+    Retrieves the message frame content.
 
     Corresponds_to:
         $(ZMQREF zmq_msg_data())
@@ -1566,14 +1570,14 @@ struct Message
     unittest
     {
         import std.string: representation;
-        auto msg = Message(3);
+        auto msg = Frame(3);
         assert(msg.data.length == 3);
         msg.data[] = "foo".representation; // Slice operator -> array copy.
         assert(msg.data.asString() == "foo");
     }
 
     /**
-    Whether there are more message parts to retrieve.
+    Whether there are more message frames to retrieve.
 
     Corresponds_to:
         $(ZMQREF zmq_msg_more())
@@ -1621,23 +1625,24 @@ unittest
     s1.bind(url);
     s2.connect(url);
 
-    auto m1a = Message(123);
+    auto m1a = Frame(123);
     m1a.data[] = 'a';
     s1.send(m1a);
-    auto m2a = Message();
+    auto m2a = Frame();
     s2.receive(m2a);
     assert(m2a.size == 123);
     foreach (e; m2a.data) assert(e == 'a');
 
-    auto m1b = Message(10);
+    auto m1b = Frame(10);
     m1b.data[] = 'b';
     s1.send(m1b);
-    auto m2b = Message();
+    auto m2b = Frame();
     s2.receive(m2b);
     assert(m2b.size == 10);
     foreach (e; m2b.data) assert(e == 'b');
 }
 
+deprecated("zmqd.Message has been renamed to zmqd.Frame") alias Message = Frame;
 
 /**
 Socket event types.
@@ -1686,7 +1691,7 @@ See_also:
 */
 Event receiveEvent(Socket socket) @system
 {
-    auto msg = Message();
+    auto msg = Frame();
     if (socket.receive(msg) != zmq_event_t.sizeof) {
         throw new InvalidEventException;
     }
@@ -2025,7 +2030,7 @@ unittest
     auto s2 = Socket(SocketType.pair);
     s2.connect("ipc://zmqd_asString_example");
 
-    auto msg = Message(12);
+    auto msg = Frame(12);
     msg.data.asString()[] = "Hello World!";
     s1.send(msg);
 
