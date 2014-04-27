@@ -25,7 +25,7 @@ void sDump(Socket socket)
     writeln("----------------------------------------");
     do {
         // Process all parts of the message
-        auto message = Message();
+        auto message = Frame();
         immutable size = socket.receive(message);
 
         // Dump the message as text or binary

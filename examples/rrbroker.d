@@ -18,7 +18,7 @@ void main()
     // Switch messages between sockets
     while (true) {
         import core.time: Duration;
-        Message message;
+        Frame message;
         poll(items);
         if (items[0].revents & ZMQ_POLLIN) {
             do {
