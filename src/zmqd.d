@@ -465,7 +465,7 @@ struct Socket
     unittest
     {
         auto s = Socket(SocketType.pub);
-        s.bind("inproc://zmqd_bind_example");
+        s.bind("ipc://zmqd_bind_example");
     }
 
     /**
@@ -1051,7 +1051,7 @@ struct Socket
     {
         // We test all the socket options by checking that they have their default value.
         auto s = Socket(SocketType.xpub);
-        const e = "inproc://unittest2";
+        const e = "ipc://unittest2";
         s.bind(e);
         import core.time;
         assert(s.type == SocketType.xpub);
@@ -1156,9 +1156,9 @@ struct Socket
             Thread.sleep(dur!"msecs"(ms));
         }
         auto pub = Socket(SocketType.pub);
-        pub.bind("inproc://zmqd_subscribe_unittest");
+        pub.bind("ipc://zmqd_subscribe_unittest");
         auto sub = Socket(SocketType.sub);
-        sub.connect("inproc://zmqd_subscribe_unittest");
+        sub.connect("ipc://zmqd_subscribe_unittest");
 
         pub.send("Hello");
         sleep(100);
