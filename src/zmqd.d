@@ -546,14 +546,18 @@ struct Socket
     a $(D bool) value that signifies whether the frame was queued on the
     socket.
 
+    The $(D more) parameter specifies whether this is a multipart message
+    and there are more frames to follow.
+
     The $(D char[]) overload is a convenience function that simply casts
     the string argument to $(D ubyte[]).
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
-        $(ZMQREF zmq_send()) (with the $(D ZMQ_DONTWAIT) flag, in the case
-        of $(D trySend)).
+        $(ZMQREF zmq_send()) (with the $(D ZMQ_DONTWAIT) flag, in the
+        case of $(D trySend), and with the $(D ZMQ_SNDMORE) flag if
+        $(D more == true)).
     */
     void send(const ubyte[] data, bool more = false)
     {
@@ -603,11 +607,15 @@ struct Socket
     a $(D bool) value that signifies whether the frame was queued on the
     socket.
 
+    The $(D more) parameter specifies whether this is a multipart message
+    and there are more frames to follow.
+
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
-        $(ZMQREF zmq_msg_send()) (with the $(D ZMQ_DONTWAIT) flag, in the case
-        of $(D trySend)).
+        $(ZMQREF zmq_msg_send()) (with the $(D ZMQ_DONTWAIT) flag, in the
+        case of $(D trySend), and with the $(D ZMQ_SNDMORE) flag if
+        $(D more == true)).
     */
     void send(ref Frame msg, bool more = false)
     {
