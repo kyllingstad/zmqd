@@ -408,7 +408,7 @@ s.close();
 <code><a href="http://api.zeromq.org/3-2:zmq_bind()">zmq_bind()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> s = Socket(SocketType.pub);
-s.bind(<font color=red>"inproc://zmqd_bind_example"</font>);
+s.bind(<font color=red>"ipc://zmqd_bind_example"</font>);
 </pre>
 </div></section>
 </section>
@@ -471,7 +471,8 @@ s.connect(<font color=red>"ipc://zmqd_disconnect_example"</font>);
     socket.
 <br><br>
 
-    If <code>more</code> is <code><b>true</b></code>
+    The <code>more</code> parameter specifies whether this is a multipart message
+    and there are more frames to follow.
 <br><br>
 
     The <code>char[]</code> overload is a convenience function that simply casts
@@ -481,8 +482,9 @@ s.connect(<font color=red>"ipc://zmqd_disconnect_example"</font>);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_send()">zmq_send()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the case
-        of <code>trySend</code>).</div></section>
+<code><a href="http://api.zeromq.org/3-2:zmq_send()">zmq_send()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the
+        case of <code>trySend</code>, and with the <code>ZMQ_SNDMORE</code> flag if
+        <code>more == <b>true</b></code>).</div></section>
 
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> sck = Socket(SocketType.pub);
@@ -499,13 +501,18 @@ sck.send(<font color=red>"Hello World!"</font>);
     <code>trySend</code> performs the operation in non-blocking mode, and returns
     a <code>bool</code> value that signifies whether the frame was queued on the
     socket.
+<br><br>
+
+    The <code>more</code> parameter specifies whether this is a multipart message
+    and there are more frames to follow.
 
 </div>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_send()">zmq_msg_send()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the case
-        of <code>trySend</code>).</div></section>
+<code><a href="http://api.zeromq.org/3-2:zmq_msg_send()">zmq_msg_send()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the
+        case of <code>trySend</code>, and with the <code>ZMQ_SNDMORE</code> flag if
+        <code>more == <b>true</b></code>).</div></section>
 
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> sck = Socket(SocketType.pub);
@@ -1238,7 +1245,7 @@ received message as an event description.</p>
                 <footer>
                     <div class="ddoc_paragraphs">Copyright (c) 2013–2014, Lars T. Kyllingstad. All rights reserved.
 </div>
-                    <p>This documentation was generated on Sun Apr 27 23:29:23 2014
+                    <p>This documentation was generated on Tue Apr 29 18:16:26 2014
  with
                        <a href="https://github.com/kyllingstad/ltkdoc">LTKdoc 0.1</a>.</p>
                 </footer>
