@@ -1517,6 +1517,8 @@ struct Frame
         $(ZMQREF zmq_msg_copy())
     */
     Frame copy()
+        in { assert(m_initialized); }
+        body
     {
         auto cp = Frame();
         copyTo(cp);
@@ -1525,6 +1527,8 @@ struct Frame
 
     /// ditto
     void copyTo(ref Frame dest)
+        in { assert(m_initialized); }
+        body
     {
         if (trusted!zmq_msg_copy(&dest.m_msg, &m_msg) != 0) {
             throw new ZmqException;
@@ -1554,6 +1558,8 @@ struct Frame
         $(ZMQREF zmq_msg_move())
     */
     Frame move()
+        in { assert(m_initialized); }
+        body
     {
         auto m = Frame();
         moveTo(m);
@@ -1562,6 +1568,8 @@ struct Frame
 
     /// ditto
     void moveTo(ref Frame dest)
+        in { assert(m_initialized); }
+        body
     {
         if (trusted!zmq_msg_move(&dest.m_msg, &m_msg) != 0) {
             throw new ZmqException;
@@ -1586,6 +1594,8 @@ struct Frame
         $(ZMQREF zmq_msg_size())
     */
     @property size_t size() nothrow
+        in { assert(m_initialized); }
+        body
     {
         return trusted!zmq_msg_size(&m_msg);
     }
@@ -1604,6 +1614,8 @@ struct Frame
         $(ZMQREF zmq_msg_data())
     */
     @property ubyte[] data() @trusted nothrow
+        in { assert(m_initialized); }
+        body
     {
         return (cast(ubyte*) zmq_msg_data(&m_msg))[0 .. size];
     }
@@ -1625,6 +1637,8 @@ struct Frame
         $(ZMQREF zmq_msg_more())
     */
     @property bool more() nothrow
+        in { assert(m_initialized); }
+        body
     {
         return !!trusted!zmq_msg_more(&m_msg);
     }
