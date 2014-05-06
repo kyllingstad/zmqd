@@ -142,148 +142,6 @@ examples, please refer to the <a href="http://zguide.zeromq.org/page:all">&#x220
 <code><a href="http://api.zeromq.org/3-2:zmq_version()">zmq_version()</a></code></div></section>
 
 </section>
-<section class="member"><h1><code><a name="Context"></a>struct Context;
-</code></h1>
-<p class="summary">An object that encapsulates a &#x2205;MQ context.
-</p>
-<div class="ddoc_paragraphs">In most programs, it is not necessary to use this type directly,
-as <code><a href="#Socket">Socket</a></code> will use a default global context if not explicitly
-provided with one.  See <code><a href="#defaultContext">defaultContext()</a></code> for details.
-<br><br>
-
-A default-initialized <code>Context</code> is not a valid &#x2205;MQ context; it
-must always be explicitly initialized with <code><a href="#Context.opCall">Context.opCall()</a></code>:
-<pre class="d_code">Context ctx;        <font color=green>// Not a valid context yet
-</font>ctx = Context();    <font color=green>// ...but now it is.
-</font></pre>
-<code>Context</code> objects can be passed around by value, and two copies will
-refer to the same context.  The underlying context is managed using
-reference counting, so that when the last copy of a <code>Context</code> goes
-out of scope, the context is automatically destroyed.
-
-</div>
-<section class="ddoc_section"><h1>See also:</h1><div class="ddoc_paragraphs"> <code><a href="#defaultContext">defaultContext()</a></code></div></section>
-
-<section class="members"><h1>Members</h1><section class="member"><h1><code><a name="Context.opCall"></a>static @safe Context opCall();
-</code></h1>
-<p class="summary">Creates a new &#x2205;MQ context.
-</p>
-<section class="ddoc_section"><h1>Returns:</h1><div class="ddoc_paragraphs"> A <code><a href="#Context">Context</a></code> object that encapsulates the new context.
-</div></section>
-<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
-</div></section>
-<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_ctx_new()">zmq_ctx_new()</a></code></div></section>
-<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
-<font color=blue>auto</font> ctx = Context();
-<font color=blue>assert</font> (ctx.initialized);
-</pre>
-</div></section>
-</section>
-<section class="member"><h1><code><a name="Context.destroy"></a>@safe void destroy();
-</code></h1>
-<p class="summary">Destroys the &#x2205;MQ context.
-</p>
-<div class="ddoc_paragraphs">It is normally not necessary to do this manually, as the context will
-    be destroyed automatically when the last reference to it goes out of
-    scope.
-
-</div>
-<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
-</div></section>
-<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_ctx_destroy()">zmq_ctx_destroy()</a></code></div></section>
-<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
-<font color=blue>auto</font> ctx = Context();
-<font color=blue>assert</font> (ctx.initialized);
-ctx.destroy();
-<font color=blue>assert</font> (!ctx.initialized);
-</pre>
-</div></section>
-</section>
-<section class="member"><h1><code><a name="Context.ioThreads"></a>@property @safe int ioThreads();
-<br><a name="Context.ioThreads"></a>@property @safe void ioThreads(int value);
-</code></h1>
-<p class="summary">The number of I/O threads.
-</p>
-<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
-</div></section>
-<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_ctx_get()">zmq_ctx_get()</a></code> and <code><a href="http://api.zeromq.org/3-2:zmq_ctx_set()">zmq_ctx_set()</a></code> with
-        <code>ZMQ_IO_THREADS</code>.</div></section>
-
-<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
-<font color=blue>auto</font> ctx = Context();
-ctx.ioThreads = 3;
-<font color=blue>assert</font> (ctx.ioThreads == 3);
-</pre>
-</div></section></section>
-<section class="member"><h1><code><a name="Context.maxSockets"></a>@property @safe int maxSockets();
-<br><a name="Context.maxSockets"></a>@property @safe void maxSockets(int value);
-</code></h1>
-<p class="summary">The maximum number of sockets.
-</p>
-<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
-</div></section>
-<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_ctx_get()">zmq_ctx_get()</a></code> and <code><a href="http://api.zeromq.org/3-2:zmq_ctx_set()">zmq_ctx_set()</a></code> with
-        <code>ZMQ_MAX_SOCKETS</code>.</div></section>
-
-<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
-<font color=blue>auto</font> ctx = Context();
-ctx.maxSockets = 512;
-<font color=blue>assert</font> (ctx.maxSockets == 512);
-</pre>
-</div></section></section>
-<section class="member"><h1><code><a name="Context.handle"></a>inout pure nothrow @property @safe inout(void)* handle();
-</code></h1>
-<p class="summary">The <code>void*</code> pointer used by the underlying C API to refer to the context.
-</p>
-<div class="ddoc_paragraphs">If the object has not been initialized, this function returns <code><b>null</b></code>.</div>
-
-</section>
-<section class="member"><h1><code><a name="Context.initialized"></a>const pure nothrow @property @safe bool initialized();
-</code></h1>
-<p class="summary">Whether this <code><a href="#Context">Context</a></code> object has been initialized, i.e. whether it
-    refers to a valid &#x2205;MQ context.</p>
-<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
-Context ctx;
-<font color=blue>assert</font> (!ctx.initialized);
-ctx = Context();
-<font color=blue>assert</font> (ctx.initialized);
-ctx.destroy();
-<font color=blue>assert</font> (!ctx.initialized);
-</pre>
-</div></section>
-</section>
-</section>
-</section>
-<section class="member"><h1><code><a name="defaultContext"></a>@trusted Context defaultContext();
-</code></h1>
-<p class="summary">A global context which is used by default by all sockets, unless they are
-explicitly constructed with a different context.
-</p>
-<div class="ddoc_paragraphs">The &#x2205;MQ Guide <a href="http://zguide.zeromq.org/page:all#Getting-the-Context-Right">has the following to say</a> about context creation:
-<blockquote>   You should create and use exactly one context in your process.
-    [&hellip;] If at runtime a process has two contexts, these are
-    like separate &#x2205;MQ instances. If that's explicitly what you
-    want, OK, but otherwise remember: <em>Do one <code>zmq_ctx_new()</code>
-    at the start of your main line code, and one <code>zmq_ctx_destroy()</code>
-    at the end.</em>
-</blockquote>
-By using <code>defaultContext()</code>, this is exactly what you achieve.  The
-context is created the first time the function is called, and is
-automatically destroyed when the program ends.
-<br><br>
-
-This function is thread safe.
-
-</div>
-<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
-</div></section>
-<section class="ddoc_section"><h1>See also:</h1><div class="ddoc_paragraphs"> <code><a href="#Context">Context</a></code></div></section>
-
-</section>
 <section class="member"><h1><code><a name="SocketType"></a>enum SocketType: int;
 </code></h1>
 <p class="summary">The various socket types.
@@ -789,6 +647,52 @@ sck.close();
 <code><a href="http://api.zeromq.org/3-2:zmq_proxy()">zmq_proxy()</a></code></div></section>
 
 </section>
+<section class="member"><h1><code><a name="poll"></a>@safe uint poll(zmq_pollitem_t[] items, Duration timeout = Duration.max);
+</code></h1>
+<p class="summary">Input/output multiplexing.
+</p>
+<div class="ddoc_paragraphs">This function is a bare-bones wrapper around <code><a href="http://api.zeromq.org/3-2:zmq_poll()">zmq_poll()</a></code>, using a
+plain array of <code>zmq_pollitem_t</code> structures to hold the socket handles
+and the event flags.  This array is passed straight to the C function, thus
+avoiding additional allocations.  <code><a href="#Socket.handle">Socket.handle</a></code> can be used to populate
+the <code>zmq_pollitem_t.socket</code> field, or <code><a href="http://dlang.org/phobos/std_socket.html#.Socket.handle">std.socket.Socket.handle</a></code> can be
+used to populate <code>zmq_pollitem_t.fd</code> for standard socket support.
+<br><br>
+
+The <code>timeout</code> parameter may have the special value
+<code><a href="http://dlang.org/phobos/core_time.html#.Duration.max">core.time.Duration.max</a></code>, which in this context specifies an infinite
+duration.  This is translated to an argument value of -1 in the C API.
+
+</div>
+<section class="ddoc_section"><h1>Returns:</h1><div class="ddoc_paragraphs"> The number of <code>zmq_pollitem_t</code> structures with events signalled
+    in <code>revents</code>, or 0 if no events have been signalled.
+</div></section>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/3-2:zmq_poll()">zmq_poll()</a></code></div></section>
+<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+<font color=blue>auto</font> socket1 = zmqd.Socket(zmqd.SocketType.pair);
+socket1.bind(<font color=red>"ipc://zmqd_poll_example"</font>);
+
+<font color=blue>import</font> std.socket;
+<font color=blue>auto</font> socket2 = <font color=blue>new</font> std.socket.Socket(
+    AddressFamily.INET,
+    std.socket.SocketType.DGRAM);
+socket2.bind(<font color=blue>new</font> InternetAddress(InternetAddress.ADDR_ANY, 5678));
+
+<font color=blue>auto</font> items = [
+    zmq_pollitem_t(socket1.handle, 0, ZMQ_POLLIN, 0),
+    zmq_pollitem_t(<font color=blue>null</font>, socket2.handle, ZMQ_POLLIN | ZMQ_POLLOUT, 0)
+];
+<font color=blue>const</font> n = poll(items, 100.msecs);
+<font color=blue>assert</font> (n == 1);
+<font color=blue>assert</font> (items[0].revents == 0);
+<font color=blue>assert</font> (items[1].revents == ZMQ_POLLOUT);
+socket2.close();
+</pre>
+</div></section>
+</section>
 <section class="member"><h1><code><a name="Frame"></a>struct Frame;
 </code></h1>
 <p class="summary">An object that encapsulates a &#x2205;MQ message frame.
@@ -828,7 +732,8 @@ called on the underlying <code>zmq_msg_t</code>.</div>
 </section>
 <section class="member"><h1><code><a name="Frame.opCall"></a>static @safe Frame opCall(size_t size);
 </code></h1>
-<p class="summary">Initializes a &#x2205;MQ message frame of a specified size.
+<p class="summary"><a name="Frame.opCall_size"></a>
+    Initializes a &#x2205;MQ message frame of a specified size.
 </p>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
@@ -840,13 +745,48 @@ called on the underlying <code>zmq_msg_t</code>.</div>
 </pre>
 </div></section>
 </section>
+<section class="member"><h1><code><a name="Frame.opCall"></a>static @safe Frame opCall(ubyte[] data);
+</code></h1>
+<p class="summary"><a name="Frame.opCall_data"></a>
+    Initializes a &#x2205;MQ message frame from a supplied buffer.
+</p>
+<section class="ddoc_section"><h1>Warning:</h1><div class="ddoc_paragraphs">
+Some care must be taken when using this function, as &#x2205;MQ expects
+        to take full ownership of the supplied buffer.  Client code should
+        therefore avoid retaining any references to it, including slices that
+        contain, overlap with or are contained in <code>data</code>.
+        &#x2205;MQ makes no guarantee that the buffer is not modified,
+        and it does not specify when the buffer is released.
+<br><br>
+
+        An additional complication is caused by the fact that most arrays in D
+        are owned by the garbage collector.  This is solved by adding the array
+        pointer as a new garbage collector root before passing it to
+        <code><a href="http://api.zeromq.org/3-2:zmq_msg_init_data()">zmq_msg_init_data()</a></code>, thus preventing the GC from collecting
+        it.  The root is then removed again in the deallocator callback
+        function which is called by &#x2205;MQ when it no longer requires
+        the buffer, thus allowing the GC to collect it.
+</div></section>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/3-2:zmq_msg_init_data()">zmq_msg_init_data()</a></code></div></section>
+<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+<font color=blue>auto</font> buf = <font color=blue>new</font> <font color=blue>ubyte</font>[123];
+<font color=blue>auto</font> msg = Frame(buf);
+<font color=blue>assert</font>(msg.size == buf.length);
+<font color=blue>assert</font>(msg.data.ptr == buf.ptr);
+</pre>
+</div></section>
+</section>
 <section class="member"><h1><code><a name="Frame.rebuild"></a>@safe void rebuild();
 </code></h1>
-<p class="summary">Releases the message frame and reinitializes the Frame object.
+<p class="summary">Reinitializes the Frame object as an empty message.
 </p>
-<div class="ddoc_paragraphs">This function will release the frame if it has already been initialized,
-    and then initialize it anew as an empty frame.  Existing frame content
-    will be lost.
+<div class="ddoc_paragraphs">This function will first call <code><a href="#Frame.close">Frame.close()</a></code> to release the
+    resources associated with the message frame, and then it will
+    initialize it anew, exactly as if it were constructed  with
+    <code><a href="#Frame.opCall">Frame()</a></code>.
 
 </div>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
@@ -863,11 +803,12 @@ msg.rebuild();
 </section>
 <section class="member"><h1><code><a name="Frame.rebuild"></a>@safe void rebuild(size_t size);
 </code></h1>
-<p class="summary">Releases the message frame and reinitializes the Frame object.
+<p class="summary">Reinitializes the Frame object to a specified size.
 </p>
-<div class="ddoc_paragraphs">This function will release the frame if it has already been initialized,
-    and then initialize it anew with the specified size.  Existing frame
-    content will be lost.
+<div class="ddoc_paragraphs">This function will first call <code><a href="#Frame.close">Frame.close()</a></code> to release the
+    resources associated with the message frame, and then it will
+    initialize it anew, exactly as if it were constructed  with
+    <code><a href="#Frame.opCall_size">Frame(size)</a></code>.
 
 </div>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
@@ -879,6 +820,30 @@ msg.rebuild();
 <font color=blue>assert</font> (msg.size == 256);
 msg.rebuild(1024);
 <font color=blue>assert</font> (msg.size == 1024);
+</pre>
+</div></section>
+</section>
+<section class="member"><h1><code><a name="Frame.rebuild"></a>@safe void rebuild(ubyte[] data);
+</code></h1>
+<p class="summary">Reinitializes the Frame object from a supplied buffer.
+</p>
+<div class="ddoc_paragraphs">This function will first call <code><a href="#Frame.close">Frame.close()</a></code> to release the
+    resources associated with the message frame, and then it will
+    initialize it anew, exactly as if it were constructed  with
+    <code><a href="#Frame.opCall_data">Frame(data)</a></code>.
+
+</div>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/3-2:zmq_msg_close()">zmq_msg_close()</a></code> followed by <code><a href="http://api.zeromq.org/3-2:zmq_msg_init_data()">zmq_msg_init_data()</a></code>.</div></section>
+<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+<font color=blue>auto</font> msg = Frame(256);
+<font color=blue>assert</font> (msg.size == 256);
+<font color=blue>auto</font> buf = <font color=blue>new</font> <font color=blue>ubyte</font>[123];
+msg.rebuild(buf);
+<font color=blue>assert</font>(msg.size == buf.length);
+<font color=blue>assert</font>(msg.data.ptr == buf.ptr);
 </pre>
 </div></section>
 </section>
@@ -987,6 +952,148 @@ msg.data[] = <font color=red>"foo"</font>.representation; <font color=green>// S
 </code></h1>
 <p class="summary">A pointer to the underlying <code>zmq_msg_t</code>.</p>
 
+</section>
+</section>
+</section>
+<section class="member"><h1><code><a name="defaultContext"></a>@trusted Context defaultContext();
+</code></h1>
+<p class="summary">A global context which is used by default by all sockets, unless they are
+explicitly constructed with a different context.
+</p>
+<div class="ddoc_paragraphs">The &#x2205;MQ Guide <a href="http://zguide.zeromq.org/page:all#Getting-the-Context-Right">has the following to say</a> about context creation:
+<blockquote>   You should create and use exactly one context in your process.
+    [&hellip;] If at runtime a process has two contexts, these are
+    like separate &#x2205;MQ instances. If that's explicitly what you
+    want, OK, but otherwise remember: <em>Do one <code>zmq_ctx_new()</code>
+    at the start of your main line code, and one <code>zmq_ctx_destroy()</code>
+    at the end.</em>
+</blockquote>
+By using <code>defaultContext()</code>, this is exactly what you achieve.  The
+context is created the first time the function is called, and is
+automatically destroyed when the program ends.
+<br><br>
+
+This function is thread safe.
+
+</div>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</div></section>
+<section class="ddoc_section"><h1>See also:</h1><div class="ddoc_paragraphs"> <code><a href="#Context">Context</a></code></div></section>
+
+</section>
+<section class="member"><h1><code><a name="Context"></a>struct Context;
+</code></h1>
+<p class="summary">An object that encapsulates a &#x2205;MQ context.
+</p>
+<div class="ddoc_paragraphs">In most programs, it is not necessary to use this type directly,
+as <code><a href="#Socket">Socket</a></code> will use a default global context if not explicitly
+provided with one.  See <code><a href="#defaultContext">defaultContext()</a></code> for details.
+<br><br>
+
+A default-initialized <code>Context</code> is not a valid &#x2205;MQ context; it
+must always be explicitly initialized with <code><a href="#Context.opCall">Context.opCall()</a></code>:
+<pre class="d_code">Context ctx;        <font color=green>// Not a valid context yet
+</font>ctx = Context();    <font color=green>// ...but now it is.
+</font></pre>
+<code>Context</code> objects can be passed around by value, and two copies will
+refer to the same context.  The underlying context is managed using
+reference counting, so that when the last copy of a <code>Context</code> goes
+out of scope, the context is automatically destroyed.
+
+</div>
+<section class="ddoc_section"><h1>See also:</h1><div class="ddoc_paragraphs"> <code><a href="#defaultContext">defaultContext()</a></code></div></section>
+
+<section class="members"><h1>Members</h1><section class="member"><h1><code><a name="Context.opCall"></a>static @safe Context opCall();
+</code></h1>
+<p class="summary">Creates a new &#x2205;MQ context.
+</p>
+<section class="ddoc_section"><h1>Returns:</h1><div class="ddoc_paragraphs"> A <code><a href="#Context">Context</a></code> object that encapsulates the new context.
+</div></section>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/3-2:zmq_ctx_new()">zmq_ctx_new()</a></code></div></section>
+<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+<font color=blue>auto</font> ctx = Context();
+<font color=blue>assert</font> (ctx.initialized);
+</pre>
+</div></section>
+</section>
+<section class="member"><h1><code><a name="Context.destroy"></a>@safe void destroy();
+</code></h1>
+<p class="summary">Destroys the &#x2205;MQ context.
+</p>
+<div class="ddoc_paragraphs">It is normally not necessary to do this manually, as the context will
+    be destroyed automatically when the last reference to it goes out of
+    scope.
+
+</div>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/3-2:zmq_ctx_destroy()">zmq_ctx_destroy()</a></code></div></section>
+<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+<font color=blue>auto</font> ctx = Context();
+<font color=blue>assert</font> (ctx.initialized);
+ctx.destroy();
+<font color=blue>assert</font> (!ctx.initialized);
+</pre>
+</div></section>
+</section>
+<section class="member"><h1><code><a name="Context.ioThreads"></a>@property @safe int ioThreads();
+<br><a name="Context.ioThreads"></a>@property @safe void ioThreads(int value);
+</code></h1>
+<p class="summary">The number of I/O threads.
+</p>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/3-2:zmq_ctx_get()">zmq_ctx_get()</a></code> and <code><a href="http://api.zeromq.org/3-2:zmq_ctx_set()">zmq_ctx_set()</a></code> with
+        <code>ZMQ_IO_THREADS</code>.</div></section>
+
+<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+<font color=blue>auto</font> ctx = Context();
+ctx.ioThreads = 3;
+<font color=blue>assert</font> (ctx.ioThreads == 3);
+</pre>
+</div></section></section>
+<section class="member"><h1><code><a name="Context.maxSockets"></a>@property @safe int maxSockets();
+<br><a name="Context.maxSockets"></a>@property @safe void maxSockets(int value);
+</code></h1>
+<p class="summary">The maximum number of sockets.
+</p>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/3-2:zmq_ctx_get()">zmq_ctx_get()</a></code> and <code><a href="http://api.zeromq.org/3-2:zmq_ctx_set()">zmq_ctx_set()</a></code> with
+        <code>ZMQ_MAX_SOCKETS</code>.</div></section>
+
+<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+<font color=blue>auto</font> ctx = Context();
+ctx.maxSockets = 512;
+<font color=blue>assert</font> (ctx.maxSockets == 512);
+</pre>
+</div></section></section>
+<section class="member"><h1><code><a name="Context.handle"></a>inout pure nothrow @property @safe inout(void)* handle();
+</code></h1>
+<p class="summary">The <code>void*</code> pointer used by the underlying C API to refer to the context.
+</p>
+<div class="ddoc_paragraphs">If the object has not been initialized, this function returns <code><b>null</b></code>.</div>
+
+</section>
+<section class="member"><h1><code><a name="Context.initialized"></a>const pure nothrow @property @safe bool initialized();
+</code></h1>
+<p class="summary">Whether this <code><a href="#Context">Context</a></code> object has been initialized, i.e. whether it
+    refers to a valid &#x2205;MQ context.</p>
+<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+Context ctx;
+<font color=blue>assert</font> (!ctx.initialized);
+ctx = Context();
+<font color=blue>assert</font> (ctx.initialized);
+ctx.destroy();
+<font color=blue>assert</font> (!ctx.initialized);
+</pre>
+</div></section>
 </section>
 </section>
 </section>
@@ -1138,52 +1245,6 @@ an <code><a href="#InvalidEventException">InvalidEventException</a></code> is th
 </section>
 </section>
 </section>
-<section class="member"><h1><code><a name="poll"></a>@safe uint poll(zmq_pollitem_t[] items, Duration timeout = Duration.max);
-</code></h1>
-<p class="summary">Input/output multiplexing.
-</p>
-<div class="ddoc_paragraphs">This function is a bare-bones wrapper around <code><a href="http://api.zeromq.org/3-2:zmq_poll()">zmq_poll()</a></code>, using a
-plain array of <code>zmq_pollitem_t</code> structures to hold the socket handles
-and the event flags.  This array is passed straight to the C function, thus
-avoiding additional allocations.  <code><a href="#Socket.handle">Socket.handle</a></code> can be used to populate
-the <code>zmq_pollitem_t.socket</code> field, or <code><a href="http://dlang.org/phobos/std_socket.html#.Socket.handle">std.socket.Socket.handle</a></code> can be
-used to populate <code>zmq_pollitem_t.fd</code> for standard socket support.
-<br><br>
-
-The <code>timeout</code> parameter may have the special value
-<code><a href="http://dlang.org/phobos/core_time.html#.Duration.max">core.time.Duration.max</a></code>, which in this context specifies an infinite
-duration.  This is translated to an argument value of -1 in the C API.
-
-</div>
-<section class="ddoc_section"><h1>Returns:</h1><div class="ddoc_paragraphs"> The number of <code>zmq_pollitem_t</code> structures with events signalled
-    in <code>revents</code>, or 0 if no events have been signalled.
-</div></section>
-<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
-</div></section>
-<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_poll()">zmq_poll()</a></code></div></section>
-<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
-<font color=blue>auto</font> socket1 = zmqd.Socket(zmqd.SocketType.pair);
-socket1.bind(<font color=red>"ipc://zmqd_poll_example"</font>);
-
-<font color=blue>import</font> std.socket;
-<font color=blue>auto</font> socket2 = <font color=blue>new</font> std.socket.Socket(
-    AddressFamily.INET,
-    std.socket.SocketType.DGRAM);
-socket2.bind(<font color=blue>new</font> InternetAddress(InternetAddress.ADDR_ANY, 5678));
-
-<font color=blue>auto</font> items = [
-    zmq_pollitem_t(socket1.handle, 0, ZMQ_POLLIN, 0),
-    zmq_pollitem_t(<font color=blue>null</font>, socket2.handle, ZMQ_POLLIN | ZMQ_POLLOUT, 0)
-];
-<font color=blue>const</font> n = poll(items, 100.msecs);
-<font color=blue>assert</font> (n == 1);
-<font color=blue>assert</font> (items[0].revents == 0);
-<font color=blue>assert</font> (items[1].revents == ZMQ_POLLOUT);
-socket2.close();
-</pre>
-</div></section>
-</section>
 <section class="member"><h1><code><a name="asString"></a>pure @safe inout(char)[] asString(inout(ubyte)[] data);
 </code></h1>
 <p class="summary">Utility function which interprets and validates a byte array as a UTF-8 string.
@@ -1245,7 +1306,7 @@ received message as an event description.</p>
                 <footer>
                     <div class="ddoc_paragraphs">Copyright (c) 2013–2014, Lars T. Kyllingstad. All rights reserved.
 </div>
-                    <p>This documentation was generated on Tue Apr 29 18:16:26 2014
+                    <p>This documentation was generated on Tue May  6 07:45:29 2014
  with
                        <a href="https://github.com/kyllingstad/ltkdoc">LTKdoc 0.1</a>.</p>
                 </footer>
