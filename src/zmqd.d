@@ -104,242 +104,6 @@ Tuple!(int, "major", int, "minor", int, "patch") zmqVersion() nothrow
 
 
 /**
-An object that encapsulates a $(ZMQ) context.
-
-In most programs, it is not necessary to use this type directly,
-as $(REF Socket) will use a default global context if not explicitly
-provided with one.  See $(FREF defaultContext) for details.
-
-A default-initialized $(D Context) is not a valid $(ZMQ) context; it
-must always be explicitly initialized with $(FREF _Context.opCall):
----
-Context ctx;        // Not a valid context yet
-ctx = Context();    // ...but now it is.
----
-$(D Context) objects can be passed around by value, and two copies will
-refer to the same context.  The underlying context is managed using
-reference counting, so that when the last copy of a $(D Context) goes
-out of scope, the context is automatically destroyed.
-
-See_also:
-    $(FREF defaultContext)
-*/
-struct Context
-{
-@safe:
-    /**
-    Creates a new $(ZMQ) context.
-
-    Returns:
-        A $(REF Context) object that encapsulates the new context.
-    Throws:
-        $(REF ZmqException) if $(ZMQ) reports an error.
-    Corresponds_to:
-        $(ZMQREF zmq_ctx_new())
-    */
-    static Context opCall()
-    {
-        if (auto c = trusted!zmq_ctx_new()) {
-            Context ctx;
-            ctx.m_resource = Resource(c, &zmq_ctx_destroy);
-            return ctx;
-        } else {
-            throw new ZmqException;
-        }
-    }
-
-    ///
-    unittest
-    {
-        auto ctx = Context();
-        assert (ctx.initialized);
-    }
-
-    /**
-    Destroys the $(ZMQ) context.
-
-    It is normally not necessary to do this manually, as the context will
-    be destroyed automatically when the last reference to it goes out of
-    scope.
-
-    Throws:
-        $(REF ZmqException) if $(ZMQ) reports an error.
-    Corresponds_to:
-        $(ZMQREF zmq_ctx_destroy())
-    */
-    void destroy()
-    {
-        m_resource.free();
-    }
-
-    ///
-    unittest
-    {
-        auto ctx = Context();
-        assert (ctx.initialized);
-        ctx.destroy();
-        assert (!ctx.initialized);
-    }
-
-    /**
-    The number of I/O threads.
-
-    Throws:
-        $(REF ZmqException) if $(ZMQ) reports an error.
-    Corresponds_to:
-        $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
-        $(D ZMQ_IO_THREADS).
-    */
-    @property int ioThreads()
-    {
-        return getOption(ZMQ_IO_THREADS);
-    }
-
-    /// ditto
-    @property void ioThreads(int value)
-    {
-        setOption(ZMQ_IO_THREADS, value);
-    }
-
-    ///
-    unittest
-    {
-        auto ctx = Context();
-        ctx.ioThreads = 3;
-        assert (ctx.ioThreads == 3);
-    }
-
-    /**
-    The maximum number of sockets.
-
-    Throws:
-        $(REF ZmqException) if $(ZMQ) reports an error.
-    Corresponds_to:
-        $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
-        $(D ZMQ_MAX_SOCKETS).
-    */
-    @property int maxSockets()
-    {
-        return getOption(ZMQ_MAX_SOCKETS);
-    }
-
-    /// ditto
-    @property void maxSockets(int value)
-    {
-        setOption(ZMQ_MAX_SOCKETS, value);
-    }
-
-    ///
-    unittest
-    {
-        auto ctx = Context();
-        ctx.maxSockets = 512;
-        assert (ctx.maxSockets == 512);
-    }
-
-    /**
-    The $(D void*) pointer used by the underlying C API to refer to the context.
-
-    If the object has not been initialized, this function returns $(D null).
-    */
-    @property inout(void)* handle() inout pure nothrow
-    {
-        return m_resource.handle;
-    }
-
-    /**
-    Whether this $(REF Context) object has been _initialized, i.e. whether it
-    refers to a valid $(ZMQ) context.
-    */
-    @property bool initialized() const pure nothrow
-    {
-        return m_resource.initialized;
-    }
-
-    ///
-    unittest
-    {
-        Context ctx;
-        assert (!ctx.initialized);
-        ctx = Context();
-        assert (ctx.initialized);
-        ctx.destroy();
-        assert (!ctx.initialized);
-    }
-
-private:
-    int getOption(int option)
-    {
-        immutable value = trusted!zmq_ctx_get(m_resource.handle, option);
-        if (value < 0) {
-            throw new ZmqException;
-        }
-        return value;
-    }
-
-    void setOption(int option, int value)
-    {
-        if (trusted!zmq_ctx_set(m_resource.handle, option, value) != 0) {
-            throw new ZmqException;
-        }
-    }
-
-    Resource m_resource;
-}
-
-
-/**
-A global context which is used by default by all sockets, unless they are
-explicitly constructed with a different context.
-
-The $(ZMQ) Guide $(LINK2 http://zguide.zeromq.org/page:all#Getting-the-Context-Right,
-has the following to say) about context creation:
-$(QUOTE
-    You should create and use exactly one context in your process.
-    [$(LDOTS)] If at runtime a process has two contexts, these are
-    like separate $(ZMQ) instances. If that's explicitly what you
-    want, OK, but otherwise remember: $(EM Do one $(D zmq_ctx_new())
-    at the start of your main line code, and one $(D zmq_ctx_destroy())
-    at the end.)
-)
-By using $(D defaultContext()), this is exactly what you achieve.  The
-context is created the first time the function is called, and is
-automatically destroyed when the program ends.
-
-This function is thread safe.
-
-Throws:
-    $(REF ZmqException) if $(ZMQ) reports an error.
-See_also:
-    $(REF Context)
-*/
-Context defaultContext() @trusted
-{
-    // For future reference: This is the low-lock singleton pattern. See:
-    // http://davesdprogramming.wordpress.com/2013/05/06/low-lock-singletons/
-    static bool instantiated;
-    __gshared Context ctx;
-    if (!instantiated) {
-        synchronized {
-            if (!ctx.initialized) {
-                ctx = Context();
-            }
-            instantiated = true;
-        }
-    }
-    return ctx;
-}
-
-unittest
-{
-    auto c1 = defaultContext();
-    auto c2 = defaultContext();
-    assert(c1.handle !is null);
-    assert(c1.handle == c2.handle);
-}
-
-
-/**
 The various socket types.
 
 These are described in the $(ZMQREF zmq_socket()) reference.
@@ -1336,6 +1100,63 @@ void proxy(ref Socket frontend, ref Socket backend, ref Socket capture) nothrow
 
 
 /**
+Input/output multiplexing.
+
+This function is a bare-bones wrapper around $(ZMQREF zmq_poll()), using a
+plain array of $(D zmq_pollitem_t) structures to hold the socket handles
+and the event flags.  This array is passed straight to the C function, thus
+avoiding additional allocations.  $(REF Socket.handle) can be used to populate
+the $(D zmq_pollitem_t.socket) field, or $(STDREF socket,Socket.handle) can be
+used to populate $(D zmq_pollitem_t.fd) for standard socket support.
+
+The $(D timeout) parameter may have the special value
+$(COREF time,Duration.max), which in this context specifies an infinite
+duration.  This is translated to an argument value of -1 in the C API.
+
+Returns:
+    The number of $(D zmq_pollitem_t) structures with events signalled
+    in $(D revents), or 0 if no events have been signalled.
+Throws:
+    $(REF ZmqException) if $(ZMQ) reports an error.
+Corresponds_to:
+    $(ZMQREF zmq_poll())
+*/
+uint poll(zmq_pollitem_t[] items, Duration timeout = Duration.max)
+{
+    import std.conv: to;
+    const n = trusted!zmq_poll(
+        items.ptr,
+        to!int(items.length),
+        timeout == Duration.max ? -1 : to!int(timeout.total!"msecs"()));
+    if (n < 0) throw new ZmqException;
+    return cast(uint) n;
+}
+
+///
+@system unittest
+{
+    auto socket1 = zmqd.Socket(zmqd.SocketType.pair);
+    socket1.bind("ipc://zmqd_poll_example");
+
+    import std.socket;
+    auto socket2 = new std.socket.Socket(
+        AddressFamily.INET,
+        std.socket.SocketType.DGRAM);
+    socket2.bind(new InternetAddress(InternetAddress.ADDR_ANY, 5678));
+
+    auto items = [
+        zmq_pollitem_t(socket1.handle, 0, ZMQ_POLLIN, 0),
+        zmq_pollitem_t(null, socket2.handle, ZMQ_POLLIN | ZMQ_POLLOUT, 0)
+    ];
+    const n = poll(items, 100.msecs);
+    assert (n == 1);
+    assert (items[0].revents == 0);
+    assert (items[1].revents == ZMQ_POLLOUT);
+    socket2.close();
+}
+
+
+/**
 An object that encapsulates a $(ZMQ) message frame.
 
 This $(D struct) is a wrapper around a $(D zmq_msg_t) object.  Unlike
@@ -1803,6 +1624,243 @@ unittest
 
 deprecated("zmqd.Message has been renamed to zmqd.Frame") alias Message = Frame;
 
+
+/**
+A global context which is used by default by all sockets, unless they are
+explicitly constructed with a different context.
+
+The $(ZMQ) Guide $(LINK2 http://zguide.zeromq.org/page:all#Getting-the-Context-Right,
+has the following to say) about context creation:
+$(QUOTE
+    You should create and use exactly one context in your process.
+    [$(LDOTS)] If at runtime a process has two contexts, these are
+    like separate $(ZMQ) instances. If that's explicitly what you
+    want, OK, but otherwise remember: $(EM Do one $(D zmq_ctx_new())
+    at the start of your main line code, and one $(D zmq_ctx_destroy())
+    at the end.)
+)
+By using $(D defaultContext()), this is exactly what you achieve.  The
+context is created the first time the function is called, and is
+automatically destroyed when the program ends.
+
+This function is thread safe.
+
+Throws:
+    $(REF ZmqException) if $(ZMQ) reports an error.
+See_also:
+    $(REF Context)
+*/
+Context defaultContext() @trusted
+{
+    // For future reference: This is the low-lock singleton pattern. See:
+    // http://davesdprogramming.wordpress.com/2013/05/06/low-lock-singletons/
+    static bool instantiated;
+    __gshared Context ctx;
+    if (!instantiated) {
+        synchronized {
+            if (!ctx.initialized) {
+                ctx = Context();
+            }
+            instantiated = true;
+        }
+    }
+    return ctx;
+}
+
+unittest
+{
+    auto c1 = defaultContext();
+    auto c2 = defaultContext();
+    assert(c1.handle !is null);
+    assert(c1.handle == c2.handle);
+}
+
+
+/**
+An object that encapsulates a $(ZMQ) context.
+
+In most programs, it is not necessary to use this type directly,
+as $(REF Socket) will use a default global context if not explicitly
+provided with one.  See $(FREF defaultContext) for details.
+
+A default-initialized $(D Context) is not a valid $(ZMQ) context; it
+must always be explicitly initialized with $(FREF _Context.opCall):
+---
+Context ctx;        // Not a valid context yet
+ctx = Context();    // ...but now it is.
+---
+$(D Context) objects can be passed around by value, and two copies will
+refer to the same context.  The underlying context is managed using
+reference counting, so that when the last copy of a $(D Context) goes
+out of scope, the context is automatically destroyed.
+
+See_also:
+    $(FREF defaultContext)
+*/
+struct Context
+{
+@safe:
+    /**
+    Creates a new $(ZMQ) context.
+
+    Returns:
+        A $(REF Context) object that encapsulates the new context.
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_new())
+    */
+    static Context opCall()
+    {
+        if (auto c = trusted!zmq_ctx_new()) {
+            Context ctx;
+            ctx.m_resource = Resource(c, &zmq_ctx_destroy);
+            return ctx;
+        } else {
+            throw new ZmqException;
+        }
+    }
+
+    ///
+    unittest
+    {
+        auto ctx = Context();
+        assert (ctx.initialized);
+    }
+
+    /**
+    Destroys the $(ZMQ) context.
+
+    It is normally not necessary to do this manually, as the context will
+    be destroyed automatically when the last reference to it goes out of
+    scope.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_destroy())
+    */
+    void destroy()
+    {
+        m_resource.free();
+    }
+
+    ///
+    unittest
+    {
+        auto ctx = Context();
+        assert (ctx.initialized);
+        ctx.destroy();
+        assert (!ctx.initialized);
+    }
+
+    /**
+    The number of I/O threads.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
+        $(D ZMQ_IO_THREADS).
+    */
+    @property int ioThreads()
+    {
+        return getOption(ZMQ_IO_THREADS);
+    }
+
+    /// ditto
+    @property void ioThreads(int value)
+    {
+        setOption(ZMQ_IO_THREADS, value);
+    }
+
+    ///
+    unittest
+    {
+        auto ctx = Context();
+        ctx.ioThreads = 3;
+        assert (ctx.ioThreads == 3);
+    }
+
+    /**
+    The maximum number of sockets.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
+        $(D ZMQ_MAX_SOCKETS).
+    */
+    @property int maxSockets()
+    {
+        return getOption(ZMQ_MAX_SOCKETS);
+    }
+
+    /// ditto
+    @property void maxSockets(int value)
+    {
+        setOption(ZMQ_MAX_SOCKETS, value);
+    }
+
+    ///
+    unittest
+    {
+        auto ctx = Context();
+        ctx.maxSockets = 512;
+        assert (ctx.maxSockets == 512);
+    }
+
+    /**
+    The $(D void*) pointer used by the underlying C API to refer to the context.
+
+    If the object has not been initialized, this function returns $(D null).
+    */
+    @property inout(void)* handle() inout pure nothrow
+    {
+        return m_resource.handle;
+    }
+
+    /**
+    Whether this $(REF Context) object has been _initialized, i.e. whether it
+    refers to a valid $(ZMQ) context.
+    */
+    @property bool initialized() const pure nothrow
+    {
+        return m_resource.initialized;
+    }
+
+    ///
+    unittest
+    {
+        Context ctx;
+        assert (!ctx.initialized);
+        ctx = Context();
+        assert (ctx.initialized);
+        ctx.destroy();
+        assert (!ctx.initialized);
+    }
+
+private:
+    int getOption(int option)
+    {
+        immutable value = trusted!zmq_ctx_get(m_resource.handle, option);
+        if (value < 0) {
+            throw new ZmqException;
+        }
+        return value;
+    }
+
+    void setOption(int option, int value)
+    {
+        if (trusted!zmq_ctx_set(m_resource.handle, option, value) != 0) {
+            throw new ZmqException;
+        }
+    }
+
+    Resource m_resource;
+}
+
+
 /**
 Socket event types.
 
@@ -2099,63 +2157,6 @@ private:
     EventType m_type;
     string m_address;
     int m_value;
-}
-
-
-/**
-Input/output multiplexing.
-
-This function is a bare-bones wrapper around $(ZMQREF zmq_poll()), using a
-plain array of $(D zmq_pollitem_t) structures to hold the socket handles
-and the event flags.  This array is passed straight to the C function, thus
-avoiding additional allocations.  $(REF Socket.handle) can be used to populate
-the $(D zmq_pollitem_t.socket) field, or $(STDREF socket,Socket.handle) can be
-used to populate $(D zmq_pollitem_t.fd) for standard socket support.
-
-The $(D timeout) parameter may have the special value
-$(COREF time,Duration.max), which in this context specifies an infinite
-duration.  This is translated to an argument value of -1 in the C API.
-
-Returns:
-    The number of $(D zmq_pollitem_t) structures with events signalled
-    in $(D revents), or 0 if no events have been signalled.
-Throws:
-    $(REF ZmqException) if $(ZMQ) reports an error.
-Corresponds_to:
-    $(ZMQREF zmq_poll())
-*/
-uint poll(zmq_pollitem_t[] items, Duration timeout = Duration.max)
-{
-    import std.conv: to;
-    const n = trusted!zmq_poll(
-        items.ptr,
-        to!int(items.length),
-        timeout == Duration.max ? -1 : to!int(timeout.total!"msecs"()));
-    if (n < 0) throw new ZmqException;
-    return cast(uint) n;
-}
-
-///
-@system unittest
-{
-    auto socket1 = zmqd.Socket(zmqd.SocketType.pair);
-    socket1.bind("ipc://zmqd_poll_example");
-
-    import std.socket;
-    auto socket2 = new std.socket.Socket(
-        AddressFamily.INET,
-        std.socket.SocketType.DGRAM);
-    socket2.bind(new InternetAddress(InternetAddress.ADDR_ANY, 5678));
-
-    auto items = [
-        zmq_pollitem_t(socket1.handle, 0, ZMQ_POLLIN, 0),
-        zmq_pollitem_t(null, socket2.handle, ZMQ_POLLIN | ZMQ_POLLOUT, 0)
-    ];
-    const n = poll(items, 100.msecs);
-    assert (n == 1);
-    assert (items[0].revents == 0);
-    assert (items[1].revents == ZMQ_POLLOUT);
-    socket2.close();
 }
 
 
