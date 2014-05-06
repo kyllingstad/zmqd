@@ -1382,8 +1382,7 @@ struct Frame
         assert(msg.size == 0);
     }
 
-
-    /**
+    /** $(DDOC_ANCHOR Frame.opCall_size)
     Initializes a $(ZMQ) message frame of a specified size.
 
     Throws:
@@ -1405,12 +1404,52 @@ struct Frame
         assert(msg.size == 123);
     }
 
-    /**
-    Releases the message frame and reinitializes the Frame object.
+    /** $(DDOC_ANCHOR Frame.opCall_data)
+    Initializes a $(ZMQ) message frame from a supplied buffer.
 
-    This function will release the frame if it has already been initialized,
-    and then initialize it anew as an empty frame.  Existing frame content
-    will be lost.
+    Warning:
+        Some care must be taken when using this function, as $(ZMQ) expects
+        to take full ownership of the supplied buffer.  Client code should
+        therefore avoid retaining any references to it, including slices that
+        contain, overlap with or are contained in $(D data).
+        $(ZMQ) makes no guarantee that the buffer is not modified,
+        and it does not specify when the buffer is released.
+
+        An additional complication is caused by the fact that most arrays in D
+        are owned by the garbage collector.  This is solved by adding the array
+        pointer as a new garbage collector root before passing it to
+        $(ZMQREF zmq_msg_init_data()), thus preventing the GC from collecting
+        it.  The root is then removed again in the deallocator callback
+        function which is called by $(ZMQ) when it no longer requires
+        the buffer, thus allowing the GC to collect it.
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_init_data())
+    */
+    static Frame opCall(ubyte[] data)
+    {
+        Frame m;
+        m.init(data);
+        return m;
+    }
+
+    ///
+    unittest
+    {
+        auto buf = new ubyte[123];
+        auto msg = Frame(buf);
+        assert(msg.size == buf.length);
+        assert(msg.data.ptr == buf.ptr);
+    }
+
+    /**
+    Reinitializes the Frame object as an empty message.
+
+    This function will first call $(FREF Frame.close) to release the
+    resources associated with the message frame, and then it will
+    initialize it anew, exactly as if it were constructed  with
+    $(D $(LINK2 #Frame.opCall,Frame())).
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -1433,11 +1472,12 @@ struct Frame
     }
 
     /**
-    Releases the message frame and reinitializes the Frame object.
+    Reinitializes the Frame object to a specified size.
 
-    This function will release the frame if it has already been initialized,
-    and then initialize it anew with the specified size.  Existing frame
-    content will be lost.
+    This function will first call $(FREF Frame.close) to release the
+    resources associated with the message frame, and then it will
+    initialize it anew, exactly as if it were constructed  with
+    $(D $(LINK2 #Frame.opCall_size,Frame(size))).
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -1457,6 +1497,36 @@ struct Frame
         assert (msg.size == 256);
         msg.rebuild(1024);
         assert (msg.size == 1024);
+    }
+
+    /**
+    Reinitializes the Frame object from a supplied buffer.
+
+    This function will first call $(FREF Frame.close) to release the
+    resources associated with the message frame, and then it will
+    initialize it anew, exactly as if it were constructed  with
+    $(D $(LINK2 #Frame.opCall_data,Frame(data))).
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_close()) followed by $(ZMQREF zmq_msg_init_data()).
+    */
+    void rebuild(ubyte[] data)
+    {
+        close();
+        init(data);
+    }
+
+    ///
+    unittest
+    {
+        auto msg = Frame(256);
+        assert (msg.size == 256);
+        auto buf = new ubyte[123];
+        msg.rebuild(buf);
+        assert(msg.size == buf.length);
+        assert(msg.data.ptr == buf.ptr);
     }
 
     @disable this(this);
@@ -1669,6 +1739,34 @@ private:
         body
     {
         if (trusted!zmq_msg_init_size(&m_msg, size) != 0) {
+            throw new ZmqException;
+        }
+        m_initialized = true;
+    }
+
+    private void init(ubyte[] data) @trusted
+        in { assert (!m_initialized); }
+        out { assert (m_initialized); }
+        body
+    {
+        import core.memory;
+        static extern(C) zmqd_Frame_init_data_free(void* dataPtr, void* block)
+            @trusted nothrow
+        {
+            GC.removeRoot(dataPtr);
+            GC.clrAttr(block, GC.BlkAttr.NO_MOVE);
+        }
+
+        GC.addRoot(data.ptr);
+        scope(failure) GC.removeRoot(data.ptr);
+
+        auto block = GC.addrOf(data.ptr);
+        immutable movable = block && !(GC.getAttr(block) & GC.BlkAttr.NO_MOVE);
+        GC.setAttr(block, GC.BlkAttr.NO_MOVE);
+        scope(failure) if (movable) GC.clrAttr(block, GC.BlkAttr.NO_MOVE);
+
+        if (trusted!zmq_msg_init_data(&m_msg, data.ptr, data.length,
+                                      &zmqd_Frame_init_data_free, block) != 0) {
             throw new ZmqException;
         }
         m_initialized = true;
