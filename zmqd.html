@@ -647,32 +647,24 @@ sck.close();
 <code><a href="http://api.zeromq.org/3-2:zmq_proxy()">zmq_proxy()</a></code></div></section>
 
 </section>
-<section class="member"><h1><code><a name="poll"></a>@safe uint poll(zmq_pollitem_t[] items, Duration timeout = Duration.max);
+<section class="member"><h1><code><a name="poll"></a>@trusted uint poll(PollItem[] items, Duration timeout = Duration.max);
 </code></h1>
 <p class="summary">Input/output multiplexing.
 </p>
-<div class="ddoc_paragraphs">This function is a bare-bones wrapper around <code><a href="http://api.zeromq.org/3-2:zmq_poll()">zmq_poll()</a></code>, using a
-plain array of <code>zmq_pollitem_t</code> structures to hold the socket handles
-and the event flags.  This array is passed straight to the C function, thus
-avoiding additional allocations.  <code><a href="#Socket.handle">Socket.handle</a></code> can be used to populate
-the <code>zmq_pollitem_t.socket</code> field, or <code><a href="http://dlang.org/phobos/std_socket.html#.Socket.handle">std.socket.Socket.handle</a></code> can be
-used to populate <code>zmq_pollitem_t.fd</code> for standard socket support.
-<br><br>
-
-The <code>timeout</code> parameter may have the special value
+<div class="ddoc_paragraphs">The <code>timeout</code> parameter may have the special value
 <code><a href="http://dlang.org/phobos/core_time.html#.Duration.max">core.time.Duration.max</a></code>, which in this context specifies an infinite
 duration.  This is translated to an argument value of -1 in the C API.
 
 </div>
-<section class="ddoc_section"><h1>Returns:</h1><div class="ddoc_paragraphs"> The number of <code>zmq_pollitem_t</code> structures with events signalled
-    in <code>revents</code>, or 0 if no events have been signalled.
+<section class="ddoc_section"><h1>Returns:</h1><div class="ddoc_paragraphs"> The number of <code><a href="#PollItem">PollItem</a></code> structures with events signalled in
+    <code><a href="#PollItem.returnedEvents">PollItem.returnedEvents</a></code>, or 0 if no events have been signalled.
 </div></section>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
 <code><a href="http://api.zeromq.org/3-2:zmq_poll()">zmq_poll()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
-<font color=blue>auto</font> socket1 = zmqd.Socket(zmqd.SocketType.pair);
+<font color=blue>auto</font> socket1 = zmqd.Socket(zmqd.SocketType.pull);
 socket1.bind(<font color=red>"ipc://zmqd_poll_example"</font>);
 
 <font color=blue>import</font> std.socket;
@@ -681,17 +673,108 @@ socket1.bind(<font color=red>"ipc://zmqd_poll_example"</font>);
     std.socket.SocketType.DGRAM);
 socket2.bind(<font color=blue>new</font> InternetAddress(InternetAddress.ADDR_ANY, 5678));
 
+<font color=blue>auto</font> socket3 = zmqd.Socket(zmqd.SocketType.push);
+socket3.connect(<font color=red>"ipc://zmqd_poll_example"</font>);
+socket3.send(<font color=red>"test"</font>);
+
+<font color=blue>import</font> core.thread: Thread;
+Thread.sleep(10.msecs);
+
 <font color=blue>auto</font> items = [
-    zmq_pollitem_t(socket1.handle, 0, ZMQ_POLLIN, 0),
-    zmq_pollitem_t(<font color=blue>null</font>, socket2.handle, ZMQ_POLLIN | ZMQ_POLLOUT, 0)
+    PollItem(socket1, PollFlags.pollIn),
+    PollItem(socket2, PollFlags.pollIn | PollFlags.pollOut),
+    PollItem(socket3, PollFlags.pollIn),
 ];
+
 <font color=blue>const</font> n = poll(items, 100.msecs);
-<font color=blue>assert</font> (n == 1);
-<font color=blue>assert</font> (items[0].revents == 0);
-<font color=blue>assert</font> (items[1].revents == ZMQ_POLLOUT);
+<font color=blue>assert</font> (n == 2);
+<font color=blue>assert</font> (items[0].returnedEvents == PollFlags.pollIn);
+<font color=blue>assert</font> (items[1].returnedEvents == PollFlags.pollOut);
+<font color=blue>assert</font> (items[2].returnedEvents == 0);
 socket2.close();
 </pre>
 </div></section>
+</section>
+<section class="member"><h1><code><a name="PollFlags"></a>enum PollFlags: int;
+</code></h1>
+<p class="summary"><code><a href="#poll">poll()</a></code> event flags.
+</p>
+<div class="ddoc_paragraphs">These are described in the <code><a href="http://api.zeromq.org/3-2:zmq_poll()">zmq_poll()</a></code> manual.</div>
+
+<section class="members"><h1>Members</h1><section class="member"><h1><code><a name="PollFlags.pollIn"></a>pollIn</code></h1>
+<p class="summary">Corresponds to <code>ZMQ_POLLIN</code></p>
+
+</section>
+<section class="member"><h1><code><a name="PollFlags.pollOut"></a>pollOut</code></h1>
+<p class="summary">Corresponds to <code>ZMQ_POLLOUT</code></p>
+
+</section>
+<section class="member"><h1><code><a name="PollFlags.pollErr"></a>pollErr</code></h1>
+<p class="summary">Corresponds to <code>ZMQ_POLLERR</code></p>
+
+</section>
+</section>
+</section>
+<section class="member"><h1><code><a name="PollItem"></a>struct PollItem;
+</code></h1>
+<p class="summary">A structure that specifies a socket to be monitored by <code><a href="#poll">poll()</a></code> as well
+as the events to poll for, and, when <code><a href="#poll">poll()</a></code> returns, the events that
+occurred.
+</p>
+<section class="ddoc_section"><h1>Warning:</h1><div class="ddoc_paragraphs">
+    Even though the constructors take <code><a href="#Socket">Socket</a></code> or <code><a href="http://dlang.org/phobos/std_socket.html#.Socket">std.socket.Socket</a></code>
+    arguments, which are, respectively, reference-counted and garbage-collected,
+    these references are NOT stored in the object.  Due to performance
+    considerations, ONLY the <code>void*</code> pointer or native file descriptor used
+    by the &#x2205;MQ C API is stored.  This means that the references have to be
+    stored elsewhere, or the objects may be destroyed, invalidating the
+    sockets, while <code><a href="#poll">poll()</a></code> is still executing.
+<pre class="d_code"><font color=green>// Not OK
+</font><font color=blue>auto</font> p1 = PollItem(Socket(SocketType.req), PollFlags.pollIn);
+
+<font color=green>// OK
+</font><font color=blue>auto</font> s = Socket(SocketType.req);
+<font color=blue>auto</font> p2 = PollItem(s, PollFlags.pollIn);
+</pre>
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/3-2:zmq_poll">zmq_pollitem_t</a></code></div></section>
+
+<section class="members"><h1>Members</h1><section class="member"><h1><code><a name="PollItem.this"></a>nothrow  this(zmqd.Socket socket, PollFlags events);
+</code></h1>
+<p class="summary">Constructs a <code><a href="#PollItem">PollItem</a></code> for monitoring a &#x2205;MQ socket.</p>
+
+</section>
+<section class="member"><h1><code><a name="PollItem.this"></a>@system  this(std.socket.Socket socket, PollFlags events);
+</code></h1>
+<p class="summary">Constructs a <code><a href="#PollItem">PollItem</a></code> for monitoring a standard socket referenced
+    by a <code><a href="http://dlang.org/phobos/std_socket.html#.Socket">std.socket.Socket</a></code>.</p>
+
+</section>
+<section class="member"><h1><code><a name="PollItem.this"></a>pure nothrow  this(FD fd, PollFlags events);
+</code></h1>
+<p class="summary">Constructs a <code><a href="#PollItem">PollItem</a></code> for monitoring a standard socket referenced
+    by a native file descriptor.</p>
+
+</section>
+<section class="member"><h1><code><a name="PollItem.requestedEvents"></a>pure nothrow @property @safe void requestedEvents(PollFlags events);
+<br><a name="PollItem.requestedEvents"></a>const pure nothrow @property @safe PollFlags requestedEvents();
+</code></h1>
+<p class="summary">Requested events.
+</p>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/3-2:zmq_poll">zmq_pollitem_t.events</a></code></div></section>
+
+</section>
+<section class="member"><h1><code><a name="PollItem.returnedEvents"></a>const pure nothrow @property @safe PollFlags returnedEvents();
+</code></h1>
+<p class="summary">Returned events.
+</p>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/3-2:zmq_poll">zmq_pollitem_t.revents</a></code></div></section>
+
+</section>
+</section>
 </section>
 <section class="member"><h1><code><a name="Frame"></a>struct Frame;
 </code></h1>
@@ -1306,7 +1389,7 @@ received message as an event description.</p>
                 <footer>
                     <div class="ddoc_paragraphs">Copyright (c) 2013–2014, Lars T. Kyllingstad. All rights reserved.
 </div>
-                    <p>This documentation was generated on Tue May  6 07:45:29 2014
+                    <p>This documentation was generated on Fri May  9 23:41:17 2014
  with
                        <a href="https://github.com/kyllingstad/ltkdoc">LTKdoc 0.1</a>.</p>
                 </footer>
