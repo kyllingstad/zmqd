@@ -1,5 +1,5 @@
 // Simple request-reply broker
-import deimos.zmq.zmq, zmqd;
+import zmqd;
 import zhelpers;
 
 void main()
@@ -12,15 +12,15 @@ void main()
 
     // Initialize poll set
     auto items = [
-        zmq_pollitem_t(frontend.handle, 0, ZMQ_POLLIN, 0),
-        zmq_pollitem_t(backend.handle, 0, ZMQ_POLLIN, 0),
+        PollItem(frontend, PollFlags.pollIn),
+        PollItem(backend, PollFlags.pollIn),
     ];
     // Switch messages between sockets
     while (true) {
         import core.time: Duration;
         Frame message;
         poll(items);
-        if (items[0].revents & ZMQ_POLLIN) {
+        if (items[0].returnedEvents & PollFlags.pollIn) {
             do {
                 // Process all parts of the message
                 message.rebuild();
@@ -28,7 +28,7 @@ void main()
                 backend.send(message, message.more);
             } while (message.more);
         }
-        if (items[1].revents & ZMQ_POLLIN) {
+        if (items[1].returnedEvents & PollFlags.pollIn) {
             do {
                 // Process all parts of the message
                 message.rebuild();

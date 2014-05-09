@@ -1099,28 +1099,7 @@ void proxy(ref Socket frontend, ref Socket backend, ref Socket capture) nothrow
 }
 
 
-/**
-Input/output multiplexing.
-
-This function is a bare-bones wrapper around $(ZMQREF zmq_poll()), using a
-plain array of $(D zmq_pollitem_t) structures to hold the socket handles
-and the event flags.  This array is passed straight to the C function, thus
-avoiding additional allocations.  $(REF Socket.handle) can be used to populate
-the $(D zmq_pollitem_t.socket) field, or $(STDREF socket,Socket.handle) can be
-used to populate $(D zmq_pollitem_t.fd) for standard socket support.
-
-The $(D timeout) parameter may have the special value
-$(COREF time,Duration.max), which in this context specifies an infinite
-duration.  This is translated to an argument value of -1 in the C API.
-
-Returns:
-    The number of $(D zmq_pollitem_t) structures with events signalled
-    in $(D revents), or 0 if no events have been signalled.
-Throws:
-    $(REF ZmqException) if $(ZMQ) reports an error.
-Corresponds_to:
-    $(ZMQREF zmq_poll())
-*/
+deprecated("zmqd.poll() has a new signature as of v0.4")
 uint poll(zmq_pollitem_t[] items, Duration timeout = Duration.max)
 {
     import std.conv: to;
@@ -1132,10 +1111,44 @@ uint poll(zmq_pollitem_t[] items, Duration timeout = Duration.max)
     return cast(uint) n;
 }
 
+
+/**
+Input/output multiplexing.
+
+The $(D timeout) parameter may have the special value
+$(COREF time,Duration.max), which in this context specifies an infinite
+duration.  This is translated to an argument value of -1 in the C API.
+
+Returns:
+    The number of $(REF PollItem) structures with events signalled in
+    $(REF PollItem.returnedEvents), or 0 if no events have been signalled.
+Throws:
+    $(REF ZmqException) if $(ZMQ) reports an error.
+Corresponds_to:
+    $(ZMQREF zmq_poll())
+*/
+uint poll(PollItem[] items, Duration timeout = Duration.max) @trusted
+{
+    // Here we use a trick where we pretend the array of PollItems is
+    // actually an array of zmq_pollitem_t, to avoid an unnecessary
+    // allocation.  For this to work, PollItem must have the exact
+    // same size as zmq_pollitem_t.
+    static assert (PollItem.sizeof == zmq_pollitem_t.sizeof);
+
+    import std.conv: to;
+    const n = zmq_poll(
+        cast(zmq_pollitem_t*) items.ptr,
+        to!int(items.length),
+        timeout == Duration.max ? -1 : to!int(timeout.total!"msecs"()));
+    if (n < 0) throw new ZmqException;
+    return cast(uint) n;
+}
+
+
 ///
 @system unittest
 {
-    auto socket1 = zmqd.Socket(zmqd.SocketType.pair);
+    auto socket1 = zmqd.Socket(zmqd.SocketType.pull);
     socket1.bind("ipc://zmqd_poll_example");
 
     import std.socket;
@@ -1144,15 +1157,122 @@ uint poll(zmq_pollitem_t[] items, Duration timeout = Duration.max)
         std.socket.SocketType.DGRAM);
     socket2.bind(new InternetAddress(InternetAddress.ADDR_ANY, 5678));
 
+    auto socket3 = zmqd.Socket(zmqd.SocketType.push);
+    socket3.connect("ipc://zmqd_poll_example");
+    socket3.send("test");
+
+    import core.thread: Thread;
+    Thread.sleep(10.msecs);
+
     auto items = [
-        zmq_pollitem_t(socket1.handle, 0, ZMQ_POLLIN, 0),
-        zmq_pollitem_t(null, socket2.handle, ZMQ_POLLIN | ZMQ_POLLOUT, 0)
+        PollItem(socket1, PollFlags.pollIn),
+        PollItem(socket2, PollFlags.pollIn | PollFlags.pollOut),
+        PollItem(socket3, PollFlags.pollIn),
     ];
+
     const n = poll(items, 100.msecs);
-    assert (n == 1);
-    assert (items[0].revents == 0);
-    assert (items[1].revents == ZMQ_POLLOUT);
+    assert (n == 2);
+    assert (items[0].returnedEvents == PollFlags.pollIn);
+    assert (items[1].returnedEvents == PollFlags.pollOut);
+    assert (items[2].returnedEvents == 0);
     socket2.close();
+}
+
+
+/**
+$(FREF poll) event flags.
+
+These are described in the $(ZMQREF zmq_poll()) manual.
+*/
+enum PollFlags
+{
+    pollIn = ZMQ_POLLIN,    /// Corresponds to $(D ZMQ_POLLIN)
+    pollOut = ZMQ_POLLOUT,  /// Corresponds to $(D ZMQ_POLLOUT)
+    pollErr = ZMQ_POLLERR,  /// Corresponds to $(D ZMQ_POLLERR)
+}
+
+
+/**
+A structure that specifies a socket to be monitored by $(FREF poll) as well
+as the events to poll for, and, when $(FREF poll) returns, the events that
+occurred.
+
+Warning:
+    Even though the constructors take $(REF Socket) or $(STDREF socket,Socket)
+    arguments, which are, respectively, reference-counted and garbage-collected,
+    these references are NOT stored in the object.  Due to performance
+    considerations, ONLY the $(D void*) pointer or native file descriptor used
+    by the $(ZMQ) C API is stored.  This means that the references have to be
+    stored elsewhere, or the objects may be destroyed, invalidating the
+    sockets, while $(FREF poll) is still executing.
+    ---
+    // Not OK
+    auto p1 = PollItem(Socket(SocketType.req), PollFlags.pollIn);
+
+    // OK
+    auto s = Socket(SocketType.req);
+    auto p2 = PollItem(s, PollFlags.pollIn);
+    ---
+Corresponds_to:
+    $(D $(ZMQAPI zmq_poll,zmq_pollitem_t))
+*/
+struct PollItem
+{
+    /// Constructs a $(REF PollItem) for monitoring a $(ZMQ) socket.
+    this(zmqd.Socket socket, PollFlags events) nothrow
+    {
+        m_pollItem = zmq_pollitem_t(socket.handle, 0, cast(short) events, 0);
+    }
+
+    import std.socket;
+    /**
+    Constructs a $(REF PollItem) for monitoring a standard socket referenced
+    by a $(STDREF socket,Socket).
+    */
+    this(std.socket.Socket socket, PollFlags events) @system
+    {
+        this(socket.handle, events);
+    }
+
+    /**
+    Constructs a $(REF PollItem) for monitoring a standard socket referenced
+    by a native file descriptor.
+    */
+    this(FD fd, PollFlags events) pure nothrow
+    {
+        m_pollItem = zmq_pollitem_t(null, fd, cast(short) events, 0);
+    }
+
+    /**
+    Requested events.
+
+    Corresponds_to:
+        $(D $(ZMQAPI zmq_poll,zmq_pollitem_t.events))
+    */
+    @property void requestedEvents(PollFlags events) pure nothrow
+    {
+        m_pollItem.events = cast(short) events;
+    }
+
+    /// ditto
+    @property PollFlags requestedEvents() const pure nothrow
+    {
+        return cast(typeof(return)) m_pollItem.events;
+    }
+
+    /**
+    Returned events.
+
+    Corresponds_to:
+        $(D $(ZMQAPI zmq_poll,zmq_pollitem_t.revents))
+    */
+    @property PollFlags returnedEvents() const pure nothrow
+    {
+        return cast(typeof(return)) m_pollItem.revents;
+    }
+
+private:
+    zmq_pollitem_t m_pollItem;
 }
 
 

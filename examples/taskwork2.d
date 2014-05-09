@@ -2,7 +2,7 @@
 // Adds pub-sub flow to receive and respond to kill signal
 import core.thread;
 import std.conv, std.stdio;
-import deimos.zmq.zmq, zmqd, zhelpers;
+import zmqd, zhelpers;
 
 void main()
 {
@@ -22,11 +22,11 @@ void main()
     // Process messages from either socket
     while (true) {
         auto items = [
-            zmq_pollitem_t(receiver.handle, 0, ZMQ_POLLIN, 0),
-            zmq_pollitem_t(controller.handle, 0, ZMQ_POLLIN, 0)
+            PollItem(receiver, PollFlags.pollIn),
+            PollItem(controller, PollFlags.pollIn),
             ];
         poll(items);
-        if (items[0].revents & ZMQ_POLLIN) {
+        if (items[0].returnedEvents & PollFlags.pollIn) {
             auto str = sRecv(receiver);
             write(str, '.');                    // Show progress
             stdout.flush();
@@ -34,6 +34,6 @@ void main()
             sender.send("");                    // Send results to sink
         }
         // Any waiting controller command acts as 'KILL'
-        if (items[1].revents & ZMQ_POLLIN) break; // Exit loop
+        if (items[1].returnedEvents & PollFlags.pollIn) break; // Exit loop
     }
 }

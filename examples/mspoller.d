@@ -15,21 +15,20 @@ void main()
 
     // Process messages from both sockets
     while (true) {
-        import deimos.zmq.zmq;
         auto items = [
-            zmq_pollitem_t(receiver.handle, 0, ZMQ_POLLIN, 0 ),
-            zmq_pollitem_t(subscriber.handle, 0, ZMQ_POLLIN, 0 )
+            PollItem(receiver, PollFlags.pollIn),
+            PollItem(subscriber, PollFlags.pollIn),
         ];
         import core.time;
         poll(items);
         ubyte[256] msg;
-        if (items[0].revents & ZMQ_POLLIN) {
+        if (items[0].returnedEvents & PollFlags.pollIn) {
             try {
                 receiver.receive(msg[]);
                 // Process task
             } catch (Exception) { }
         }
-        if (items [1].revents & ZMQ_POLLIN) {
+        if (items[1].returnedEvents & PollFlags.pollIn) {
             try {
                 subscriber.receive(msg[]);
                 // Process weather update
