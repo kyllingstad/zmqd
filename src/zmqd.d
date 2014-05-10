@@ -45,10 +45,13 @@ avoid firewall troubles and other issues that could arise with the use of
 network protocols such as TCP, PGM, etc.  Anyway, they are only short
 snippets that demonstrate the syntax; for more comprehensive and realistic
 examples, please refer to the $(LINK2 http://zguide.zeromq.org/page:all,
-$(ZMQ) Guide).
+$(ZMQ) Guide).  Many of the examples in the Guide have been translated to
+D, and can be found in the
+$(LINK2 https://github.com/kyllingstad/zmqd/tree/master/examples,$(D examples))
+subdirectory of the $(ZMQD) source repository.
 
 Version:
-    0.4 ($(ZMQ) 3.2 compatible)
+    0.4 ($(ZMQ) 3.x compatible)
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
 Copyright:
@@ -1199,12 +1202,12 @@ occurred.
 
 Warning:
     Even though the constructors take $(REF Socket) or $(STDREF socket,Socket)
-    arguments, which are, respectively, reference-counted and garbage-collected,
-    these references are NOT stored in the object.  Due to performance
-    considerations, ONLY the $(D void*) pointer or native file descriptor used
-    by the $(ZMQ) C API is stored.  This means that the references have to be
-    stored elsewhere, or the objects may be destroyed, invalidating the
-    sockets, while $(FREF poll) is still executing.
+    arguments which refer to reference-counted and garbage-collected objects,
+    respectively, these references are NOT stored in the $(D PollItem) object.
+    Due to performance considerations, ONLY the $(D void*) pointer or native
+    file descriptor used by the $(ZMQ) C API is stored.  This means that the
+    references have to be stored elsewhere, or the objects may be destroyed,
+    invalidating the sockets, before or while $(FREF poll) executes.
     ---
     // Not OK
     auto p1 = PollItem(Socket(SocketType.req), PollFlags.pollIn);
@@ -1286,8 +1289,9 @@ their own.  A $(D Frame) cannot be copied by normal assignment; use
 $(FREF Frame.copy) for this.
 
 A default-initialized $(D Frame) is not a valid $(ZMQ) message frame; it
-should always be explicitly initialized with $(FREF _Frame.opCall).
-Alternatively, it may be initialized later using $(FREF _Frame.rebuild).
+should always be explicitly initialized upon construction using
+$(FREF _Frame.opCall).  Alternatively, it may be initialized later with
+$(FREF _Frame.rebuild).
 ---
 Frame msg1;                 // Invalid frame
 auto msg2 = Frame();        // Empty frame
@@ -2019,6 +2023,11 @@ to $(D zmq_event_t.sizeof) and that the value of the
 $(D zmq_event_t.event) field is valid.  If this is not the case,
 an $(REF InvalidEventException) is thrown.
 
+Warning:
+    The format of event messages changed between $(ZMQ) 3.x and 4.x.
+    For the time being, this implementation only supports 3.x, and
+    the function will throw an $(REF InvalidEventException) if used
+    with a newer version of $(ZMQ).
 Throws:
     $(REF ZmqException) if $(ZMQ) reports an error.$(BR)
     $(REF InvalidEventException) if the received message could not
