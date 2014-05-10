@@ -811,8 +811,11 @@ struct Socket
         return buf[0 .. len-1];
     }
 
-    // TODO: Some low-level options are missing still, plus setters for
-    // ZMQ_ROUTER_MANDATORY and ZMQ_XPUB_VERBOSE.
+    /// ditto
+    @property void routerMandatory(bool value) { setOption(ZMQ_ROUTER_MANDATORY, value ? 1 : 0); }
+
+    /// ditto
+    @property void xpubVerbose(bool value) { setOption(ZMQ_XPUB_VERBOSE, value ? 1 : 0); }
 
     unittest
     {
@@ -843,7 +846,6 @@ struct Socket
         version(Posix) {
             assert(s.fd > 2); // 0, 1 and 2 are the standard streams
         }
-        assert(s.lastEndpoint == e);
 
         // Test setters and getters together
         s.sendHWM = 500;
@@ -892,6 +894,15 @@ struct Socket
         assert(!s.ipv4Only);
         s.delayAttachOnConnect = true;
         assert(s.delayAttachOnConnect);
+    }
+
+    unittest
+    {
+        // Some options are only applicable to specific socket types.
+        auto rt = Socket(SocketType.router);
+        rt.routerMandatory = true;
+        auto xp = Socket(SocketType.xpub);
+        xp.xpubVerbose = true;
     }
 
     /**
