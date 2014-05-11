@@ -14,8 +14,7 @@ more pleasant to use.  Here's how:
   * Context, socket and message options are implemented as properties.
 
 The names of functions and types in ∅MQD are very similar to those in ∅MQ,
-but they follow the D naming conventions.  For example, `zmq_msg_send()`
-becomes `zmqd.Message.send()` and so on.  Thus, the library should feel
+but they follow the D naming conventions.  Thus, the library should feel
 both familiar to ∅MQ users and natural to D users.
 
 The documentation may be browsed online at http://kyllingstad.github.io/zmqd/.
