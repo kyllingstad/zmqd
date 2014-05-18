@@ -796,7 +796,7 @@ struct Socket
     @property FD fd() { return getOption!FD(ZMQ_FD); }
 
     /// ditto
-    @property int events() { return getOption!int(ZMQ_EVENTS); }
+    @property PollFlags events() { return getOption!PollFlags(ZMQ_EVENTS); }
 
     /// ditto
     @property char[] lastEndpoint() @trusted
@@ -846,6 +846,7 @@ struct Socket
         version(Posix) {
             assert(s.fd > 2); // 0, 1 and 2 are the standard streams
         }
+        assert(s.events == PollFlags.pollOut);
 
         // Test setters and getters together
         s.sendHWM = 500;
