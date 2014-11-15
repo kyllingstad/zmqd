@@ -14,7 +14,7 @@ $(UL
         that reported the error.)
     $(LI
         Functions are appropriately marked with $(D @safe), $(D pure)
-        and $(D nothrow), thus easing their use in high-level D code.)
+        and $(D nothrow), thus facilitating their use in high-level D code.)
     $(LI
         Memory and resources (i.e. contexts, sockets and messages) are
         automatically managed, thus preventing leaks.)
@@ -35,7 +35,7 @@ Due to the close correspondence with the C API, this documentation has
 intentionally been kept sparse. There is really no reason to repeat the
 contents of the $(ZMQAPI __start,$(ZMQ) reference manual) here.
 Instead, the documentation for each function contains a "Corresponds to"
-section that links to the appropriate page in the $(ZMQ) reference.  Any
+section that links to the appropriate pages in the $(ZMQ) reference.  Any
 details given in the present documentation mostly concern the D-specific
 adaptations that have been made.
 
@@ -191,7 +191,7 @@ struct Socket
     Closes the $(ZMQ) socket.
 
     Note that the socket will be automatically closed when the last reference
-    to it goes out of scope, so it is often not necessary to call this
+    to it goes out of scope, so it is usually not necessary to call this
     method manually.
 
     Throws:
