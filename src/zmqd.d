@@ -2584,7 +2584,7 @@ private auto trusted(alias func, Args...)(Args args) @trusted
 // tailored to the string sizes we are likely to encounter here.
 // Note that this implementation requires that the string be used immediately
 // upon return, and not stored, as the buffer will be reused most of the time.
-const char* zeroTermString(const char[] s) nothrow
+const(char)* zeroTermString(const char[] s) nothrow
 {
     import std.algorithm: max;
     static char[] buf;
