@@ -10,7 +10,7 @@ import zmqd;
 
 
 
-string sRecv(Socket socket)
+string sRecv(ref Socket socket)
 {
     ubyte[256] buffer;
     immutable size = socket.receive(buffer);
@@ -19,7 +19,7 @@ string sRecv(Socket socket)
 }
 
 
-void sDump(Socket socket)
+void sDump(ref Socket socket)
 {
     import std.stdio;
     writeln("----------------------------------------");
@@ -43,7 +43,7 @@ void sDump(Socket socket)
 }
 
 
-void sSetId(Socket socket)
+void sSetId(ref Socket socket)
 {
     import std.random: uniform;
     import std.string: sformat;

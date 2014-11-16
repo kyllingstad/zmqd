@@ -141,10 +141,15 @@ $(FREF _Socket.this)):
 Socket s;                     // Not a valid socket yet
 s = Socket(SocketType.push);  // ...but now it is.
 ---
-$(D Socket) objects can be passed around by value, and two copies will
-refer to the same socket.  The underlying socket is managed using
-reference counting, so that when the last copy of a $(D Socket) goes
-out of scope, the socket is automatically closed.
+This $(D struct) is noncopyable, which means that a socket is always
+uniquely managed by a single $(D Socket) object.  Functions that will
+inspect or use the socket, but not take ownership of it, should take
+a $(D ref Socket) parameter.  Use $(STDREF algorithm,move) to move
+a $(D Socket) to a different location (e.g. into a sink function that
+takes it by value, or into a new variable).
+
+The socket is automatically closed when the $(D Socket) object goes out
+of scope.
 */
 struct Socket
 {
@@ -168,11 +173,10 @@ struct Socket
     /// ditto
     this(Context context, SocketType type)
     {
-        if (auto s = trusted!zmq_socket(context.handle, type)) {
-            m_context = context;
-            m_type = type;
-            m_socket = Resource(s, &zmq_close);
-        } else {
+        m_context = context;
+        m_type = type;
+        m_socket = trusted!zmq_socket(context.handle, type);
+        if (m_socket == null) {
             throw new ZmqException;
         }
     }
@@ -191,12 +195,37 @@ struct Socket
         assert (sck.initialized);
     }
 
+    // Socket objects are noncopyable.
+    @disable this(this);
+
+    unittest // Verify that move semantics work.
+    {
+        import std.algorithm: move;
+        struct SocketOwner
+        {
+            this(Socket s) { owned = trusted!move(s); }
+            Socket owned;
+        }
+        auto socket = Socket(SocketType.req);
+        const socketPtr = socket.handle;
+        const ctxRefCnt = socket.m_context.m_resource.m_payload.refCount;
+        assert (socketPtr != null);
+
+        auto owner = SocketOwner(trusted!move(socket));
+        assert (socket.handle == null);
+        assert (!socket.m_context.initialized);
+        assert (owner.owned.handle == socketPtr);
+        assert (owner.owned.m_context.m_resource.m_payload.refCount == ctxRefCnt);
+    }
+
+    // Closes the socket on desctruction.
+    ~this() nothrow { nothrowClose(); }
+
     /**
     Closes the $(ZMQ) socket.
 
-    Note that the socket will be automatically closed when the last reference
-    to it goes out of scope, so it is usually not necessary to call this
-    method manually.
+    Note that the socket will be closed automatically upon destruction,
+    so it is usually not necessary to call this method manually.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -205,7 +234,7 @@ struct Socket
     */
     void close()
     {
-        m_socket.free();
+        if (!nothrowClose()) throw new ZmqException;
     }
 
     ///
@@ -227,7 +256,7 @@ struct Socket
     */
     void bind(const char[] endpoint)
     {
-        if (trusted!zmq_bind(m_socket.handle, zeroTermString(endpoint)) != 0) {
+        if (trusted!zmq_bind(m_socket, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
     }
@@ -249,7 +278,7 @@ struct Socket
     */
     void unbind(const char[] endpoint)
     {
-        if (trusted!zmq_unbind(m_socket.handle, zeroTermString(endpoint)) != 0) {
+        if (trusted!zmq_unbind(m_socket, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
     }
@@ -273,7 +302,7 @@ struct Socket
     */
     void connect(const char[] endpoint)
     {
-        if (trusted!zmq_connect(m_socket.handle, zeroTermString(endpoint)) != 0) {
+        if (trusted!zmq_connect(m_socket, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
     }
@@ -295,7 +324,7 @@ struct Socket
     */
     void disconnect(const char[] endpoint)
     {
-        if (trusted!zmq_disconnect(m_socket.handle, zeroTermString(endpoint)) != 0) {
+        if (trusted!zmq_disconnect(m_socket, zeroTermString(endpoint)) != 0) {
             throw new ZmqException;
         }
     }
@@ -333,7 +362,7 @@ struct Socket
     void send(const ubyte[] data, bool more = false)
     {
         immutable flags = more ? ZMQ_SNDMORE : 0;
-        if (trusted!zmq_send(m_socket.handle, data.ptr, data.length, flags) < 0) {
+        if (trusted!zmq_send(m_socket, data.ptr, data.length, flags) < 0) {
             throw new ZmqException;
         }
     }
@@ -348,7 +377,7 @@ struct Socket
     bool trySend(const ubyte[] data, bool more = false)
     {
         immutable flags = ZMQ_DONTWAIT | (more ? ZMQ_SNDMORE : 0);
-        if (trusted!zmq_send(m_socket.handle, data.ptr, data.length, flags) < 0) {
+        if (trusted!zmq_send(m_socket, data.ptr, data.length, flags) < 0) {
             import core.stdc.errno;
             if (errno == EAGAIN) return false;
             else throw new ZmqException;
@@ -391,7 +420,7 @@ struct Socket
     void send(ref Frame msg, bool more = false)
     {
         immutable flags = more ? ZMQ_SNDMORE : 0;
-        if (trusted!zmq_msg_send(msg.handle, m_socket.handle, flags) < 0) {
+        if (trusted!zmq_msg_send(msg.handle, m_socket, flags) < 0) {
             throw new ZmqException;
         }
     }
@@ -400,7 +429,7 @@ struct Socket
     bool trySend(ref Frame msg, bool more = false)
     {
         immutable flags = ZMQ_DONTWAIT | (more ? ZMQ_SNDMORE : 0);
-        if (trusted!zmq_msg_send(msg.handle, m_socket.handle, flags) < 0) {
+        if (trusted!zmq_msg_send(msg.handle, m_socket, flags) < 0) {
             import core.stdc.errno;
             if (errno == EAGAIN) return false;
             else throw new ZmqException;
@@ -436,7 +465,7 @@ struct Socket
     */
     size_t receive(ubyte[] data)
     {
-        immutable len = trusted!zmq_recv(m_socket.handle, data.ptr, data.length, 0);
+        immutable len = trusted!zmq_recv(m_socket, data.ptr, data.length, 0);
         if (len >= 0) {
             import std.conv;
             return to!size_t(len);
@@ -448,7 +477,7 @@ struct Socket
     /// ditto
     Tuple!(size_t, bool) tryReceive(ubyte[] data)
     {
-        immutable len = trusted!zmq_recv(m_socket.handle, data.ptr, data.length, ZMQ_DONTWAIT);
+        immutable len = trusted!zmq_recv(m_socket, data.ptr, data.length, ZMQ_DONTWAIT);
         if (len >= 0) {
             import std.conv;
             return typeof(return)(to!size_t(len), true);
@@ -516,7 +545,7 @@ struct Socket
     */
     size_t receive(ref Frame msg)
     {
-        immutable len = trusted!zmq_msg_recv(msg.handle, m_socket.handle, 0);
+        immutable len = trusted!zmq_msg_recv(msg.handle, m_socket, 0);
         if (len >= 0) {
             import std.conv;
             return to!size_t(len);
@@ -528,7 +557,7 @@ struct Socket
     /// ditto
     Tuple!(size_t, bool) tryReceive(ref Frame msg)
     {
-        immutable len = trusted!zmq_msg_recv(msg.handle, m_socket.handle, ZMQ_DONTWAIT);
+        immutable len = trusted!zmq_msg_recv(msg.handle, m_socket, ZMQ_DONTWAIT);
         if (len >= 0) {
             import std.conv;
             return typeof(return)(to!size_t(len), true);
@@ -668,7 +697,7 @@ struct Socket
         // (zmq_getsockopt) and takes the address of a local (len).
         auto buf = new ubyte[255];
         size_t len = buf.length;
-        if (zmq_getsockopt(m_socket.handle, ZMQ_IDENTITY, buf.ptr, &len) != 0) {
+        if (zmq_getsockopt(m_socket, ZMQ_IDENTITY, buf.ptr, &len) != 0) {
             throw new ZmqException;
         }
         return buf[0 .. len];
@@ -809,7 +838,7 @@ struct Socket
         // (zmq_getsockopt) and takes the address of a local (len).
         auto buf = new char[1024];
         size_t len = buf.length;
-        if (zmq_getsockopt(m_socket.handle, ZMQ_LAST_ENDPOINT, buf.ptr, &len) != 0) {
+        if (zmq_getsockopt(m_socket, ZMQ_LAST_ENDPOINT, buf.ptr, &len) != 0) {
             throw new ZmqException;
         }
         return buf[0 .. len-1];
@@ -998,7 +1027,7 @@ struct Socket
     */
     void monitor(const char[] endpoint, EventType events = EventType.all)
     {
-        if (trusted!zmq_socket_monitor(m_socket.handle, zeroTermString(endpoint), events) < 0) {
+        if (trusted!zmq_socket_monitor(m_socket, zeroTermString(endpoint), events) < 0) {
             throw new ZmqException;
         }
     }
@@ -1018,7 +1047,7 @@ struct Socket
     */
     @property inout(void)* handle() inout pure nothrow
     {
-        return m_socket.handle;
+        return m_socket;
     }
 
     /**
@@ -1027,7 +1056,7 @@ struct Socket
     */
     @property bool initialized() const pure nothrow
     {
-        return m_socket.initialized;
+        return m_socket != null;
     }
 
     ///
@@ -1042,11 +1071,21 @@ struct Socket
     }
 
 private:
+    // Helper function for ~this() and close()
+    bool nothrowClose() nothrow
+    {
+        if (m_socket != null) {
+            if (trusted!zmq_close(m_socket) != 0) return false;
+            m_socket = null;
+        }
+        return true;
+    }
+
     T getOption(T)(int option) @trusted
     {
         T buf;
         auto len = T.sizeof;
-        if (zmq_getsockopt(m_socket.handle, option, &buf, &len) != 0) {
+        if (zmq_getsockopt(m_socket, option, &buf, &len) != 0) {
             throw new ZmqException;
         }
         assert(len == T.sizeof);
@@ -1054,7 +1093,7 @@ private:
     }
     void setOption()(int option, const void[] value)
     {
-        if (trusted!zmq_setsockopt(m_socket.handle, option, value.ptr, value.length) != 0) {
+        if (trusted!zmq_setsockopt(m_socket, option, value.ptr, value.length) != 0) {
             throw new ZmqException;
         }
     }
@@ -1062,14 +1101,14 @@ private:
     import std.traits;
     void setOption(T)(int option, T value) @trusted if (isScalarType!T)
     {
-        if (zmq_setsockopt(m_socket.handle, option, &value, value.sizeof) != 0) {
+        if (zmq_setsockopt(m_socket, option, &value, value.sizeof) != 0) {
             throw new ZmqException;
         }
     }
 
     Context m_context;
     SocketType m_type;
-    Resource m_socket;
+    void* m_socket;
 }
 
 unittest
@@ -1221,34 +1260,31 @@ enum PollFlags
 }
 
 
-/**
+/++
 A structure that specifies a socket to be monitored by $(FREF poll) as well
 as the events to poll for, and, when $(FREF poll) returns, the events that
 occurred.
 
 Warning:
-    Even though the constructors take $(REF Socket) or $(STDREF socket,Socket)
-    arguments which refer to reference-counted and garbage-collected objects,
-    respectively, these references are NOT stored in the $(D PollItem) object.
-    Due to performance considerations, ONLY the $(D void*) pointer or native
-    file descriptor used by the $(ZMQ) C API is stored.  This means that the
-    references have to be stored elsewhere, or the objects may be destroyed,
-    invalidating the sockets, before or while $(FREF poll) executes.
+    $(D PollItem) objects do not store $(STDREF socket,Socket) references,
+    only the corresponding native file descriptors.  This means that the
+    references have to be stored elsewhere, or the objects may be garbage
+    collected, invalidating the sockets before or while $(FREF poll) executes.
     ---
     // Not OK
-    auto p1 = PollItem(Socket(SocketType.req), PollFlags.pollIn);
+    auto p1 = PollItem(new std.socket.Socket(/*...*/), PollFlags.pollIn);
 
     // OK
-    auto s = Socket(SocketType.req);
+    auto s = new std.socket.Socket(/*...*/);
     auto p2 = PollItem(s, PollFlags.pollIn);
     ---
 Corresponds_to:
     $(D $(ZMQAPI zmq_poll,zmq_pollitem_t))
-*/
++/
 struct PollItem
 {
     /// Constructs a $(REF PollItem) for monitoring a $(ZMQ) socket.
-    this(zmqd.Socket socket, PollFlags events) nothrow
+    this(ref zmqd.Socket socket, PollFlags events) nothrow
     {
         m_pollItem = zmq_pollitem_t(socket.handle, 0, cast(short) events, 0);
     }
@@ -2061,7 +2097,7 @@ Throws:
 See_also:
     $(FREF Socket.monitor), for monitoring socket state changes.
 */
-Event receiveEvent(Socket socket) @system
+Event receiveEvent(ref Socket socket) @system
 {
     // The monitor event message format underwent some changes between ZMQ
     // versions 3.2, 3.3 (unreleased) and 4.0.  Furthermore, the zmq_event_t
@@ -2586,7 +2622,7 @@ version(unittest) private string uniqueUrl(string p, int n = __LINE__)
 }
 
 
-private auto trusted(alias func, Args...)(Args args) @trusted
+private auto trusted(alias func, Args...)(auto ref Args args) @trusted
 {
     return func(args);
 }
