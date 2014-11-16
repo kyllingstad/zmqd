@@ -1099,18 +1099,28 @@ alias FD = PlatformFD;
 /**
 Starts the built-in $(ZMQ) _proxy.
 
+This function never returns normally, but it may throw an exception.  This could
+happen if the context associated with either of the specified sockets is
+manually destroyed in a different thread.
+
+Throws:
+    $(REF ZmqException) if $(ZMQ) reports an error.
 Corresponds_to:
     $(ZMQREF zmq_proxy())
 */
-void proxy(ref Socket frontend, ref Socket backend) nothrow
+void proxy(ref Socket frontend, ref Socket backend)
 {
-    trusted!zmq_proxy(frontend.handle, backend.handle, null);
+    const rc = trusted!zmq_proxy(frontend.handle, backend.handle, null);
+    assert (rc == -1);
+    throw new ZmqException;
 }
 
 /// ditto
-void proxy(ref Socket frontend, ref Socket backend, ref Socket capture) nothrow
+void proxy(ref Socket frontend, ref Socket backend, ref Socket capture)
 {
-    trusted!zmq_proxy(frontend.handle, backend.handle, capture.handle);
+    const rc = trusted!zmq_proxy(frontend.handle, backend.handle, capture.handle);
+    assert (rc == -1);
+    throw new ZmqException;
 }
 
 
