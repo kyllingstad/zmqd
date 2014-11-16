@@ -51,7 +51,7 @@ $(LINK2 https://github.com/kyllingstad/zmqd/tree/master/examples,$(D examples))
 subdirectory of the $(ZMQD) source repository.
 
 Version:
-    0.5 ($(ZMQ) 3.x compatible)
+    0.5 (compatible with $(ZMQ) >= 3.2.1)
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
 Copyright:
@@ -79,6 +79,10 @@ module zmqd;
 import core.time;
 import std.typecons;
 import deimos.zmq.zmq;
+
+
+static assert (ZMQ_VERSION >= ZMQ_MAKE_VERSION(3, 2, 1),
+               "zmqd requires zmq v3.2.1 or newer");
 
 
 version(Windows) {
