@@ -2059,61 +2059,59 @@ See_also:
 */
 Event receiveEvent(Socket socket) @system
 {
-    auto msg = Frame();
-    if (socket.receive(msg) != zmq_event_t.sizeof) {
+    // The monitor event message format underwent some changes between ZMQ
+    // versions 3.2, 3.3 (unreleased) and 4.0.  Furthermore, the zmq_event_t
+    // type was removed as of ZMQ 4.1.  We try to support all versions >= 3.2.
+    immutable ver = zmqVersion();
+    immutable usePackedData = ver.major >= 4;
+    immutable useNewLayout = ZMQ_MAKE_VERSION(ver.major, ver.minor, ver.patch)
+        >= ZMQ_MAKE_VERSION(3, 3, 0);
+    assert (useNewLayout || !usePackedData);
+
+    struct OldEventStruct {
+        int event;
+        const(char*) addr;
+        int value;
+    }
+    struct NewEventStruct {
+        ushort event;
+        int value;
+    }
+    immutable eventFrameSize =
+        usePackedData ? (ushort.sizeof + int.sizeof)
+                      : (useNewLayout ? NewEventStruct.sizeof : OldEventStruct.sizeof);
+
+    auto eventFrame = Frame();
+    if (socket.receive(eventFrame) != eventFrameSize) {
         throw new InvalidEventException;
     }
+    const data = eventFrame.data.ptr;
     try {
-        auto zmqEvent = cast(zmq_event_t*) msg.data.ptr;
         import std.conv: to;
-        immutable type = to!EventType(zmqEvent.event);
-        const(char)* addr;
+        EventType event;
         int value;
-        final switch (type) {
-            case EventType.connected:
-                addr  = zmqEvent.data.connected.addr;
-                value = zmqEvent.data.connected.fd;
-                break;
-            case EventType.connectDelayed:
-                addr  = zmqEvent.data.connect_delayed.addr;
-                value = zmqEvent.data.connect_delayed.err;
-                break;
-            case EventType.connectRetried:
-                addr  = zmqEvent.data.connect_retried.addr;
-                value = zmqEvent.data.connect_retried.interval;
-                break;
-            case EventType.listening:
-                addr  = zmqEvent.data.listening.addr;
-                value = zmqEvent.data.listening.fd;
-                break;
-            case EventType.bindFailed:
-                addr  = zmqEvent.data.bind_failed.addr;
-                value = zmqEvent.data.bind_failed.err;
-                break;
-            case EventType.accepted:
-                addr  = zmqEvent.data.accepted.addr;
-                value = zmqEvent.data.accepted.fd;
-                break;
-            case EventType.acceptFailed:
-                addr  = zmqEvent.data.accept_failed.addr;
-                value = zmqEvent.data.accept_failed.err;
-                break;
-            case EventType.closed:
-                addr  = zmqEvent.data.closed.addr;
-                value = zmqEvent.data.closed.fd;
-                break;
-            case EventType.closeFailed:
-                addr  = zmqEvent.data.close_failed.addr;
-                value = zmqEvent.data.close_failed.err;
-                break;
-            case EventType.disconnected:
-                addr  = zmqEvent.data.disconnected.addr;
-                value = zmqEvent.data.disconnected.fd;
-                break;
-            case EventType.all: // Unlikely, but...
-                throw new Exception(null);
+        string addr;
+        if (useNewLayout) {
+            if (usePackedData) {
+                event = to!EventType(*(cast(const(ushort)*) data));
+                value = *(cast(const(int)*) data + ushort.sizeof);
+            } else {
+                const eventStruct = cast(const(NewEventStruct)*) data;
+                event = to!EventType(eventStruct.event);
+                value = eventStruct.value;
+            }
+            auto addrFrame = Frame();
+            socket.receive(addrFrame);
+            addr = (cast(char[]) addrFrame.data).idup;
+        } else {
+            const eventStruct = cast(const(OldEventStruct)*) data;
+            event = to!EventType(eventStruct.event);
+            value = eventStruct.value;
+            addr = eventStruct.addr !is null
+                ? to!string(eventStruct.addr)
+                : null;
         }
-        return Event(type, addr !is null ? to!string(addr) : null, value);
+        return Event(event, addr, value);
     } catch (Exception e) {
         // Any exception thrown within the try block signifies that there
         // is something wrong with the event message.
