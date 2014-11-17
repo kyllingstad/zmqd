@@ -208,14 +208,13 @@ struct Socket
         }
         auto socket = Socket(SocketType.req);
         const socketPtr = socket.handle;
-        const ctxRefCnt = socket.m_context.m_resource.m_payload.refCount;
         assert (socketPtr != null);
 
         auto owner = SocketOwner(trusted!move(socket));
         assert (socket.handle == null);
         assert (!socket.m_context.initialized);
         assert (owner.owned.handle == socketPtr);
-        assert (owner.owned.m_context.m_resource.m_payload.refCount == ctxRefCnt);
+        assert (owner.owned.m_context.initialized);
     }
 
     // Closes the socket on desctruction.
@@ -1878,7 +1877,10 @@ ctx = Context();    // ...but now it is.
 $(D Context) objects can be passed around by value, and two copies will
 refer to the same context.  The underlying context is managed using
 reference counting, so that when the last copy of a $(D Context) goes
-out of scope, the context is automatically destroyed.
+out of scope, the context is automatically destroyed.  The reference
+counting is performed in a thread safe manner, so that the same context
+can be shared between multiple threads.  ($(ZMQ) guarantees the thread
+safety of other context operations.)
 
 See_also:
     $(FREF defaultContext)
@@ -1915,20 +1917,17 @@ struct Context
     }
 
     /**
-    Destroys the $(ZMQ) context.
+    Detaches from the $(ZMQ) context.
 
-    It is normally not necessary to do this manually, as the context will
-    be destroyed automatically when the last reference to it goes out of
-    scope.
+    If this is the last reference to the context, it will be destroyed with
+    $(ZMQREF zmq_ctx_destroy()).
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
-    Corresponds_to:
-        $(ZMQREF zmq_ctx_destroy())
     */
-    void destroy()
+    void detach()
     {
-        m_resource.free();
+        m_resource.detach();
     }
 
     ///
@@ -1936,7 +1935,7 @@ struct Context
     {
         auto ctx = Context();
         assert (ctx.initialized);
-        ctx.destroy();
+        ctx.detach();
         assert (!ctx.initialized);
     }
 
@@ -2012,7 +2011,7 @@ struct Context
     */
     @property bool initialized() const pure nothrow
     {
-        return m_resource.initialized;
+        return m_resource.handle != null;
     }
 
     ///
@@ -2022,7 +2021,7 @@ struct Context
         assert (!ctx.initialized);
         ctx = Context();
         assert (ctx.initialized);
-        ctx.destroy();
+        ctx.detach();
         assert (!ctx.initialized);
     }
 
@@ -2456,53 +2455,46 @@ struct Resource
 {
 @system: // Workaround for DMD issue #12529
     alias extern(C) int function(void*) nothrow CFreeFunction;
-@safe:
 
-    this(void* ptr, CFreeFunction freeFunc) pure nothrow
-        in { assert(ptr !is null); } body
+@safe:
+    this(void* ptr, CFreeFunction freeFunc)
+        in { assert(ptr); } body
     {
-        m_payload = new Payload(1, ptr, freeFunc);
+        m_payload = new Payload(ptr, freeFunc);
     }
 
-    this(this) pure nothrow
+    this(this)
     {
-        if (m_payload !is null) {
-            ++(m_payload.refCount);
+        if (m_payload) {
+            m_payload.incRefCount;
         }
     }
 
     ~this() nothrow
     {
-        detach();
+        nothrowDetach();
     }
 
     ref Resource opAssign(Resource rhs)
     {
-        if (detach() != 0) {
-            throw new ZmqException;
-        }
+        detach();
         m_payload = rhs.m_payload;
-        if (m_payload !is null) {
-            ++(m_payload.refCount);
+        if (m_payload) {
+            m_payload.incRefCount;
         }
         return this;
     }
 
-    @property bool initialized() const pure nothrow
+    void detach()
     {
-        return (m_payload !is null) && (m_payload.handle !is null);
-    }
-
-    void free()
-    {
-        if (m_payload !is null && m_payload.free() != 0) {
-            throw new ZmqException;
+        if (m_payload) {
+            if (auto ex = nothrowDetach()) throw ex;
         }
     }
 
     @property inout(void)* handle() inout pure nothrow
     {
-        if (m_payload !is null) {
+        if (m_payload) {
             return m_payload.handle;
         } else {
             return null;
@@ -2510,36 +2502,62 @@ struct Resource
     }
 
 private:
-    int detach() nothrow
+    Exception nothrowDetach() nothrow
     {
-        int rc = 0;
-        if (m_payload !is null) {
-            if (--(m_payload.refCount) < 1) {
-                rc = m_payload.free();
+        if (m_payload) {
+            try {
+                if (m_payload.decRefCount < 1) callFreeFunc();
+            } catch (Exception e) {
+                return e;
+            } finally {
+                m_payload = null;
             }
-            m_payload = null;
         }
-        return rc;
+        assert (!m_payload);
+        return null;
     }
 
-    struct Payload
+    void callFreeFunc() @trusted
     {
-        int refCount;
+        assert (m_payload);
+        if (m_payload.freeFunc(handle) != 0) {
+            throw new ZmqException;
+        }
+    }
+
+    class Payload
+    {
+        import core.sync.mutex;
+        private Mutex mutex_;
+        private int refCount_;
         void* handle;
         CFreeFunction freeFunc;
 
-        int free() @trusted nothrow
+    @trusted:
+        this(void* handle, CFreeFunction freeFunc)
         {
-            int rc = 0;
-            if (handle !is null) {
-                rc = freeFunc(handle);
-                handle = null;
-                freeFunc = null;
-            }
-            return rc;
+            mutex_ = new Mutex;
+            refCount_ = 1;
+            this.handle = handle;
+            this.freeFunc = freeFunc;
+        }
+
+        void incRefCount()
+        {
+            mutex_.lock_nothrow();
+            scope (exit) mutex_.unlock_nothrow();
+            ++refCount_;
+        }
+
+        int decRefCount()
+        {
+            mutex_.lock_nothrow();
+            scope (exit) mutex_.unlock_nothrow();
+            assert (refCount_ > 0);
+            return --refCount_;
         }
     }
-    Payload* m_payload;
+    Payload m_payload;
 }
 
 @system unittest
@@ -2562,26 +2580,22 @@ private:
         // Test constructor and properties.
         auto ra = Resource(&i, &myFree);
         assert (i == 1);
-        assert (ra.initialized);
         assert (ra.handle == &i);
 
         // Test postblit constructor
         auto rb = ra;
         assert (i == 1);
-        assert (rb.initialized);
         assert (rb.handle == &i);
 
         {
             // Test properties and free() with default-initialized object.
             Resource rc;
-            assert (!rc.initialized);
             assert (rc.handle == null);
-            assertNotThrown(rc.free());
+            assertNotThrown(rc.detach());
 
             // Test assignment, both with and without detachment
             rc = rb;
             assert (i == 1);
-            assert (rc.initialized);
             assert (rc.handle == &i);
 
             int j = 2;
@@ -2592,15 +2606,15 @@ private:
             assert (i == 1);
             assert (rd.handle == &i);
 
-            // Test explicit free()
+            // Test explicit detach()
             int k = 3;
             auto re = Resource(&k, &myFree);
-            assertNotThrown(re.free());
+            assertNotThrown(re.detach());
             assert(k == 0);
 
             // Test failure to free and assign (myFree(&k) fails when k == 0)
             re = Resource(&k, &myFree);
-            assertThrown!ZmqException(re.free()); // We defined free(k == 0) as an error
+            assertThrown!ZmqException(re.detach()); // We defined free(k == 0) as an error
             re = Resource(&k, &myFree);
             assertThrown!ZmqException(re = rb);
         }
@@ -2612,6 +2626,44 @@ private:
     }
     // ...but now it should.
     assert (i == 0);
+}
+
+// Thread safety test
+@system unittest
+{
+    enum threadCount = 100;
+    enum copyCount = 1000;
+    static extern(C) int myFree(void* p) nothrow
+    {
+        auto v = cast(int*) p;
+        if (*v == 0) {
+            return -1;
+        } else {
+            *v = 0;
+            return 0;
+        }
+    }
+    int raw = 1;
+    {
+        auto rs = Resource(&raw, &myFree);
+
+        import core.thread;
+        auto group = new ThreadGroup;
+        foreach (i; 0 .. threadCount) {
+            group.create(() {
+                auto a = rs;
+                foreach (j; 0 .. copyCount) {
+                    auto b = a;
+                    assert (b.handle == &raw);
+                    assert (raw == 1);
+                }
+            });
+        }
+        group.joinAll();
+        assert (rs.handle == &raw);
+        assert (raw == 1);
+    }
+    assert (raw == 0);
 }
 
 
