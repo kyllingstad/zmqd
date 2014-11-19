@@ -51,7 +51,7 @@ $(LINK2 https://github.com/kyllingstad/zmqd/tree/master/examples,$(D examples))
 subdirectory of the $(ZMQD) source repository.
 
 Version:
-    0.6 (compatible with $(ZMQ) >= 3.2.1)
+    0.5.1 (compatible with $(ZMQ) >= 3.2.1)
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
 Copyright:
@@ -1898,11 +1898,12 @@ struct Context
     Corresponds_to:
         $(ZMQREF zmq_ctx_new())
     */
-    static Context opCall()
+    static Context opCall() @trusted // because of the cast
     {
         if (auto c = trusted!zmq_ctx_new()) {
             Context ctx;
-            ctx.m_resource = Resource(c, &zmq_ctx_destroy);
+            // Casting to shared is OK since ZMQ contexts are thread safe.
+            ctx.m_resource = Resource(cast(shared) c, &zmq_ctx_destroy);
             return ctx;
         } else {
             throw new ZmqException;
@@ -2000,9 +2001,10 @@ struct Context
 
     If the object has not been initialized, this function returns $(D null).
     */
-    @property inout(void)* handle() inout pure nothrow
+    @property inout(void)* handle() inout @trusted pure nothrow
     {
-        return m_resource.handle;
+        // ZMQ contexts are thread safe, so casting away shared is OK.
+        return cast(typeof(return)) m_resource.handle;
     }
 
     /**
@@ -2028,7 +2030,7 @@ struct Context
 private:
     int getOption(int option)
     {
-        immutable value = trusted!zmq_ctx_get(m_resource.handle, option);
+        immutable value = trusted!zmq_ctx_get(this.handle, option);
         if (value < 0) {
             throw new ZmqException;
         }
@@ -2037,7 +2039,7 @@ private:
 
     void setOption(int option, int value)
     {
-        if (trusted!zmq_ctx_set(m_resource.handle, option, value) != 0) {
+        if (trusted!zmq_ctx_set(this.handle, option, value) != 0) {
             throw new ZmqException;
         }
     }
@@ -2457,16 +2459,16 @@ struct Resource
     alias extern(C) int function(void*) nothrow CFreeFunction;
 
 @safe:
-    this(void* ptr, CFreeFunction freeFunc)
+    this(shared(void)* ptr, CFreeFunction freeFunc)
         in { assert(ptr); } body
     {
-        m_payload = new Payload(ptr, freeFunc);
+        m_payload = new shared(Payload)(1, ptr, freeFunc);
     }
 
     this(this)
     {
         if (m_payload) {
-            m_payload.incRefCount;
+            incRefCount();
         }
     }
 
@@ -2480,7 +2482,7 @@ struct Resource
         detach();
         m_payload = rhs.m_payload;
         if (m_payload) {
-            m_payload.incRefCount;
+            incRefCount();
         }
         return this;
     }
@@ -2492,7 +2494,7 @@ struct Resource
         }
     }
 
-    @property inout(void)* handle() inout pure nothrow
+    @property inout(shared(void))* handle() inout pure nothrow
     {
         if (m_payload) {
             return m_payload.handle;
@@ -2502,62 +2504,41 @@ struct Resource
     }
 
 private:
-    Exception nothrowDetach() nothrow
+    void incRefCount() @trusted nothrow
+    {
+        assert (m_payload.refCount > 0);
+        import core.atomic: atomicOp;
+        atomicOp!"+="(m_payload.refCount, 1);
+    }
+
+    int decRefCount() @trusted nothrow
+    {
+        assert (m_payload.refCount > 0);
+        import core.atomic: atomicOp;
+        return atomicOp!"-="(m_payload.refCount, 1);
+    }
+
+    Exception nothrowDetach() @trusted nothrow
     {
         if (m_payload) {
-            try {
-                if (m_payload.decRefCount < 1) callFreeFunc();
-            } catch (Exception e) {
-                return e;
-            } finally {
-                m_payload = null;
+            scope(exit) m_payload = null;
+            if (decRefCount() < 1) {
+                if (m_payload.freeFunc(handle) != 0) {
+                    return new ZmqException;
+                }
             }
         }
         assert (!m_payload);
         return null;
     }
 
-    void callFreeFunc() @trusted
+    struct Payload
     {
-        assert (m_payload);
-        if (m_payload.freeFunc(handle) != 0) {
-            throw new ZmqException;
-        }
-    }
-
-    class Payload
-    {
-        import core.sync.mutex;
-        private Mutex mutex_;
-        private int refCount_;
+        int refCount;
         void* handle;
         CFreeFunction freeFunc;
-
-    @trusted:
-        this(void* handle, CFreeFunction freeFunc)
-        {
-            mutex_ = new Mutex;
-            refCount_ = 1;
-            this.handle = handle;
-            this.freeFunc = freeFunc;
-        }
-
-        void incRefCount()
-        {
-            mutex_.lock_nothrow();
-            scope (exit) mutex_.unlock_nothrow();
-            ++refCount_;
-        }
-
-        int decRefCount()
-        {
-            mutex_.lock_nothrow();
-            scope (exit) mutex_.unlock_nothrow();
-            assert (refCount_ > 0);
-            return --refCount_;
-        }
     }
-    Payload m_payload;
+    shared(Payload)* m_payload;
 }
 
 @system unittest
@@ -2574,7 +2555,7 @@ private:
         }
     }
 
-    int i = 1;
+    shared int i = 1;
 
     {
         // Test constructor and properties.
@@ -2598,7 +2579,7 @@ private:
             assert (i == 1);
             assert (rc.handle == &i);
 
-            int j = 2;
+            shared int j = 2;
             auto rd = Resource(&j, &myFree);
             assert (rd.handle == &j);
             rd = rb;
@@ -2607,7 +2588,7 @@ private:
             assert (rd.handle == &i);
 
             // Test explicit detach()
-            int k = 3;
+            shared int k = 3;
             auto re = Resource(&k, &myFree);
             assertNotThrown(re.detach());
             assert(k == 0);
@@ -2643,7 +2624,7 @@ private:
             return 0;
         }
     }
-    int raw = 1;
+    shared int raw = 1;
     {
         auto rs = Resource(&raw, &myFree);
 
