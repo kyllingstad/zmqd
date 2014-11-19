@@ -2459,13 +2459,13 @@ struct Resource
     alias extern(C) int function(void*) nothrow CFreeFunction;
 
 @safe:
-    this(shared(void)* ptr, CFreeFunction freeFunc)
+    this(shared(void)* ptr, CFreeFunction freeFunc) nothrow
         in { assert(ptr); } body
     {
         m_payload = new shared(Payload)(1, ptr, freeFunc);
     }
 
-    this(this)
+    this(this) nothrow
     {
         if (m_payload) {
             incRefCount();
