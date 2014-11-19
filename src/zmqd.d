@@ -367,9 +367,9 @@ struct Socket
     }
 
     /// ditto
-    void send(const char[] data, bool more = false) @trusted
+    void send(const char[] data, bool more = false)
     {
-        send(cast(ubyte[]) data, more);
+        send(cast(const(ubyte)[]) data, more);
     }
 
     /// ditto
@@ -385,9 +385,9 @@ struct Socket
     }
 
     /// ditto
-    bool trySend(const char[] data, bool more = false) @trusted
+    bool trySend(const char[] data, bool more = false)
     {
-        return trySend(cast(ubyte[]) data, more);
+        return trySend(cast(const(ubyte)[]) data, more);
     }
 
     ///
