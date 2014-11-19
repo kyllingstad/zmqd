@@ -125,7 +125,7 @@ D, and can be found in the
 subdirectory of the &#x2205;MQD source repository.
 
 </div>
-<section class="ddoc_section"><h1>Version:</h1><div class="ddoc_paragraphs"> 0.5 (compatible with &#x2205;MQ &gt;= 3.2.1)
+<section class="ddoc_section"><h1>Version:</h1><div class="ddoc_paragraphs"> 0.5.1 (compatible with &#x2205;MQ &gt;= 3.2.1)
 </div></section>
 <section class="ddoc_section"><h1>Authors:</h1><div class="ddoc_paragraphs"> <a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
 </div></section>
@@ -1104,7 +1104,7 @@ safety of other context operations.)
 </div>
 <section class="ddoc_section"><h1>See also:</h1><div class="ddoc_paragraphs"> <code><a href="#defaultContext">defaultContext()</a></code></div></section>
 
-<section class="members"><h1>Members</h1><section class="member"><h1><code><a name="Context.opCall"></a>static @safe Context opCall();
+<section class="members"><h1>Members</h1><section class="member"><h1><code><a name="Context.opCall"></a>static @trusted Context opCall();
 </code></h1>
 <p class="summary">Creates a new &#x2205;MQ context.
 </p>
@@ -1171,7 +1171,7 @@ ctx.maxSockets = 512;
 </pre>
 </div></section>
 </section>
-<section class="member"><h1><code><a name="Context.handle"></a>inout pure nothrow @property @safe inout(void)* handle();
+<section class="member"><h1><code><a name="Context.handle"></a>inout pure nothrow @property @trusted inout(void)* handle();
 </code></h1>
 <p class="summary">The <code>void*</code> pointer used by the underlying C API to refer to the context.
 </p>
@@ -1409,7 +1409,7 @@ received message as an event description.</p>
                 <footer>
                     <div class="ddoc_paragraphs">Copyright (c) 2013–2014, Lars T. Kyllingstad. All rights reserved.
 </div>
-                    <p>This documentation was generated on Mon Nov 17 07:53:25 2014
+                    <p>This documentation was generated on Wed Nov 19 14:24:03 2014
  with
                        <a href="https://github.com/kyllingstad/ltkdoc">LTKdoc 0.1</a>.</p>
                 </footer>
