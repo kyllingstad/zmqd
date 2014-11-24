@@ -1902,8 +1902,14 @@ struct Context
     {
         if (auto c = trusted!zmq_ctx_new()) {
             Context ctx;
-            // Casting to shared is OK since ZMQ contexts are thread safe.
-            ctx.m_resource = Resource(cast(shared) c, &zmq_ctx_destroy);
+            // Casting from/to shared is OK since ZMQ contexts are thread safe.
+            static Exception release(shared(void)* ptr) @trusted nothrow
+            {
+                return zmq_ctx_destroy(cast(void*) ptr) == 0
+                    ? null
+                    : new ZmqException;
+            }
+            ctx.m_resource = SharedResource(cast(shared) c, &release);
             return ctx;
         } else {
             throw new ZmqException;
@@ -2044,7 +2050,7 @@ private:
         }
     }
 
-    Resource m_resource;
+    SharedResource m_resource;
 }
 
 
@@ -2453,16 +2459,15 @@ private:
 
 private:
 
-struct Resource
+struct SharedResource
 {
-@system: // Workaround for DMD issue #12529
-    alias extern(C) int function(void*) nothrow CFreeFunction;
-
 @safe:
-    this(shared(void)* ptr, CFreeFunction freeFunc) nothrow
+    alias Exception function(shared(void)*) nothrow Release;
+
+    this(shared(void)* ptr, Release release) nothrow
         in { assert(ptr); } body
     {
-        m_payload = new shared(Payload)(1, ptr, freeFunc);
+        m_payload = new shared(Payload)(1, ptr, release);
     }
 
     this(this) nothrow
@@ -2477,13 +2482,11 @@ struct Resource
         nothrowDetach();
     }
 
-    ref Resource opAssign(Resource rhs)
+    ref SharedResource opAssign(SharedResource rhs)
     {
         detach();
         m_payload = rhs.m_payload;
-        if (m_payload) {
-            incRefCount();
-        }
+        rhs.m_payload = null;
         return this;
     }
 
@@ -2506,29 +2509,26 @@ struct Resource
 private:
     void incRefCount() @trusted nothrow
     {
-        assert (m_payload.refCount > 0);
+        assert (m_payload !is null && m_payload.refCount > 0);
         import core.atomic: atomicOp;
         atomicOp!"+="(m_payload.refCount, 1);
     }
 
     int decRefCount() @trusted nothrow
     {
-        assert (m_payload.refCount > 0);
+        assert (m_payload !is null && m_payload.refCount > 0);
         import core.atomic: atomicOp;
         return atomicOp!"-="(m_payload.refCount, 1);
     }
 
     Exception nothrowDetach() @trusted nothrow
+        out { assert (m_payload is null); }
+        body
     {
         if (m_payload) {
             scope(exit) m_payload = null;
-            if (decRefCount() < 1) {
-                if (m_payload.freeFunc(handle) != 0) {
-                    return new ZmqException;
-                }
-            }
+            if (decRefCount() < 1) return m_payload.release(m_payload.handle);
         }
-        assert (!m_payload);
         return null;
     }
 
@@ -2536,22 +2536,28 @@ private:
     {
         int refCount;
         void* handle;
-        CFreeFunction freeFunc;
+        Release release;
     }
     shared(Payload)* m_payload;
+
+    invariant()
+    {
+        assert (m_payload is null || (m_payload.refCount > 0 &&
+            m_payload.handle !is null && m_payload.release !is null));
+    }
 }
 
 @system unittest
 {
     import std.exception: assertNotThrown, assertThrown;
-    static extern(C) int myFree(void* p) nothrow
+    static Exception myFree(shared(void)* p) @trusted nothrow
     {
-        auto v = cast(int*) p;
+        auto v = cast(shared(int)*) p;
         if (*v == 0) {
-            return -1;
+            return new Exception("double release");
         } else {
             *v = 0;
-            return 0;
+            return null;
         }
     }
 
@@ -2559,7 +2565,7 @@ private:
 
     {
         // Test constructor and properties.
-        auto ra = Resource(&i, &myFree);
+        auto ra = SharedResource(&i, &myFree);
         assert (i == 1);
         assert (ra.handle == &i);
 
@@ -2570,7 +2576,7 @@ private:
 
         {
             // Test properties and free() with default-initialized object.
-            Resource rc;
+            SharedResource rc;
             assert (rc.handle == null);
             assertNotThrown(rc.detach());
 
@@ -2580,7 +2586,7 @@ private:
             assert (rc.handle == &i);
 
             shared int j = 2;
-            auto rd = Resource(&j, &myFree);
+            auto rd = SharedResource(&j, &myFree);
             assert (rd.handle == &j);
             rd = rb;
             assert (j == 0);
@@ -2589,15 +2595,15 @@ private:
 
             // Test explicit detach()
             shared int k = 3;
-            auto re = Resource(&k, &myFree);
+            auto re = SharedResource(&k, &myFree);
             assertNotThrown(re.detach());
             assert(k == 0);
 
             // Test failure to free and assign (myFree(&k) fails when k == 0)
-            re = Resource(&k, &myFree);
-            assertThrown!ZmqException(re.detach()); // We defined free(k == 0) as an error
-            re = Resource(&k, &myFree);
-            assertThrown!ZmqException(re = rb);
+            re = SharedResource(&k, &myFree);
+            assertThrown!Exception(re.detach()); // We defined free(k == 0) as an error
+            re = SharedResource(&k, &myFree);
+            assertThrown!Exception(re = rb);
         }
 
         // i should not be "freed" yet
@@ -2614,19 +2620,19 @@ private:
 {
     enum threadCount = 100;
     enum copyCount = 1000;
-    static extern(C) int myFree(void* p) nothrow
+    static Exception myFree(shared(void)* p) @trusted nothrow
     {
-        auto v = cast(int*) p;
+        auto v = cast(shared(int)*) p;
         if (*v == 0) {
-            return -1;
+            return new Exception("double release");
         } else {
             *v = 0;
-            return 0;
+            return null;
         }
     }
     shared int raw = 1;
     {
-        auto rs = Resource(&raw, &myFree);
+        auto rs = SharedResource(&raw, &myFree);
 
         import core.thread;
         auto group = new ThreadGroup;
