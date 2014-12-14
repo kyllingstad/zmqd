@@ -823,8 +823,15 @@ struct Socket
     @property void ipv4Only(bool value) { ipv6 = !value; }
 
     /// ditto
+    @property bool immediate() { return !!getOption!int(ZMQ_IMMEDIATE); }
+    /// ditto
+    @property void immediate(bool value) { setOption!int(ZMQ_IMMEDIATE, value ? 1 : 0); }
+
+    /// ditto
+    deprecated("Use the 'immediate' property instead")
     @property bool delayAttachOnConnect() { return !!getOption!int(ZMQ_DELAY_ATTACH_ON_CONNECT); }
     /// ditto
+    deprecated("Use the 'immediate' property instead")
     @property void delayAttachOnConnect(bool value) { setOption(ZMQ_DELAY_ATTACH_ON_CONNECT, value ? 1 : 0); }
 
     /// ditto
@@ -877,7 +884,7 @@ struct Socket
         assert(s.receiveTimeout == Duration.max);
         assert(s.sendTimeout == Duration.max);
         assert(!s.ipv6);
-        assert(!s.delayAttachOnConnect);
+        assert(!s.immediate);
         version(Posix) {
             assert(s.fd > 2); // 0, 1 and 2 are the standard streams
         }
@@ -928,8 +935,8 @@ struct Socket
         assert(s.sendTimeout == Duration.max);
         s.ipv6 = true;
         assert(s.ipv6);
-        s.delayAttachOnConnect = true;
-        assert(s.delayAttachOnConnect);
+        s.immediate = true;
+        assert(s.immediate);
     }
 
     unittest
@@ -946,10 +953,13 @@ struct Socket
         // Test deprecated socket options
         auto s = Socket(SocketType.req);
         assert(s.ipv4Only);
+        assert(!s.delayAttachOnConnect);
 
         // Test setters and getters together
         s.ipv4Only = false;
         assert(!s.ipv4Only);
+        s.delayAttachOnConnect = true;
+        assert(s.delayAttachOnConnect);
     }
 
     /**
