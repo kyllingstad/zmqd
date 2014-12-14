@@ -51,7 +51,7 @@ $(LINK2 https://github.com/kyllingstad/zmqd/tree/master/examples,$(D examples))
 subdirectory of the $(ZMQD) source repository.
 
 Version:
-    0.5.1 (compatible with $(ZMQ) >= 3.2.1)
+    1.0.0-alpha (compatible with $(ZMQ) >= 4.0.0)
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
 Copyright:
@@ -70,7 +70,7 @@ Macros:
     COREF  = $(D $(LINK2 http://dlang.org/phobos/core_$1.html#.$2,core.$1.$2))
     STDREF = $(D $(LINK2 http://dlang.org/phobos/std_$1.html#.$2,std.$1.$2))
     ZMQ    = &#x2205;MQ
-    ZMQAPI = $(LINK2 http://api.zeromq.org/3-2:$1,$+)
+    ZMQAPI = $(LINK2 http://api.zeromq.org/4-0:$1,$+)
     ZMQD   = $(ZMQ)D
     ZMQREF = $(D $(ZMQAPI $1,$1))
 */
