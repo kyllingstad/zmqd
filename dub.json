@@ -1,6 +1,6 @@
 {
     "name"          : "zmqd",
-    "description"   : "A ∅MQ wrapper for the D programming language",
+    "description"   : "A safe and convenient wrapper for the ∅MQ/ZeroMQ messaging framework",
     "homepage"      : "https://github.com/kyllingstad/zmqd",
     "copyright"     : "Copyright (c) 2013–2014, Lars T. Kyllingstad",
     "license"       : "BSD 3-clause",
