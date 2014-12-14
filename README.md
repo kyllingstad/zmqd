@@ -2,9 +2,9 @@
 ===================================================
 
 ∅MQD is a [D](http://dlang.org) library that wraps the low-level C API of
-the [∅MQ](http://zeromq.org) messaging framework.  It is a rather thin
-wrapper that maps closely to the C API, while making it safer, easier and
-more pleasant to use.  Here's how:
+the [∅MQ](http://zeromq.org) messaging framework (also known as ZeroMQ).
+It is a rather thin wrapper that maps closely to the C API, while making it
+safer, easier and more pleasant to use.  Here's how:
 
   * Errors are signalled by means of exceptions rather than return codes.
   * Functions are appropriately marked with `@safe`/`@trusted`/`@system`,
@@ -17,17 +17,25 @@ The names of functions and types in ∅MQD are very similar to those in ∅MQ,
 but they follow the D naming conventions.  Thus, the library should feel
 both familiar to ∅MQ users and natural to D users.
 
-The documentation may be browsed online at http://kyllingstad.github.io/zmqd/.
+The API documentation may be browsed online at
+http://kyllingstad.github.io/zmqd/.
+
+## Support and contributions ##
+
+If you have questions, enhancement requests or bug reports, please submit
+them as [issues](https://github.com/kyllingstad/zmqd/issues) on GitHub.
+Bug fixes in the form of [pull requests](https://github.com/kyllingstad/zmqd/pulls)
+are very welcome.
 
 ## Requirements ##
 
 What you need is:
 
-  * An up-to-date [D compiler](http://wiki.dlang.org/Compilers) (last
-    tested with DMD 2.065)
+  * A somewhat up-to-date [D compiler](http://wiki.dlang.org/Compilers)
   * The [∅MQ libraries](http://zeromq.org/intro:get-the-software)
-  * The [∅MQ bindings](https://github.com/D-Programming-Deimos/ZeroMQ)
-    from Deimos
+  * The [∅MQ bindings](https://github.com/D-Programming-Deimos/ZeroMQ) from
+    Deimos (the correct version is automatically fetched if you use
+    [Dub](http://code.dlang.org/)).
 
 Tell the compiler where to find the libraries and the import files, and
 you're good to go.
@@ -90,3 +98,4 @@ the following:
     auto context = Context();
     auto responder = Socket(context, SocketType.rep);
 
+More examples may be found in the `examples` subdirectory.
