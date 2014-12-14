@@ -811,9 +811,16 @@ struct Socket
     }
 
     /// ditto
-    @property bool ipv4Only() { return !!getOption!int(ZMQ_IPV4ONLY); }
+    @property bool ipv6() { return !!getOption!int(ZMQ_IPV6); }
     /// ditto
-    @property void ipv4Only(bool value) { setOption(ZMQ_IPV4ONLY, value ? 1 : 0); }
+    @property void ipv6(bool value) { setOption(ZMQ_IPV6, value ? 1 : 0); }
+
+    /// ditto
+    deprecated("Use !ipv6 instead")
+    @property bool ipv4Only() { return !ipv6; }
+    /// ditto
+    deprecated("Use ipv6 = !value instead")
+    @property void ipv4Only(bool value) { ipv6 = !value; }
 
     /// ditto
     @property bool delayAttachOnConnect() { return !!getOption!int(ZMQ_DELAY_ATTACH_ON_CONNECT); }
@@ -869,7 +876,7 @@ struct Socket
         assert(s.multicastHops == 1);
         assert(s.receiveTimeout == Duration.max);
         assert(s.sendTimeout == Duration.max);
-        assert(s.ipv4Only);
+        assert(!s.ipv6);
         assert(!s.delayAttachOnConnect);
         version(Posix) {
             assert(s.fd > 2); // 0, 1 and 2 are the standard streams
@@ -919,8 +926,8 @@ struct Socket
         assert(s.sendTimeout == 2.seconds);
         s.sendTimeout = Duration.max;
         assert(s.sendTimeout == Duration.max);
-        s.ipv4Only = false;
-        assert(!s.ipv4Only);
+        s.ipv6 = true;
+        assert(s.ipv6);
         s.delayAttachOnConnect = true;
         assert(s.delayAttachOnConnect);
     }
@@ -932,6 +939,17 @@ struct Socket
         rt.routerMandatory = true;
         auto xp = Socket(SocketType.xpub);
         xp.xpubVerbose = true;
+    }
+
+    deprecated unittest
+    {
+        // Test deprecated socket options
+        auto s = Socket(SocketType.req);
+        assert(s.ipv4Only);
+
+        // Test setters and getters together
+        s.ipv4Only = false;
+        assert(!s.ipv4Only);
     }
 
     /**
