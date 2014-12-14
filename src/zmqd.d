@@ -443,6 +443,65 @@ struct Socket
     }
 
     /**
+    Sends a constant-memory message frame.
+
+    $(D _sendConst) blocks until the frame has been queued on the socket.
+    $(D trySendConst) performs the operation in non-blocking mode, and returns
+    a $(D bool) value that signifies whether the frame was queued on the
+    socket.
+
+    The $(D more) parameter specifies whether this is a multipart message
+    and there are more frames to follow.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_send_const()) (with the $(D ZMQ_DONTWAIT) flag, in the
+        case of $(D trySend), and with the $(D ZMQ_SNDMORE) flag if
+        $(D more == true)).
+    */
+    void sendConst(immutable ubyte[] data, bool more = false)
+    {
+        immutable flags = more ? ZMQ_SNDMORE : 0;
+        if (trusted!zmq_send_const(m_socket, data.ptr, data.length, flags) < 0) {
+            throw new ZmqException;
+        }
+    }
+
+    /// ditto
+    void sendConst(string data, bool more = false)
+    {
+        sendConst(cast(immutable(ubyte)[]) data, more);
+    }
+
+    /// ditto
+    bool trySendConst(immutable ubyte[] data, bool more = false)
+    {
+        immutable flags = ZMQ_DONTWAIT | (more ? ZMQ_SNDMORE : 0);
+        if (trusted!zmq_send_const(m_socket, data.ptr, data.length, flags) < 0) {
+            import core.stdc.errno;
+            if (errno == EAGAIN) return false;
+            else throw new ZmqException;
+        }
+        return true;
+    }
+
+    /// ditto
+    bool trySendConst(string data, bool more = false)
+    {
+        return trySend(cast(immutable(ubyte)[]) data, more);
+    }
+
+    ///
+    unittest
+    {
+        static immutable arr = cast(ubyte[]) [11, 226, 92];
+        auto sck = Socket(SocketType.pub);
+        sck.sendConst(arr);
+        sck.sendConst("Hello World!");
+    }
+
+    /**
     Receives a message frame.
 
     $(D _receive) blocks until the request can be satisfied, and returns the
