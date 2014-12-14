@@ -81,10 +81,6 @@ import std.typecons;
 import deimos.zmq.zmq;
 
 
-static assert (ZMQ_VERSION >= ZMQ_MAKE_VERSION(3, 2, 1),
-               "zmqd requires zmq v3.2.1 or newer");
-
-
 version(Windows) {
     import std.c.windows.winsock: SOCKET;
 }
