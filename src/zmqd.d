@@ -124,6 +124,7 @@ enum SocketType
     push    = ZMQ_PUSH,     /// Corresponds to $(D ZMQ_PUSH)
     pull    = ZMQ_PULL,     /// Corresponds to $(D ZMQ_PULL)
     pair    = ZMQ_PAIR,     /// Corresponds to $(D ZMQ_PAIR)
+    stream  = ZMQ_STREAM,   /// Corresponds to $(D ZMQ_STREAM)
 }
 
 
