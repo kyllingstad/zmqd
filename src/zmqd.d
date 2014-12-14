@@ -1930,7 +1930,7 @@ struct Context
             // Casting from/to shared is OK since ZMQ contexts are thread safe.
             static Exception release(shared(void)* ptr) @trusted nothrow
             {
-                return zmq_ctx_destroy(cast(void*) ptr) == 0
+                return zmq_ctx_term(cast(void*) ptr) == 0
                     ? null
                     : new ZmqException;
             }
