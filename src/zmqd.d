@@ -68,6 +68,7 @@ Macros:
     FREF   = $(D $(LINK2 #$1,$1()))
     REF    = $(D $(LINK2 #$1,$1))
     COREF  = $(D $(LINK2 http://dlang.org/phobos/core_$1.html#.$2,core.$1.$2))
+    OBJREF = $(D $(LINK2 http://dlang.org/phobos/object.html#.$1,$1))
     STDREF = $(D $(LINK2 http://dlang.org/phobos/std_$1.html#.$2,std.$1.$2))
     ZMQ    = &#x2205;MQ
     ZMQAPI = $(LINK2 http://api.zeromq.org/4-0:$1,$+)
@@ -2589,6 +2590,125 @@ private:
     {
         super("The received message is not an event message", file, line);
     }
+}
+
+
+
+/**
+Encodes a binary key as Z85 printable text.
+
+$(D dest) must be an array whose length is at least $(D 5*data.length/4 + 1),
+which will be used to store the return value plus a terminating zero byte.
+If $(D dest) is omitted, a new array will be created.
+
+Returns:
+    An array of size $(D 5*data.length/4) which contains the Z85-encoded text,
+    excluding the terminating zero byte.  This will be a slice of $(D dest) if
+    it is provided.
+Throws:
+    $(COREF exception,RangeError) if $(D dest) is given but is too small.$(BR)
+    $(REF ZmqException) if $(ZMQ) reports an error (i.e., if data.length is not
+    a multiple of 4).
+Corresponds_to:
+    $(ZMQREF zmq_z85_encode())
+*/
+char[] z85Encode(ubyte[] data, char[] dest)
+// TODO: Make data const when we update to ZMQ 4.1
+{
+    import core.exception: RangeError;
+    immutable len = 5 * data.length / 4;
+    if (dest.length < len+1) throw new RangeError;
+    if (trusted!zmq_z85_encode(dest.ptr, data.ptr, data.length) == null) {
+        throw new ZmqException;
+    }
+    return dest[0 .. len];
+}
+
+/// ditto
+char[] z85Encode(ubyte[] data)
+{
+    return z85Encode(data, new char[5*data.length/4 + 1]);
+}
+
+@trusted unittest // @trusted because of assertThrown
+{
+    // TODO: Make data immutable when we update to ZMQ 4.1
+    auto data = cast(ubyte[])[0x86, 0x4f, 0xd2, 0x6f, 0xb5, 0x59, 0xf7, 0x5b];
+    immutable encoded = "HelloWorld";
+    assert (z85Encode(data) == encoded);
+
+    auto buffer = new char[11];
+    auto result = z85Encode(data, buffer);
+    assert (result == encoded);
+    assert (buffer.ptr == result.ptr);
+
+    import core.exception: RangeError;
+    import std.exception: assertThrown;
+    assertThrown!RangeError(z85Encode(data, new char[10]));
+    assertThrown!ZmqException(z85Encode(cast(ubyte[]) [ 1, 2, 3, 4, 5]));
+}
+
+
+/**
+Decodes a binary key from Z85 printable text.
+
+$(D dest) must be an array whose length is at least $(D 4*data.length/5),
+which will be used to store the return value.
+If $(D dest) is omitted, a new array will be created.
+
+Note that $(ZMQREF zmq_z85_decode()) expects a zero-terminated string, so a zero
+byte will be appended to $(D text) if it does not contain one already.  However,
+this may trigger a (possibly unwanted) GC allocation.  To avoid this, either
+make sure that the last character in $(D text) is $(D '\0'), or use
+$(OBJREF assumeSafeAppend) on the array before calling this function.
+
+Returns:
+    An array of size $(D 4*data.length/5) which contains the decoded data.
+    This will be a slice of $(D dest) if it is provided.
+
+Throws:
+    $(COREF exception,RangeError) if $(D dest) is given but is too small.$(BR)
+    $(REF ZmqException) if $(ZMQ) reports an error (i.e., if data.length is not
+    a multiple of 5).
+Corresponds_to:
+    $(ZMQREF zmq_z85_decode())
+*/
+ubyte[] z85Decode(char[] text, ubyte[] dest)
+// TODO: Make text const when we update to ZMQ 4.1
+{
+    import core.exception: RangeError;
+    immutable len = 4 * text.length/5;
+    if (dest.length < len) throw new RangeError;
+    if (text[$-1] != '\0') text ~= '\0';
+    if (trusted!zmq_z85_decode(dest.ptr, text.ptr) == null) {
+        throw new ZmqException;
+    }
+    return dest[0 .. len];
+}
+
+/// ditto
+ubyte[] z85Decode(char[] text)
+{
+    return z85Decode(text, new ubyte[4*text.length/5]);
+}
+
+@trusted unittest // @trusted because of assertThrown
+{
+    // TODO: Make data immutable when we update to ZMQ 4.1
+    auto text = "HelloWorld".dup;
+    immutable decoded = cast(ubyte[])[0x86, 0x4f, 0xd2, 0x6f, 0xb5, 0x59, 0xf7, 0x5b];
+    assert (z85Decode(text) == decoded);
+    assert (z85Decode(text~'\0') == decoded);
+
+    auto buffer = new ubyte[8];
+    auto result = z85Decode(text, buffer);
+    assert (result == decoded);
+    assert (buffer.ptr == result.ptr);
+
+    import core.exception: RangeError;
+    import std.exception: assertThrown;
+    assertThrown!RangeError(z85Decode(text, new ubyte[7]));
+    assertThrown!ZmqException(z85Decode("SizeNotAMultipleOf5".dup));
 }
 
 
