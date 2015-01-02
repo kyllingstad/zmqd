@@ -917,7 +917,19 @@ struct Socket
     @property void routerMandatory(bool value) { setOption(ZMQ_ROUTER_MANDATORY, value ? 1 : 0); }
 
     /// ditto
+    @property void probeRouter(bool value) { setOption(ZMQ_PROBE_ROUTER, value ? 1 : 0); }
+
+    /// ditto
     @property void xpubVerbose(bool value) { setOption(ZMQ_XPUB_VERBOSE, value ? 1 : 0); }
+
+    /// ditto
+    @property void reqCorrelate(bool value) { setOption(ZMQ_REQ_CORRELATE, value ? 1 : 0); }
+
+    /// ditto
+    @property void reqRelaxed(bool value) { setOption(ZMQ_REQ_RELAXED, value ? 1 : 0); }
+
+    /// ditto
+    @property void conflate(bool value) { setOption(ZMQ_CONFLATE, value ? 1 : 0); }
 
     unittest
     {
@@ -997,6 +1009,9 @@ struct Socket
         assert(s.ipv6);
         s.immediate = true;
         assert(s.immediate);
+
+        // Test write-only options
+        s.conflate = true;
     }
 
     unittest
@@ -1004,8 +1019,12 @@ struct Socket
         // Some options are only applicable to specific socket types.
         auto rt = Socket(SocketType.router);
         rt.routerMandatory = true;
+        rt.probeRouter = true;
         auto xp = Socket(SocketType.xpub);
         xp.xpubVerbose = true;
+        auto rq = Socket(SocketType.req);
+        rq.reqCorrelate = true;
+        rq.reqRelaxed = true;
     }
 
     deprecated unittest
