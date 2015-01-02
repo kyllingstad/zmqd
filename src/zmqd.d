@@ -929,6 +929,26 @@ struct Socket
     @property void reqRelaxed(bool value) { setOption(ZMQ_REQ_RELAXED, value ? 1 : 0); }
 
     /// ditto
+    @property int tcpKeepalive() { return getOption!int(ZMQ_TCP_KEEPALIVE); }
+    /// ditto
+    @property void tcpKeepalive(int value) { setOption(ZMQ_TCP_KEEPALIVE, value); }
+
+    /// ditto
+    @property int tcpKeepaliveIdle() { return getOption!int(ZMQ_TCP_KEEPALIVE_IDLE); }
+    /// ditto
+    @property void tcpKeepaliveIdle(int value) { setOption(ZMQ_TCP_KEEPALIVE_IDLE, value); }
+
+    /// ditto
+    @property int tcpKeepaliveCnt() { return getOption!int(ZMQ_TCP_KEEPALIVE_CNT); }
+    /// ditto
+    @property void tcpKeepaliveCnt(int value) { setOption(ZMQ_TCP_KEEPALIVE_CNT, value); }
+
+    /// ditto
+    @property int tcpKeepaliveIntvl() { return getOption!int(ZMQ_TCP_KEEPALIVE_INTVL); }
+    /// ditto
+    @property void tcpKeepaliveIntvl(int value) { setOption(ZMQ_TCP_KEEPALIVE_INTVL, value); }
+
+    /// ditto
     @property void conflate(bool value) { setOption(ZMQ_CONFLATE, value ? 1 : 0); }
 
     unittest
@@ -961,6 +981,10 @@ struct Socket
             assert(s.fd > 2); // 0, 1 and 2 are the standard streams
         }
         assert(s.events == PollFlags.pollOut);
+        assert(s.tcpKeepalive == -1);
+        assert(s.tcpKeepaliveIdle == -1);
+        assert(s.tcpKeepaliveCnt == -1);
+        assert(s.tcpKeepaliveIntvl == -1);
 
         // Test setters and getters together
         s.sendHWM = 500;
@@ -1009,6 +1033,14 @@ struct Socket
         assert(s.ipv6);
         s.immediate = true;
         assert(s.immediate);
+        s.tcpKeepalive = 1;
+        assert(s.tcpKeepalive == 1);
+        s.tcpKeepaliveIdle = 0;
+        assert(s.tcpKeepaliveIdle == 0);
+        s.tcpKeepaliveCnt = 1;
+        assert(s.tcpKeepaliveCnt == 1);
+        s.tcpKeepaliveIntvl = 0;
+        assert(s.tcpKeepaliveIntvl == 0);
 
         // Test write-only options
         s.conflate = true;
