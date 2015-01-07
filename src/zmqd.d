@@ -711,7 +711,7 @@ struct Socket
     }
 
     /**
-    Misc. socket properties.
+    Misc. socket options.
 
     Each of these has a one-to-one correspondence with an option passed to
     $(ZMQREF zmq_getsockopt()) and $(ZMQREF zmq_setsockopt()). For
@@ -735,10 +735,11 @@ struct Socket
             the default value for all of them).)
         $(LI Some options have array type, and these allow the user to supply
             a buffer in which to store the value, to avoid a GC allocation.
+            The return value is then a slice of this buffer.
             These are not marked as $(D @property), but are prefixed with
-            $(D get) (i.e., $(D getIdentity())).  A user-supplied buffer is
-            $(I required) for some options, namely $(D getPlainUsername()) and
-            $(D getPlainPassword()), and these do not have $(D @property)
+            "get" (e.g. $(D getIdentity())).  A user-supplied buffer is
+            $(I required) for some options, namely $(D getPlainUsername())
+            and $(D getPlainPassword()), and these do not have $(D @property)
             versions.  $(D getCurveXxxKey()) and $(D getCurveXxxKeyZ85())
             require buffers which are at least 32 and 41 bytes long,
             respectively.)
