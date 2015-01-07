@@ -39,10 +39,11 @@ section that links to the appropriate pages in the $(ZMQ) reference.  Any
 details given in the present documentation mostly concern the D-specific
 adaptations that have been made.
 
-Also note that the examples only use the INPROC and IPC transports.  The
+Also note that the examples generally only use the INPROC transport.  The
 reason for this is that the examples double as unittests, and we want to
 avoid firewall troubles and other issues that could arise with the use of
-network protocols such as TCP, PGM, etc.  Anyway, they are only short
+network protocols such as TCP, PGM, etc., and the IPC protocol is not
+supported on Windows.  Anyway, they are only short
 snippets that demonstrate the syntax; for more comprehensive and realistic
 examples, please refer to the $(LINK2 http://zguide.zeromq.org/page:all,
 $(ZMQ) Guide).  Many of the examples in the Guide have been translated to
@@ -276,7 +277,7 @@ struct Socket
     unittest
     {
         auto s = Socket(SocketType.pub);
-        s.bind("ipc://zmqd_bind_example");
+        s.bind("inproc://zmqd_bind_example");
     }
 
     /**
@@ -294,8 +295,11 @@ struct Socket
         }
     }
 
+    // TODO: Remove version(Posix) and change to INPROC when updating to ZMQ 4.1.
+    //       IPC does not work on Windows, and unbind() does not work with INPROC.
+    //       See: https://github.com/zeromq/libzmq/issues/949
     ///
-    unittest
+    version (Posix) unittest
     {
         auto s = Socket(SocketType.pub);
         s.bind("ipc://zmqd_unbind_example");
@@ -322,7 +326,7 @@ struct Socket
     unittest
     {
         auto s = Socket(SocketType.sub);
-        s.connect("ipc://zmqd_connect_example");
+        s.connect("inproc://zmqd_connect_example");
     }
 
     /**
@@ -344,9 +348,9 @@ struct Socket
     unittest
     {
         auto s = Socket(SocketType.sub);
-        s.connect("ipc://zmqd_disconnect_example");
+        s.connect("inproc://zmqd_disconnect_example");
         // Do some work...
-        s.disconnect("ipc://zmqd_disconnect_example");
+        s.disconnect("inproc://zmqd_disconnect_example");
     }
 
     /**
@@ -566,13 +570,13 @@ struct Socket
     {
         // Sender
         auto snd = Socket(SocketType.req);
-        snd.connect("ipc://zmqd_receive_example");
+        snd.connect("inproc://zmqd_receive_example");
         snd.send("Hello World!");
 
         // Receiver
         import std.string: representation;
         auto rcv = Socket(SocketType.rep);
-        rcv.bind("ipc://zmqd_receive_example");
+        rcv.bind("inproc://zmqd_receive_example");
         char[256] buf;
         immutable len  = rcv.receive(buf.representation);
         assert (buf[0 .. len] == "Hello World!");
@@ -581,9 +585,9 @@ struct Socket
     @system unittest
     {
         auto snd = Socket(SocketType.pair);
-        snd.bind("ipc://zmqd_tryReceive_example");
+        snd.bind("inproc://zmqd_tryReceive_example");
         auto rcv = Socket(SocketType.pair);
-        rcv.connect("ipc://zmqd_tryReceive_example");
+        rcv.connect("inproc://zmqd_tryReceive_example");
 
         ubyte[256] buf;
         auto r1 = rcv.tryReceive(buf);
@@ -646,13 +650,13 @@ struct Socket
     {
         // Sender
         auto snd = Socket(SocketType.req);
-        snd.connect("ipc://zmqd_msg_receive_example");
+        snd.connect("inproc://zmqd_msg_receive_example");
         snd.send("Hello World!");
 
         // Receiver
         import std.string: representation;
         auto rcv = Socket(SocketType.rep);
-        rcv.bind("ipc://zmqd_msg_receive_example");
+        rcv.bind("inproc://zmqd_msg_receive_example");
         auto msg = Frame();
         rcv.receive(msg);
         assert (msg.data.asString() == "Hello World!");
@@ -661,9 +665,9 @@ struct Socket
     @system unittest
     {
         auto snd = Socket(SocketType.pair);
-        snd.bind("ipc://zmqd_msg_tryReceive_example");
+        snd.bind("inproc://zmqd_msg_tryReceive_example");
         auto rcv = Socket(SocketType.pair);
-        rcv.connect("ipc://zmqd_msg_tryReceive_example");
+        rcv.connect("inproc://zmqd_msg_tryReceive_example");
 
         auto msg = Frame();
         auto r1 = rcv.tryReceive(msg);
@@ -1114,7 +1118,7 @@ struct Socket
     {
         // We test all the socket options by checking that they have their default value.
         auto s = Socket(SocketType.xpub);
-        const e = "ipc://unittest2";
+        const e = "inproc://unittest2";
         s.bind(e);
         import core.time;
         assert(s.type == SocketType.xpub);
@@ -1345,9 +1349,9 @@ struct Socket
             Thread.sleep(dur!"msecs"(ms));
         }
         auto pub = Socket(SocketType.pub);
-        pub.bind("ipc://zmqd_subscribe_unittest");
+        pub.bind("inproc://zmqd_subscribe_unittest");
         auto sub = Socket(SocketType.sub);
-        sub.connect("ipc://zmqd_subscribe_unittest");
+        sub.connect("inproc://zmqd_subscribe_unittest");
 
         pub.send("Hello");
         sleep(100);
@@ -1659,7 +1663,7 @@ uint poll(PollItem[] items, Duration timeout = Duration.max) @trusted
 @system unittest
 {
     auto socket1 = zmqd.Socket(zmqd.SocketType.pull);
-    socket1.bind("ipc://zmqd_poll_example");
+    socket1.bind("inproc://zmqd_poll_example");
 
     import std.socket;
     auto socket2 = new std.socket.Socket(
@@ -1668,7 +1672,7 @@ uint poll(PollItem[] items, Duration timeout = Duration.max) @trusted
     socket2.bind(new InternetAddress(InternetAddress.ADDR_ANY, 5678));
 
     auto socket3 = zmqd.Socket(zmqd.SocketType.push);
-    socket3.connect("ipc://zmqd_poll_example");
+    socket3.connect("inproc://zmqd_poll_example");
     socket3.send("test");
 
     import core.thread: Thread;
@@ -2609,7 +2613,10 @@ Event receiveEvent(ref Socket socket) @system
     }
 }
 
-@system unittest
+// TODO: Remove version(Posix) and change to INPROC when updating to ZMQ 4.1.
+//       IPC does not work on Windows, and unbind() does not work with INPROC.
+//       See: https://github.com/zeromq/libzmq/issues/949
+version (Posix) @system unittest
 {
     Event[] events;
     void eventCollector()
@@ -3020,9 +3027,9 @@ inout(char)[] asString(inout(ubyte)[] data) pure
 unittest
 {
     auto s1 = Socket(SocketType.pair);
-    s1.bind("ipc://zmqd_asString_example");
+    s1.bind("inproc://zmqd_asString_example");
     auto s2 = Socket(SocketType.pair);
-    s2.connect("ipc://zmqd_asString_example");
+    s2.connect("inproc://zmqd_asString_example");
 
     auto msg = Frame(12);
     msg.data.asString()[] = "Hello World!";
