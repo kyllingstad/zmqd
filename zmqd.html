@@ -107,17 +107,18 @@ CZMQ API consistently uses "frame" in function names.)
 
 Due to the close correspondence with the C API, this documentation has
 intentionally been kept sparse. There is really no reason to repeat the
-contents of the <a href="http://api.zeromq.org/3-2:_start">&#x2205;MQ reference manual</a> here.
+contents of the <a href="http://api.zeromq.org/4-0:_start">&#x2205;MQ reference manual</a> here.
 Instead, the documentation for each function contains a "Corresponds to"
 section that links to the appropriate pages in the &#x2205;MQ reference.  Any
 details given in the present documentation mostly concern the D-specific
 adaptations that have been made.
 <br><br>
 
-Also note that the examples only use the INPROC and IPC transports.  The
+Also note that the examples generally only use the INPROC transport.  The
 reason for this is that the examples double as unittests, and we want to
 avoid firewall troubles and other issues that could arise with the use of
-network protocols such as TCP, PGM, etc.  Anyway, they are only short
+network protocols such as TCP, PGM, etc., and the IPC protocol is not
+supported on Windows.  Anyway, they are only short
 snippets that demonstrate the syntax; for more comprehensive and realistic
 examples, please refer to the <a href="http://zguide.zeromq.org/page:all">&#x2205;MQ Guide</a>.  Many of the examples in the Guide have been translated to
 D, and can be found in the
@@ -125,7 +126,7 @@ D, and can be found in the
 subdirectory of the &#x2205;MQD source repository.
 
 </div>
-<section class="ddoc_section"><h1>Version:</h1><div class="ddoc_paragraphs"> 0.5.1 (compatible with &#x2205;MQ &gt;= 3.2.1)
+<section class="ddoc_section"><h1>Version:</h1><div class="ddoc_paragraphs"> 1.0.0-alpha (compatible with &#x2205;MQ &gt;= 4.0.0)
 </div></section>
 <section class="ddoc_section"><h1>Authors:</h1><div class="ddoc_paragraphs"> <a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
 </div></section>
@@ -142,14 +143,14 @@ subdirectory of the &#x2205;MQD source repository.
     three versioning levels: <code>major</code>, <code>minor</code> and <code>patch</code>.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_version()">zmq_version()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_version()">zmq_version()</a></code></div></section>
 
 </section>
 <section class="member"><h1><code><a name="SocketType"></a>enum SocketType: int;
 </code></h1>
 <p class="summary">The various socket types.
 </p>
-<div class="ddoc_paragraphs">These are described in the <code><a href="http://api.zeromq.org/3-2:zmq_socket()">zmq_socket()</a></code> reference.</div>
+<div class="ddoc_paragraphs">These are described in the <code><a href="http://api.zeromq.org/4-0:zmq_socket()">zmq_socket()</a></code> reference.</div>
 
 <section class="members"><h1>Members</h1><section class="member"><h1><code><a name="SocketType.req"></a>req</code></h1>
 <p class="summary">Corresponds to <code>ZMQ_REQ</code></p>
@@ -195,6 +196,28 @@ subdirectory of the &#x2205;MQD source repository.
 <p class="summary">Corresponds to <code>ZMQ_PAIR</code></p>
 
 </section>
+<section class="member"><h1><code><a name="SocketType.stream"></a>stream</code></h1>
+<p class="summary">Corresponds to <code>ZMQ_STREAM</code></p>
+
+</section>
+</section>
+</section>
+<section class="member"><h1><code><a name="Security"></a>enum Security: int;
+</code></h1>
+<p class="summary">Security mechanisms.</p>
+
+<section class="members"><h1>Members</h1><section class="member"><h1><code><a name="Security.none"></a>none</code></h1>
+<p class="summary"><a href="http://api.zeromq.org/4-0:zmq_null">NULL</a>: No security or confidentiality.</p>
+
+</section>
+<section class="member"><h1><code><a name="Security.plain"></a>plain</code></h1>
+<p class="summary"><a href="http://api.zeromq.org/4-0:zmq_plain">PLAIN</a>: Clear-text authentication.</p>
+
+</section>
+<section class="member"><h1><code><a name="Security.curve"></a>curve</code></h1>
+<p class="summary"><a href="http://api.zeromq.org/4-0:zmq_curve">CURVE</a>: Secure authentication and confidentiality.</p>
+
+</section>
 </section>
 </section>
 <section class="member"><h1><code><a name="Socket"></a>struct Socket;
@@ -230,7 +253,7 @@ of scope.</div>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_socket()">zmq_socket()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_socket()">zmq_socket()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> With default context:
 <pre class="d_code">
 <font color=blue>auto</font> sck = Socket(SocketType.push);
@@ -255,7 +278,7 @@ of scope.</div>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_close()">zmq_close()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_close()">zmq_close()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> s = Socket(SocketType.pair);
 <font color=blue>assert</font> (s.initialized);
@@ -271,10 +294,10 @@ s.close();
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_bind()">zmq_bind()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_bind()">zmq_bind()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> s = Socket(SocketType.pub);
-s.bind(<font color=red>"ipc://zmqd_bind_example"</font>);
+s.bind(<font color=red>"inproc://zmqd_bind_example"</font>);
 </pre>
 </div></section>
 </section>
@@ -285,7 +308,7 @@ s.bind(<font color=red>"ipc://zmqd_bind_example"</font>);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_unbind()">zmq_unbind()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_unbind()">zmq_unbind()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> s = Socket(SocketType.pub);
 s.bind(<font color=red>"ipc://zmqd_unbind_example"</font>);
@@ -301,10 +324,10 @@ s.bind(<font color=red>"ipc://zmqd_unbind_example"</font>);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_connect()">zmq_connect()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_connect()">zmq_connect()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> s = Socket(SocketType.sub);
-s.connect(<font color=red>"ipc://zmqd_connect_example"</font>);
+s.connect(<font color=red>"inproc://zmqd_connect_example"</font>);
 </pre>
 </div></section>
 </section>
@@ -315,19 +338,19 @@ s.connect(<font color=red>"ipc://zmqd_connect_example"</font>);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_disconnect()">zmq_disconnect()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_disconnect()">zmq_disconnect()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> s = Socket(SocketType.sub);
-s.connect(<font color=red>"ipc://zmqd_disconnect_example"</font>);
+s.connect(<font color=red>"inproc://zmqd_disconnect_example"</font>);
 <font color=green>// Do some work...
-</font>s.disconnect(<font color=red>"ipc://zmqd_disconnect_example"</font>);
+</font>s.disconnect(<font color=red>"inproc://zmqd_disconnect_example"</font>);
 </pre>
 </div></section>
 </section>
 <section class="member"><h1><code><a name="Socket.send"></a>@safe void send(const ubyte[] data, bool more = false);
-<br><a name="Socket.send"></a>@trusted void send(const char[] data, bool more = false);
+<br><a name="Socket.send"></a>@safe void send(const char[] data, bool more = false);
 <br><a name="Socket.trySend"></a>@safe bool trySend(const ubyte[] data, bool more = false);
-<br><a name="Socket.trySend"></a>@trusted bool trySend(const char[] data, bool more = false);
+<br><a name="Socket.trySend"></a>@safe bool trySend(const char[] data, bool more = false);
 </code></h1>
 <p class="summary">Sends a message frame.
 </p>
@@ -348,7 +371,7 @@ s.connect(<font color=red>"ipc://zmqd_disconnect_example"</font>);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_send()">zmq_send()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the
+<code><a href="http://api.zeromq.org/4-0:zmq_send()">zmq_send()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the
         case of <code>trySend</code>, and with the <code>ZMQ_SNDMORE</code> flag if
         <code>more == <b>true</b></code>).</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
@@ -376,7 +399,7 @@ sck.send(<font color=red>"Hello World!"</font>);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_send()">zmq_msg_send()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_send()">zmq_msg_send()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the
         case of <code>trySend</code>, and with the <code>ZMQ_SNDMORE</code> flag if
         <code>more == <b>true</b></code>).</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
@@ -384,6 +407,37 @@ sck.send(<font color=red>"Hello World!"</font>);
 <font color=blue>auto</font> msg = Frame(12);
 msg.data.asString()[] = <font color=red>"Hello World!"</font>;
 sck.send(msg);
+</pre>
+</div></section>
+</section>
+<section class="member"><h1><code><a name="Socket.sendConst"></a>@safe void sendConst(immutable ubyte[] data, bool more = false);
+<br><a name="Socket.sendConst"></a>@safe void sendConst(string data, bool more = false);
+<br><a name="Socket.trySendConst"></a>@safe bool trySendConst(immutable ubyte[] data, bool more = false);
+<br><a name="Socket.trySendConst"></a>@safe bool trySendConst(string data, bool more = false);
+</code></h1>
+<p class="summary">Sends a constant-memory message frame.
+</p>
+<div class="ddoc_paragraphs"><code>sendConst</code> blocks until the frame has been queued on the socket.
+    <code>trySendConst</code> performs the operation in non-blocking mode, and returns
+    a <code>bool</code> value that signifies whether the frame was queued on the
+    socket.
+<br><br>
+
+    The <code>more</code> parameter specifies whether this is a multipart message
+    and there are more frames to follow.
+
+</div>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/4-0:zmq_send_const()">zmq_send_const()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the
+        case of <code>trySend</code>, and with the <code>ZMQ_SNDMORE</code> flag if
+        <code>more == <b>true</b></code>).</div></section>
+<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+<font color=blue>static</font> <font color=blue>immutable</font> arr = <font color=blue>cast</font>(<font color=blue>ubyte</font>[]) [11, 226, 92];
+<font color=blue>auto</font> sck = Socket(SocketType.pub);
+sck.sendConst(arr);
+sck.sendConst(<font color=red>"Hello World!"</font>);
 </pre>
 </div></section>
 </section>
@@ -403,18 +457,18 @@ sck.send(msg);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_recv()">zmq_recv()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the case
+<code><a href="http://api.zeromq.org/4-0:zmq_recv()">zmq_recv()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the case
         of <code>tryReceive</code>).</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=green>// Sender
 </font><font color=blue>auto</font> snd = Socket(SocketType.req);
-snd.connect(<font color=red>"ipc://zmqd_receive_example"</font>);
+snd.connect(<font color=red>"inproc://zmqd_receive_example"</font>);
 snd.send(<font color=red>"Hello World!"</font>);
 
 <font color=green>// Receiver
 </font><font color=blue>import</font> std.string: representation;
 <font color=blue>auto</font> rcv = Socket(SocketType.rep);
-rcv.bind(<font color=red>"ipc://zmqd_receive_example"</font>);
+rcv.bind(<font color=red>"inproc://zmqd_receive_example"</font>);
 <font color=blue>char</font>[256] buf;
 <font color=blue>immutable</font> len  = rcv.receive(buf.representation);
 <font color=blue>assert</font> (buf[0 .. len] == <font color=red>"Hello World!"</font>);
@@ -437,18 +491,18 @@ rcv.bind(<font color=red>"ipc://zmqd_receive_example"</font>);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_recv()">zmq_msg_recv()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the case
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_recv()">zmq_msg_recv()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the case
         of <code>tryReceive</code>).</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=green>// Sender
 </font><font color=blue>auto</font> snd = Socket(SocketType.req);
-snd.connect(<font color=red>"ipc://zmqd_msg_receive_example"</font>);
+snd.connect(<font color=red>"inproc://zmqd_msg_receive_example"</font>);
 snd.send(<font color=red>"Hello World!"</font>);
 
 <font color=green>// Receiver
 </font><font color=blue>import</font> std.string: representation;
 <font color=blue>auto</font> rcv = Socket(SocketType.rep);
-rcv.bind(<font color=red>"ipc://zmqd_msg_receive_example"</font>);
+rcv.bind(<font color=red>"inproc://zmqd_msg_receive_example"</font>);
 <font color=blue>auto</font> msg = Frame();
 rcv.receive(msg);
 <font color=blue>assert</font> (msg.data.asString() == <font color=red>"Hello World!"</font>);
@@ -462,7 +516,7 @@ rcv.receive(msg);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_getsockopt()">zmq_getsockopt()</a></code> with <code>ZMQ_TYPE</code>.</div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_getsockopt()">zmq_getsockopt()</a></code> with <code>ZMQ_TYPE</code>.</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> sck = Socket(SocketType.xpub);
 <font color=blue>assert</font> (sck.type == SocketType.xpub);
@@ -476,7 +530,7 @@ rcv.receive(msg);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_getsockopt()">zmq_getsockopt()</a></code> with <code>ZMQ_RCVMORE</code>.</div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_getsockopt()">zmq_getsockopt()</a></code> with <code>ZMQ_RCVMORE</code>.</div></section>
 
 </section>
 <section class="member"><h1><code><a name="Socket.sendHWM"></a>@property @safe int sendHWM();
@@ -485,7 +539,8 @@ rcv.receive(msg);
 <br><a name="Socket.receiveHWM"></a>@property @safe void receiveHWM(int value);
 <br><a name="Socket.threadAffinity"></a>@property @safe ulong threadAffinity();
 <br><a name="Socket.threadAffinity"></a>@property @safe void threadAffinity(ulong value);
-<br><a name="Socket.identity"></a>@property @trusted ubyte[] identity();
+<br><a name="Socket.identity"></a>@property @safe ubyte[] identity();
+<br><a name="Socket.getIdentity"></a>@safe ubyte[] getIdentity(ubyte[] dest);
 <br><a name="Socket.identity"></a>@property @safe void identity(const ubyte[] value);
 <br><a name="Socket.identity"></a>@property @safe void identity(const char[] value);
 <br><a name="Socket.rate"></a>@property @safe int rate();
@@ -512,20 +567,66 @@ rcv.receive(msg);
 <br><a name="Socket.receiveTimeout"></a>@property @safe void receiveTimeout(Duration value);
 <br><a name="Socket.sendTimeout"></a>@property @safe Duration sendTimeout();
 <br><a name="Socket.sendTimeout"></a>@property @safe void sendTimeout(Duration value);
-<br><a name="Socket.ipv4Only"></a>@property @safe bool ipv4Only();
-<br><a name="Socket.ipv4Only"></a>@property @safe void ipv4Only(bool value);
-<br><a name="Socket.delayAttachOnConnect"></a>@property @safe bool delayAttachOnConnect();
-<br><a name="Socket.delayAttachOnConnect"></a>@property @safe void delayAttachOnConnect(bool value);
+<br><a name="Socket.ipv6"></a>@property @safe bool ipv6();
+<br><a name="Socket.ipv6"></a>@property @safe void ipv6(bool value);
+<br><a name="Socket.ipv4Only"></a>deprecated @property @safe bool ipv4Only();
+<br><a name="Socket.ipv4Only"></a>deprecated @property @safe void ipv4Only(bool value);
+<br><a name="Socket.immediate"></a>@property @safe bool immediate();
+<br><a name="Socket.immediate"></a>@property @safe void immediate(bool value);
+<br><a name="Socket.delayAttachOnConnect"></a>deprecated @property @safe bool delayAttachOnConnect();
+<br><a name="Socket.delayAttachOnConnect"></a>deprecated @property @safe void delayAttachOnConnect(bool value);
 <br><a name="Socket.fd"></a>@property @safe FD fd();
 <br><a name="Socket.events"></a>@property @safe PollFlags events();
 <br><a name="Socket.lastEndpoint"></a>@property @trusted char[] lastEndpoint();
 <br><a name="Socket.routerMandatory"></a>@property @safe void routerMandatory(bool value);
+<br><a name="Socket.probeRouter"></a>@property @safe void probeRouter(bool value);
 <br><a name="Socket.xpubVerbose"></a>@property @safe void xpubVerbose(bool value);
+<br><a name="Socket.reqCorrelate"></a>@property @safe void reqCorrelate(bool value);
+<br><a name="Socket.reqRelaxed"></a>@property @safe void reqRelaxed(bool value);
+<br><a name="Socket.tcpKeepalive"></a>@property @safe int tcpKeepalive();
+<br><a name="Socket.tcpKeepalive"></a>@property @safe void tcpKeepalive(int value);
+<br><a name="Socket.tcpKeepaliveIdle"></a>@property @safe int tcpKeepaliveIdle();
+<br><a name="Socket.tcpKeepaliveIdle"></a>@property @safe void tcpKeepaliveIdle(int value);
+<br><a name="Socket.tcpKeepaliveCnt"></a>@property @safe int tcpKeepaliveCnt();
+<br><a name="Socket.tcpKeepaliveCnt"></a>@property @safe void tcpKeepaliveCnt(int value);
+<br><a name="Socket.tcpKeepaliveIntvl"></a>@property @safe int tcpKeepaliveIntvl();
+<br><a name="Socket.tcpKeepaliveIntvl"></a>@property @safe void tcpKeepaliveIntvl(int value);
+<br><a name="Socket.mechanism"></a>@property @safe Security mechanism();
+<br><a name="Socket.plainServer"></a>@property @safe bool plainServer();
+<br><a name="Socket.plainServer"></a>@property @safe void plainServer(bool value);
+<br><a name="Socket.getPlainUsername"></a>@safe char[] getPlainUsername(char[] dest);
+<br><a name="Socket.plainUsername"></a>@property @safe void plainUsername(const(char)[] value);
+<br><a name="Socket.getPlainPassword"></a>@safe char[] getPlainPassword(char[] dest);
+<br><a name="Socket.plainPassword"></a>@property @safe void plainPassword(const(char)[] value);
+<br><a name="Socket.curveServer"></a>@property @safe bool curveServer();
+<br><a name="Socket.curveServer"></a>@property @safe void curveServer(bool value);
+<br><a name="Socket.curvePublicKey"></a>@property @safe ubyte[] curvePublicKey();
+<br><a name="Socket.getCurvePublicKey"></a>@safe ubyte[] getCurvePublicKey(ubyte[] dest);
+<br><a name="Socket.curvePublicKeyZ85"></a>@property @safe char[] curvePublicKeyZ85();
+<br><a name="Socket.getCurvePublicKeyZ85"></a>@safe char[] getCurvePublicKeyZ85(char[] dest);
+<br><a name="Socket.curvePublicKey"></a>@property @safe void curvePublicKey(const(ubyte)[] value);
+<br><a name="Socket.curvePublicKeyZ85"></a>@property @safe void curvePublicKeyZ85(const(char)[] value);
+<br><a name="Socket.curveSecretKey"></a>@property @safe ubyte[] curveSecretKey();
+<br><a name="Socket.getCurveSecretKey"></a>@safe ubyte[] getCurveSecretKey(ubyte[] dest);
+<br><a name="Socket.curveSecretKeyZ85"></a>@property @safe char[] curveSecretKeyZ85();
+<br><a name="Socket.getCurveSecretKeyZ85"></a>@safe char[] getCurveSecretKeyZ85(char[] dest);
+<br><a name="Socket.curveSecretKey"></a>@property @safe void curveSecretKey(const(ubyte)[] value);
+<br><a name="Socket.curveSecretKeyZ85"></a>@property @safe void curveSecretKeyZ85(const(char)[] value);
+<br><a name="Socket.curveServerKey"></a>@property @safe ubyte[] curveServerKey();
+<br><a name="Socket.getCurveServerKey"></a>@safe ubyte[] getCurveServerKey(ubyte[] dest);
+<br><a name="Socket.curveServerKeyZ85"></a>@property @safe char[] curveServerKeyZ85();
+<br><a name="Socket.getCurveServerKeyZ85"></a>@safe char[] getCurveServerKeyZ85(char[] dest);
+<br><a name="Socket.curveServerKey"></a>@property @safe void curveServerKey(const(ubyte)[] value);
+<br><a name="Socket.curveServerKeyZ85"></a>@property @safe void curveServerKeyZ85(const(char)[] value);
+<br><a name="Socket.zapDomain"></a>@property @safe char[] zapDomain();
+<br><a name="Socket.getZapDomain"></a>@safe char[] getZapDomain(char[] dest);
+<br><a name="Socket.zapDomain"></a>@property @safe void zapDomain(const char[] value);
+<br><a name="Socket.conflate"></a>@property @safe void conflate(bool value);
 </code></h1>
-<p class="summary">Misc. socket properties.
+<p class="summary">Misc. socket options.
 </p>
 <div class="ddoc_paragraphs">Each of these has a one-to-one correspondence with an option passed to
-    <code><a href="http://api.zeromq.org/3-2:zmq_getsockopt()">zmq_getsockopt()</a></code> and <code><a href="http://api.zeromq.org/3-2:zmq_setsockopt()">zmq_setsockopt()</a></code>. For
+    <code><a href="http://api.zeromq.org/4-0:zmq_getsockopt()">zmq_getsockopt()</a></code> and <code><a href="http://api.zeromq.org/4-0:zmq_setsockopt()">zmq_setsockopt()</a></code>. For
     example, <code>identity</code> corresponds to <code>ZMQ_IDENTITY</code>,
     <code>receiveBufferSize</code> corresponds to <code>ZMQ_RCVBUF</code>, etc.
 
@@ -543,6 +644,16 @@ rcv.receive(msg);
             which in this context specifies an infinite duration.  This  is
             translated to an option value of -1 in the C API (and it is also
             the default value for all of them).</li>
+        <li>Some options have array type, and these allow the user to supply
+            a buffer in which to store the value, to avoid a GC allocation.
+            The return value is then a slice of this buffer.
+            These are not marked as <code>@property</code>, but are prefixed with
+            "get" (e.g. <code>getIdentity()</code>).  A user-supplied buffer is
+            <i>required</i> for some options, namely <code>getPlainUsername()</code>
+            and <code>getPlainPassword()</code>, and these do not have <code>@property</code>
+            versions.  <code>getCurveXxxKey()</code> and <code>getCurveXxxKeyZ85()</code>
+            require buffers which are at least 32 and 41 bytes long,
+            respectively.</li>
         <li>The <code>ZMQ_SUBSCRIBE</code> and <code>ZMQ_UNSUBSCRIBE</code> options are
             treated differently from the others; see <code><a href="#Socket.subscribe">Socket.subscribe()</a></code>
             and <code><a href="#Socket.unsubscribe">Socket.unsubscribe()</a></code></li>
@@ -551,11 +662,14 @@ rcv.receive(msg);
 </div></section>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.<br>
         <code><a href="http://dlang.org/phobos/std_conv.html#.ConvOverflowException">std.conv.ConvOverflowException</a></code> if a given <code>Duration</code> is
-        longer than the number of milliseconds that will fit in an <code>int</code>
-        (only applies to properties of <code><a href="http://dlang.org/phobos/core_time.html#.Duration">core.time.Duration</a></code> type).
+            longer than the number of milliseconds that will fit in an <code>int</code>
+            (only applies to properties of <code><a href="http://dlang.org/phobos/core_time.html#.Duration">core.time.Duration</a></code> type).<br>
+        <code><a href="http://dlang.org/phobos/core_exception.html#.RangeError">core.exception.RangeError</a></code> if the <code>dest</code> buffers passed to
+            <code>getCurveXxxKey()</code> or <code>getCurveXxxKeyZ85()</code> are less than
+            32 or 41 bytes long, respectively.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_getsockopt()">zmq_getsockopt()</a></code> and <code><a href="http://api.zeromq.org/3-2:zmq_setsockopt()">zmq_setsockopt()</a></code>.</div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_getsockopt()">zmq_getsockopt()</a></code> and <code><a href="http://api.zeromq.org/4-0:zmq_setsockopt()">zmq_setsockopt()</a></code>.</div></section>
 
 </section>
 <section class="member"><h1><code><a name="Socket.subscribe"></a>@safe void subscribe(const ubyte[] filterPrefix);
@@ -566,7 +680,7 @@ rcv.receive(msg);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_setsockopt()">zmq_msg_setsockopt()</a></code> with <code>ZMQ_SUBSCRIBE</code>.</div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_setsockopt()">zmq_msg_setsockopt()</a></code> with <code>ZMQ_SUBSCRIBE</code>.</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=green>// Create a subscriber that accepts all messages that start with
 </font><font color=green>// the prefixes "foo" or "bar".
@@ -584,7 +698,7 @@ sck.subscribe(<font color=red>"bar"</font>);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_setsockopt()">zmq_msg_setsockopt()</a></code> with <code>ZMQ_SUBSCRIBE</code>.</div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_setsockopt()">zmq_msg_setsockopt()</a></code> with <code>ZMQ_SUBSCRIBE</code>.</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=green>// Subscribe to messages that start with "foo" or "bar".
 </font><font color=blue>auto</font> sck = Socket(SocketType.sub);
@@ -608,7 +722,7 @@ sck.subscribe(<font color=red>"bar"</font>);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_socket_monitor()">zmq_socket_monitor()</a></code>
+<code><a href="http://api.zeromq.org/4-0:zmq_socket_monitor()">zmq_socket_monitor()</a></code>
 </div></section>
 <section class="ddoc_section"><h1>See also:</h1><div class="ddoc_paragraphs"> <code><a href="#receiveEvent">receiveEvent()</a></code>, which receives and parses event messages.</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
@@ -661,7 +775,7 @@ manually destroyed in a different thread.
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_proxy()">zmq_proxy()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_proxy()">zmq_proxy()</a></code></div></section>
 
 </section>
 <section class="member"><h1><code><a name="poll"></a>@trusted uint poll(PollItem[] items, Duration timeout = Duration.max);
@@ -679,10 +793,10 @@ duration.  This is translated to an argument value of -1 in the C API.
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_poll()">zmq_poll()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_poll()">zmq_poll()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> socket1 = zmqd.Socket(zmqd.SocketType.pull);
-socket1.bind(<font color=red>"ipc://zmqd_poll_example"</font>);
+socket1.bind(<font color=red>"inproc://zmqd_poll_example"</font>);
 
 <font color=blue>import</font> std.socket;
 <font color=blue>auto</font> socket2 = <font color=blue>new</font> std.socket.Socket(
@@ -691,7 +805,7 @@ socket1.bind(<font color=red>"ipc://zmqd_poll_example"</font>);
 socket2.bind(<font color=blue>new</font> InternetAddress(InternetAddress.ADDR_ANY, 5678));
 
 <font color=blue>auto</font> socket3 = zmqd.Socket(zmqd.SocketType.push);
-socket3.connect(<font color=red>"ipc://zmqd_poll_example"</font>);
+socket3.connect(<font color=red>"inproc://zmqd_poll_example"</font>);
 socket3.send(<font color=red>"test"</font>);
 
 <font color=blue>import</font> core.thread: Thread;
@@ -716,7 +830,7 @@ socket2.close();
 </code></h1>
 <p class="summary"><code><a href="#poll">poll()</a></code> event flags.
 </p>
-<div class="ddoc_paragraphs">These are described in the <code><a href="http://api.zeromq.org/3-2:zmq_poll()">zmq_poll()</a></code> manual.</div>
+<div class="ddoc_paragraphs">These are described in the <code><a href="http://api.zeromq.org/4-0:zmq_poll()">zmq_poll()</a></code> manual.</div>
 
 <section class="members"><h1>Members</h1><section class="member"><h1><code><a name="PollFlags.pollIn"></a>pollIn</code></h1>
 <p class="summary">Corresponds to <code>ZMQ_POLLIN</code></p>
@@ -752,7 +866,7 @@ occurred.
 </pre>
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_poll">zmq_pollitem_t</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_poll">zmq_pollitem_t</a></code></div></section>
 
 <section class="members"><h1>Members</h1><section class="member"><h1><code><a name="PollItem.this"></a>nothrow @safe this(ref zmqd.Socket socket, PollFlags events);
 </code></h1>
@@ -777,7 +891,7 @@ occurred.
 <p class="summary">Requested events.
 </p>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_poll">zmq_pollitem_t.events</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_poll">zmq_pollitem_t.events</a></code></div></section>
 
 </section>
 <section class="member"><h1><code><a name="PollItem.returnedEvents"></a>const pure nothrow @property @safe PollFlags returnedEvents();
@@ -785,7 +899,7 @@ occurred.
 <p class="summary">Returned events.
 </p>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_poll">zmq_pollitem_t.revents</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_poll">zmq_pollitem_t.revents</a></code></div></section>
 
 </section>
 </section>
@@ -811,7 +925,7 @@ should always be explicitly initialized upon construction using
 </font>msg1.rebuild(2048);         <font color=green>// msg1 now has size 2K
 </font>msg2.rebuild(2048);         <font color=green>// ...and so does msg2
 </font></pre>
-When a <code>Frame</code> goes out of scope, <code><a href="http://api.zeromq.org/3-2:zmq_msg_close()">zmq_msg_close()</a></code> is
+When a <code>Frame</code> goes out of scope, <code><a href="http://api.zeromq.org/4-0:zmq_msg_close()">zmq_msg_close()</a></code> is
 called on the underlying <code>zmq_msg_t</code>.</div>
 
 <section class="members"><h1>Members</h1><section class="member"><h1><code><a name="Frame.opCall"></a>static @safe Frame opCall();
@@ -821,7 +935,7 @@ called on the underlying <code>zmq_msg_t</code>.</div>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_init()">zmq_msg_init()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_init()">zmq_msg_init()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> msg = Frame();
 <font color=blue>assert</font>(msg.size == 0);
@@ -836,7 +950,7 @@ called on the underlying <code>zmq_msg_t</code>.</div>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_init_size()">zmq_msg_init_size()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_init_size()">zmq_msg_init_size()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> msg = Frame(123);
 <font color=blue>assert</font>(msg.size == 123);
@@ -860,7 +974,7 @@ Some care must be taken when using this function, as &#x2205;MQ expects
         An additional complication is caused by the fact that most arrays in D
         are owned by the garbage collector.  This is solved by adding the array
         pointer as a new garbage collector root before passing it to
-        <code><a href="http://api.zeromq.org/3-2:zmq_msg_init_data()">zmq_msg_init_data()</a></code>, thus preventing the GC from collecting
+        <code><a href="http://api.zeromq.org/4-0:zmq_msg_init_data()">zmq_msg_init_data()</a></code>, thus preventing the GC from collecting
         it.  The root is then removed again in the deallocator callback
         function which is called by &#x2205;MQ when it no longer requires
         the buffer, thus allowing the GC to collect it.
@@ -868,7 +982,7 @@ Some care must be taken when using this function, as &#x2205;MQ expects
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_init_data()">zmq_msg_init_data()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_init_data()">zmq_msg_init_data()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> buf = <font color=blue>new</font> <font color=blue>ubyte</font>[123];
 <font color=blue>auto</font> msg = Frame(buf);
@@ -890,7 +1004,7 @@ Some care must be taken when using this function, as &#x2205;MQ expects
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_close()">zmq_msg_close()</a></code> followed by <code><a href="http://api.zeromq.org/3-2:zmq_msg_init()">zmq_msg_init()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_close()">zmq_msg_close()</a></code> followed by <code><a href="http://api.zeromq.org/4-0:zmq_msg_init()">zmq_msg_init()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> msg = Frame(256);
 <font color=blue>assert</font> (msg.size == 256);
@@ -912,7 +1026,7 @@ msg.rebuild();
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_close()">zmq_msg_close()</a></code> followed by <code><a href="http://api.zeromq.org/3-2:zmq_msg_init_size()">zmq_msg_init_size()</a></code>.</div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_close()">zmq_msg_close()</a></code> followed by <code><a href="http://api.zeromq.org/4-0:zmq_msg_init_size()">zmq_msg_init_size()</a></code>.</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> msg = Frame(256);
 <font color=blue>assert</font> (msg.size == 256);
@@ -934,7 +1048,7 @@ msg.rebuild(1024);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_close()">zmq_msg_close()</a></code> followed by <code><a href="http://api.zeromq.org/3-2:zmq_msg_init_data()">zmq_msg_init_data()</a></code>.</div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_close()">zmq_msg_close()</a></code> followed by <code><a href="http://api.zeromq.org/4-0:zmq_msg_init_data()">zmq_msg_init_data()</a></code>.</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> msg = Frame(256);
 <font color=blue>assert</font> (msg.size == 256);
@@ -957,7 +1071,7 @@ msg.rebuild(buf);
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_close()">zmq_msg_close()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_close()">zmq_msg_close()</a></code></div></section>
 
 </section>
 <section class="member"><h1><code><a name="Frame.copy"></a>@safe Frame copy();
@@ -972,12 +1086,12 @@ msg.rebuild(buf);
 </div>
 <section class="ddoc_section"><h1>Warning:</h1><div class="ddoc_paragraphs">
 These functions may not do what you think they do.  Please refer
-        to <a href="http://api.zeromq.org/3-2:zmq_msg_copy()">the &#x2205;MQ manual</a> for details.
+        to <a href="http://api.zeromq.org/4-0:zmq_msg_copy()">the &#x2205;MQ manual</a> for details.
 </div></section>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_copy()">zmq_msg_copy()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_copy()">zmq_msg_copy()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>import</font> std.string: representation;
 <font color=blue>auto</font> msg1 = Frame(3);
@@ -1000,7 +1114,7 @@ msg1.data[] = <font color=red>"foo"</font>.representation;
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_move()">zmq_msg_move()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_move()">zmq_msg_move()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>import</font> std.string: representation;
 <font color=blue>auto</font> msg1 = Frame(3);
@@ -1016,7 +1130,7 @@ msg1.data[] = <font color=red>"foo"</font>.representation;
 <p class="summary">The message frame content size in bytes.
 </p>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_size()">zmq_msg_size()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_size()">zmq_msg_size()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> msg = Frame(123);
 <font color=blue>assert</font>(msg.size == 123);
@@ -1028,7 +1142,7 @@ msg1.data[] = <font color=red>"foo"</font>.representation;
 <p class="summary">Retrieves the message frame content.
 </p>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_data()">zmq_msg_data()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_data()">zmq_msg_data()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>import</font> std.string: representation;
 <font color=blue>auto</font> msg = Frame(3);
@@ -1043,7 +1157,7 @@ msg.data[] = <font color=red>"foo"</font>.representation; <font color=green>// S
 <p class="summary">Whether there are more message frames to retrieve.
 </p>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_msg_more()">zmq_msg_more()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_msg_more()">zmq_msg_more()</a></code></div></section>
 
 </section>
 <section class="member"><h1><code><a name="Frame.handle"></a>inout pure nothrow @property @safe inout(zmq_msg_t)* handle();
@@ -1113,7 +1227,7 @@ safety of other context operations.)
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_ctx_new()">zmq_ctx_new()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_ctx_new()">zmq_ctx_new()</a></code></div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> ctx = Context();
 <font color=blue>assert</font> (ctx.initialized);
@@ -1125,7 +1239,7 @@ safety of other context operations.)
 <p class="summary">Detaches from the &#x2205;MQ context.
 </p>
 <div class="ddoc_paragraphs">If this is the last reference to the context, it will be destroyed with
-    <code><a href="http://api.zeromq.org/3-2:zmq_ctx_destroy()">zmq_ctx_destroy()</a></code>.
+    <code><a href="http://api.zeromq.org/4-0:zmq_ctx_destroy()">zmq_ctx_destroy()</a></code>.
 
 </div>
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.</div></section>
@@ -1145,7 +1259,7 @@ ctx.detach();
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_ctx_get()">zmq_ctx_get()</a></code> and <code><a href="http://api.zeromq.org/3-2:zmq_ctx_set()">zmq_ctx_set()</a></code> with
+<code><a href="http://api.zeromq.org/4-0:zmq_ctx_get()">zmq_ctx_get()</a></code> and <code><a href="http://api.zeromq.org/4-0:zmq_ctx_set()">zmq_ctx_set()</a></code> with
         <code>ZMQ_IO_THREADS</code>.</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> ctx = Context();
@@ -1162,7 +1276,7 @@ ctx.ioThreads = 3;
 <section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </div></section>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_ctx_get()">zmq_ctx_get()</a></code> and <code><a href="http://api.zeromq.org/3-2:zmq_ctx_set()">zmq_ctx_set()</a></code> with
+<code><a href="http://api.zeromq.org/4-0:zmq_ctx_get()">zmq_ctx_get()</a></code> and <code><a href="http://api.zeromq.org/4-0:zmq_ctx_set()">zmq_ctx_set()</a></code> with
         <code>ZMQ_MAX_SOCKETS</code>.</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> ctx = Context();
@@ -1199,7 +1313,7 @@ ctx.detach();
 <p class="summary">Socket event types.
 </p>
 <div class="ddoc_paragraphs">These are used together with <code><a href="#Socket.monitor">Socket.monitor()</a></code>, and are described
-in the <code><a href="http://api.zeromq.org/3-2:zmq_socket_monitor()">zmq_socket_monitor()</a></code> reference.</div>
+in the <code><a href="http://api.zeromq.org/4-0:zmq_socket_monitor()">zmq_socket_monitor()</a></code> reference.</div>
 
 <section class="members"><h1>Members</h1><section class="member"><h1><code><a name="EventType.connected"></a>connected</code></h1>
 <p class="summary">Corresponds to <code>ZMQ_EVENT_CONNECTED</code>.</p>
@@ -1255,7 +1369,7 @@ state change event.
 <div class="ddoc_paragraphs"><code>socket</code> must be a PAIR socket which is connected to an endpoint
 created via a <code><a href="#Socket.monitor">Socket.monitor()</a></code> call.  <code>receiveEvent()</code> receives
 one message on the socket, parses its contents according to the
-specification in the <code><a href="http://api.zeromq.org/3-2:zmq_socket_monitor()">zmq_socket_monitor()</a></code> reference,
+specification in the <code><a href="http://api.zeromq.org/4-0:zmq_socket_monitor()">zmq_socket_monitor()</a></code> reference,
 and returns the event information as an <code><a href="#Event">Event</a></code> object.
 <br><br>
 
@@ -1284,7 +1398,7 @@ The format of event messages changed between &#x2205;MQ 3.x and 4.x.
 <p class="summary">Information about a socket state change.
 </p>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<a href="http://api.zeromq.org/3-2:zmq_socket_monitor"><code>zmq_event_t</code></a>
+<a href="http://api.zeromq.org/4-0:zmq_socket_monitor"><code>zmq_event_t</code></a>
 </div></section>
 <section class="ddoc_section"><h1>See also:</h1><div class="ddoc_paragraphs"> <code><a href="#receiveEvent">receiveEvent()</a></code></div></section>
 
@@ -1348,6 +1462,97 @@ The format of event messages changed between &#x2205;MQ 3.x and 4.x.
 </section>
 </section>
 </section>
+<section class="member"><h1><code><a name="z85Encode"></a>@safe char[] z85Encode(ubyte[] data, char[] dest);
+<br><a name="z85Encode"></a>@safe char[] z85Encode(ubyte[] data);
+</code></h1>
+<p class="summary">Encodes a binary key as Z85 printable text.
+</p>
+<div class="ddoc_paragraphs"><code>dest</code> must be an array whose length is at least <code>5*data.length/4 + 1</code>,
+which will be used to store the return value plus a terminating zero byte.
+If <code>dest</code> is omitted, a new array will be created.
+
+</div>
+<section class="ddoc_section"><h1>Returns:</h1><div class="ddoc_paragraphs"> An array of size <code>5*data.length/4</code> which contains the Z85-encoded text,
+    excluding the terminating zero byte.  This will be a slice of <code>dest</code> if
+    it is provided.
+</div></section>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="http://dlang.org/phobos/core_exception.html#.RangeError">core.exception.RangeError</a></code> if <code>dest</code> is given but is too small.<br>
+    <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error (i.e., if data.length is not
+    a multiple of 4).
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/4-0:zmq_z85_encode()">zmq_z85_encode()</a></code></div></section>
+
+</section>
+<section class="member"><h1><code><a name="z85Decode"></a>@safe ubyte[] z85Decode(char[] text, ubyte[] dest);
+<br><a name="z85Decode"></a>@safe ubyte[] z85Decode(char[] text);
+</code></h1>
+<p class="summary">Decodes a binary key from Z85 printable text.
+</p>
+<div class="ddoc_paragraphs"><code>dest</code> must be an array whose length is at least <code>4*data.length/5</code>,
+which will be used to store the return value.
+If <code>dest</code> is omitted, a new array will be created.
+<br><br>
+
+Note that <code><a href="http://api.zeromq.org/4-0:zmq_z85_decode()">zmq_z85_decode()</a></code> expects a zero-terminated string, so a zero
+byte will be appended to <code>text</code> if it does not contain one already.  However,
+this may trigger a (possibly unwanted) GC allocation.  To avoid this, either
+make sure that the last character in <code>text</code> is <code>'\0'</code>, or use
+<code><a href="http://dlang.org/phobos/object.html#.assumeSafeAppend">assumeSafeAppend</a></code> on the array before calling this function.
+
+</div>
+<section class="ddoc_section"><h1>Returns:</h1><div class="ddoc_paragraphs"> An array of size <code>4*data.length/5</code> which contains the decoded data.
+    This will be a slice of <code>dest</code> if it is provided.
+</div></section>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="http://dlang.org/phobos/core_exception.html#.RangeError">core.exception.RangeError</a></code> if <code>dest</code> is given but is too small.<br>
+    <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error (i.e., if data.length is not
+    a multiple of 5).
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/4-0:zmq_z85_decode()">zmq_z85_decode()</a></code></div></section>
+
+</section>
+<section class="member"><h1><code><a name="curveKeyPair"></a>@safe Tuple!(char[], "publicKey", char[], "secretKey") curveKeyPair(char[] publicKeyBuf = null, char[] secretKeyBuf = null);
+</code></h1>
+<p class="summary">Generates a new CURVE key pair.
+</p>
+<div class="ddoc_paragraphs">To avoid a memory allocation, preallocated buffers may optionally be supplied
+for the two keys.  Each of these must have a length of at least 41 bytes, enough
+for a 40-character Z85-encoded key plus a terminating zero byte.  If either
+buffer is omitted/<code><b>null</b></code>, a new one will be created.
+
+</div>
+<section class="ddoc_section"><h1>Returns:</h1><div class="ddoc_paragraphs"> A tuple that contains the two keys.  Each of these will have a length of
+    40 characters, and will be slices of the input buffers if such have been
+    provided.
+</div></section>
+<section class="ddoc_section"><h1>Throws:</h1><div class="ddoc_paragraphs"> <code><a href="http://dlang.org/phobos/core_exception.html#.RangeError">core.exception.RangeError</a></code> if <code>publicKeyBuf</code> or <code>secretKeyBuf</code> are
+        not <code><b>null</b></code> but have a length of less than 41 characters.<br>
+    <code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</div></section>
+<section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
+<code><a href="http://api.zeromq.org/4-0:zmq_curve_keypair()">zmq_curve_keypair()</a></code></div></section>
+<section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
+<font color=blue>auto</font> server = Socket(SocketType.rep);
+<font color=blue>auto</font> serverKeys = curveKeyPair();
+server.curveServer = <font color=blue>true</font>;
+server.curveSecretKeyZ85 = serverKeys.secretKey;
+server.bind(<font color=red>"inproc://curveKeyPair_test"</font>);
+
+<font color=blue>auto</font> client = Socket(SocketType.req);
+<font color=blue>auto</font> clientKeys = curveKeyPair();
+client.curvePublicKeyZ85 = clientKeys.publicKey;
+client.curveSecretKeyZ85 = clientKeys.secretKey;
+client.curveServerKeyZ85 = serverKeys.publicKey;
+client.connect(<font color=red>"inproc://curveKeyPair_test"</font>);
+client.send(<font color=red>"hello"</font>);
+
+<font color=blue>ubyte</font>[5] buf;
+<font color=blue>assert</font> (server.receive(buf) == 5);
+<font color=blue>assert</font> (buf.asString() == <font color=red>"hello"</font>);
+</pre>
+</div></section>
+</section>
 <section class="member"><h1><code><a name="asString"></a>pure @safe inout(char)[] asString(inout(ubyte)[] data);
 </code></h1>
 <p class="summary">Utility function which interprets and validates a byte array as a UTF-8 string.
@@ -1364,9 +1569,9 @@ the same memory region.
 <section class="ddoc_section"><h1>See also:</h1><div class="ddoc_paragraphs"> <code><a href="http://dlang.org/phobos/std_string.html#.representation">std.string.representation</a></code>, which performs the opposite operation.</div></section>
 <section class="ddoc_section"><h1>Examples:</h1><div class="ddoc_paragraphs"> <pre class="d_code">
 <font color=blue>auto</font> s1 = Socket(SocketType.pair);
-s1.bind(<font color=red>"ipc://zmqd_asString_example"</font>);
+s1.bind(<font color=red>"inproc://zmqd_asString_example"</font>);
 <font color=blue>auto</font> s2 = Socket(SocketType.pair);
-s2.connect(<font color=red>"ipc://zmqd_asString_example"</font>);
+s2.connect(<font color=red>"inproc://zmqd_asString_example"</font>);
 
 <font color=blue>auto</font> msg = Frame(12);
 msg.data.asString()[] = <font color=red>"Hello World!"</font>;
@@ -1384,7 +1589,7 @@ s2.receive(buf);
 report an error.
 </p>
 <div class="ddoc_paragraphs">The exception provides a standard error message obtained with
-<code><a href="http://api.zeromq.org/3-2:zmq_strerror()">zmq_strerror()</a></code>, as well as the <code>errno</code> code set by the &#x2205;MQ
+<code><a href="http://api.zeromq.org/4-0:zmq_strerror()">zmq_strerror()</a></code>, as well as the <code>errno</code> code set by the &#x2205;MQ
 function which reported the error.</div>
 
 <section class="members"><h1>Members</h1><section class="member"><h1><code><a name="ZmqException.errno"></a>immutable int errno;
@@ -1393,7 +1598,7 @@ function which reported the error.</div>
     the error.
 </p>
 <section class="ddoc_section"><h1>Corresponds to:</h1><div class="ddoc_paragraphs">
-<code><a href="http://api.zeromq.org/3-2:zmq_errno()">zmq_errno()</a></code></div></section>
+<code><a href="http://api.zeromq.org/4-0:zmq_errno()">zmq_errno()</a></code></div></section>
 
 </section>
 </section>
@@ -1409,7 +1614,7 @@ received message as an event description.</p>
                 <footer>
                     <div class="ddoc_paragraphs">Copyright (c) 2013–2014, Lars T. Kyllingstad. All rights reserved.
 </div>
-                    <p>This documentation was generated on Wed Nov 19 14:24:03 2014
+                    <p>This documentation was generated on Wed Jan  7 23:26:22 2015
  with
                        <a href="https://github.com/kyllingstad/ltkdoc">LTKdoc 0.1</a>.</p>
                 </footer>
