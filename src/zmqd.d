@@ -129,6 +129,20 @@ enum SocketType
 }
 
 
+/// Security mechanisms.
+enum Security
+{
+    /// $(ZMQAPI zmq_null,NULL): No security or confidentiality.
+    none  = ZMQ_NULL,
+
+    /// $(ZMQAPI zmq_plain,PLAIN): Clear-text authentication.
+    plain = ZMQ_PLAIN,
+
+    /// $(ZMQAPI zmq_curve,CURVE): Secure authentication and confidentiality.
+    curve = ZMQ_CURVE,
+}
+
+
 /**
 An object that encapsulates a $(ZMQ) socket.
 
@@ -719,6 +733,15 @@ struct Socket
             which in this context specifies an infinite duration.  This  is
             translated to an option value of -1 in the C API (and it is also
             the default value for all of them).)
+        $(LI Some options have array type, and these allow the user to supply
+            a buffer in which to store the value, to avoid a GC allocation.
+            These are not marked as $(D @property), but are prefixed with
+            $(D get) (i.e., $(D getIdentity())).  A user-supplied buffer is
+            $(I required) for some options, namely $(D getPlainUsername()) and
+            $(D getPlainPassword()), and these do not have $(D @property)
+            versions.  $(D getCurveXxxKey()) and $(D getCurveXxxKeyZ85())
+            require buffers which are at least 32 and 41 bytes long,
+            respectively.)
         $(LI The $(D ZMQ_SUBSCRIBE) and $(D ZMQ_UNSUBSCRIBE) options are
             treated differently from the others; see $(FREF Socket.subscribe)
             and $(FREF Socket.unsubscribe))
@@ -727,8 +750,11 @@ struct Socket
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.$(BR)
         $(STDREF conv,ConvOverflowException) if a given $(D Duration) is
-        longer than the number of milliseconds that will fit in an $(D int)
-        (only applies to properties of $(COREF time,Duration) type).
+            longer than the number of milliseconds that will fit in an $(D int)
+            (only applies to properties of $(COREF time,Duration) type).$(BR)
+        $(COREF exception,RangeError) if the $(D dest) buffers passed to
+            $(D getCurveXxxKey()) or $(D getCurveXxxKeyZ85()) are less than
+            32 or 41 bytes long, respectively.
     Corresponds_to:
         $(ZMQREF zmq_getsockopt()) and $(ZMQREF zmq_setsockopt()).
     */
@@ -747,21 +773,13 @@ struct Socket
     @property void threadAffinity(ulong value) { setOption(ZMQ_AFFINITY, value); }
 
     /// ditto
-    @property ubyte[] identity() @trusted
-    {
-        // This function is not @safe because it calls a @system function
-        // (zmq_getsockopt) and takes the address of a local (len).
-        auto buf = new ubyte[255];
-        size_t len = buf.length;
-        if (zmq_getsockopt(m_socket, ZMQ_IDENTITY, buf.ptr, &len) != 0) {
-            throw new ZmqException;
-        }
-        return buf[0 .. len];
-    }
+    @property ubyte[] identity() { return getIdentity(new ubyte[255]); }
     /// ditto
-    @property void identity(const ubyte[] value) { setOption(ZMQ_IDENTITY, value); }
+    ubyte[] getIdentity(ubyte[] dest) { return getArrayOption(ZMQ_IDENTITY, dest); }
     /// ditto
-    @property void identity(const  char[] value) { setOption(ZMQ_IDENTITY, value); }
+    @property void identity(const ubyte[] value) { setArrayOption(ZMQ_IDENTITY, value); }
+    /// ditto
+    @property void identity(const char[] value) { setArrayOption(ZMQ_IDENTITY, value); }
 
     /// ditto
     @property int rate() { return getOption!int(ZMQ_RATE); }
@@ -950,6 +968,145 @@ struct Socket
     @property void tcpKeepaliveIntvl(int value) { setOption(ZMQ_TCP_KEEPALIVE_INTVL, value); }
 
     /// ditto
+    @property Security mechanism()
+    {
+        import std.conv;
+        return to!Security(getOption!int(ZMQ_MECHANISM));
+    }
+
+    /// ditto
+    @property bool plainServer() { return !!getOption!int(ZMQ_PLAIN_SERVER); }
+    /// ditto
+    @property void plainServer(bool value) { setOption(ZMQ_PLAIN_SERVER, value ? 1 : 0); }
+
+    /// ditto
+    char[] getPlainUsername(char[] dest)
+    {
+        return getCStringOption(ZMQ_PLAIN_USERNAME, dest);
+    }
+    /// ditto
+    @property void plainUsername(const(char)[] value)
+    {
+        setArrayOption(ZMQ_PLAIN_USERNAME, value);
+    }
+
+    /// ditto
+    char[] getPlainPassword(char[] dest)
+    {
+        return getCStringOption(ZMQ_PLAIN_PASSWORD, dest);
+    }
+    /// ditto
+    @property void plainPassword(const(char)[] value)
+    {
+        setArrayOption(ZMQ_PLAIN_PASSWORD, value);
+    }
+
+    /// ditto
+    @property bool curveServer() { return !!getOption!int(ZMQ_CURVE_SERVER); }
+    /// ditto
+    @property void curveServer(bool value) { setOption(ZMQ_CURVE_SERVER, value ? 1 : 0); }
+
+    /// ditto
+    @property ubyte[] curvePublicKey()
+    {
+        return getCurvePublicKey(new ubyte[keyBufSizeBin]);
+    }
+    /// ditto
+    ubyte[] getCurvePublicKey(ubyte[] dest)
+    {
+        return getCurveKey(ZMQ_CURVE_PUBLICKEY, dest);
+    }
+    /// ditto
+    @property char[] curvePublicKeyZ85()
+    {
+        return getCurvePublicKeyZ85(new char[keyBufSizeZ85]);
+    }
+    /// ditto
+    char[] getCurvePublicKeyZ85(char[] dest)
+    {
+        return getCurveKeyZ85(ZMQ_CURVE_PUBLICKEY, dest);
+    }
+    /// ditto
+    @property void curvePublicKey(const(ubyte)[] value)
+    {
+        setCurveKey(ZMQ_CURVE_PUBLICKEY, value);
+    }
+    /// ditto
+    @property void curvePublicKeyZ85(const(char)[] value)
+    {
+        setCurveKeyZ85(ZMQ_CURVE_PUBLICKEY, value);
+    }
+
+    /// ditto
+    @property ubyte[] curveSecretKey()
+    {
+        return getCurveSecretKey(new ubyte[keyBufSizeBin]);
+    }
+    /// ditto
+    ubyte[] getCurveSecretKey(ubyte[] dest)
+    {
+        return getCurveKey(ZMQ_CURVE_SECRETKEY, dest);
+    }
+    /// ditto
+    @property char[] curveSecretKeyZ85()
+    {
+        return getCurveSecretKeyZ85(new char[keyBufSizeZ85]);
+    }
+    /// ditto
+    char[] getCurveSecretKeyZ85(char[] dest)
+    {
+        return getCurveKeyZ85(ZMQ_CURVE_SECRETKEY, dest);
+    }
+    /// ditto
+    @property void curveSecretKey(const(ubyte)[] value)
+    {
+        setCurveKey(ZMQ_CURVE_SECRETKEY, value);
+    }
+    /// ditto
+    @property void curveSecretKeyZ85(const(char)[] value)
+    {
+        setCurveKeyZ85(ZMQ_CURVE_SECRETKEY, value);
+    }
+
+    /// ditto
+    @property ubyte[] curveServerKey()
+    {
+        return getCurveServerKey(new ubyte[keyBufSizeBin]);
+    }
+    /// ditto
+    ubyte[] getCurveServerKey(ubyte[] dest)
+    {
+        return getCurveKey(ZMQ_CURVE_SERVERKEY, dest);
+    }
+    /// ditto
+    @property char[] curveServerKeyZ85()
+    {
+        return getCurveServerKeyZ85(new char[keyBufSizeZ85]);
+    }
+    /// ditto
+    char[] getCurveServerKeyZ85(char[] dest)
+    {
+        return getCurveKeyZ85(ZMQ_CURVE_SERVERKEY, dest);
+    }
+    /// ditto
+    @property void curveServerKey(const(ubyte)[] value)
+    {
+        setCurveKey(ZMQ_CURVE_SERVERKEY, value);
+    }
+    /// ditto
+    @property void curveServerKeyZ85(const(char)[] value)
+    {
+        setCurveKeyZ85(ZMQ_CURVE_SERVERKEY, value);
+    }
+
+    /// ditto
+    @property char[] zapDomain() { return getZapDomain(new char[256]); }
+    /// ditto
+    char[] getZapDomain(char[] dest) { return getCStringOption(ZMQ_ZAP_DOMAIN, dest); }
+    /// ditto
+    @property void zapDomain(const char[] value) { setArrayOption(ZMQ_ZAP_DOMAIN, value); }
+
+    /// ditto
     @property void conflate(bool value) { setOption(ZMQ_CONFLATE, value ? 1 : 0); }
 
     unittest
@@ -986,6 +1143,12 @@ struct Socket
         assert(s.tcpKeepaliveIdle == -1);
         assert(s.tcpKeepaliveCnt == -1);
         assert(s.tcpKeepaliveIntvl == -1);
+        assert(s.mechanism == Security.none);
+        assert(!s.plainServer);
+        assert(s.getPlainUsername(new char[8]).length == 0);
+        assert(s.getPlainPassword(new char[8]).length == 0);
+        assert(!s.curveServer);
+        assert(s.zapDomain.length == 0);
 
         // Test setters and getters together
         s.sendHWM = 500;
@@ -1042,9 +1205,81 @@ struct Socket
         assert(s.tcpKeepaliveCnt == 1);
         s.tcpKeepaliveIntvl = 0;
         assert(s.tcpKeepaliveIntvl == 0);
+        s.plainServer = true;
+        assert(s.mechanism == Security.plain);
+        assert(s.plainServer);
+        assert(!s.curveServer);
+        s.curveServer = true;
+        assert(s.mechanism == Security.curve);
+        assert(!s.plainServer);
+        assert(s.curveServer);
+        s.plainServer = false;
+        assert(s.mechanism == Security.none);
+        assert(!s.plainServer);
+        assert(!s.curveServer);
+        s.plainUsername = "foobar";
+        assert(s.getPlainUsername(new char[8]) == "foobar");
+        assert(s.mechanism == Security.plain);
+        s.plainUsername = null;
+        assert(s.mechanism == Security.none);
+        s.plainPassword = "xyz";
+        assert(s.getPlainPassword(new char[8]) == "xyz");
+        assert(s.mechanism == Security.plain);
+        s.plainPassword = null;
+        assert(s.mechanism == Security.none);
+        s.zapDomain = "my_zap_domain";
+        assert(s.zapDomain == "my_zap_domain");
 
         // Test write-only options
         s.conflate = true;
+    }
+
+    @trusted unittest
+    {
+        // The CURVE key options require some special setup, so we test them
+        // separately.
+        import std.array, std.range;
+        auto binKey1 = iota(cast(ubyte) 0, cast(ubyte) 32).array();
+        auto z85Key1 = z85Encode(binKey1);
+        auto binKey2 = iota(cast(ubyte) 32, cast(ubyte) 64).array();
+        auto z85Key2 = z85Encode(binKey2);
+        auto zeroKey = repeat(cast(ubyte) 0).take(32).array();
+        assert (z85Key1 != z85Key2);
+
+        auto s = Socket(SocketType.req);
+        s.curvePublicKey = zeroKey;
+        s.curveSecretKey = zeroKey;
+        s.curveServerKey = zeroKey;
+
+        s.curvePublicKey = binKey1;
+        assert (s.curvePublicKey == binKey1);
+        assert (s.curvePublicKeyZ85 == z85Key1);
+        s.curvePublicKeyZ85 = z85Key2;
+        assert (s.curvePublicKey == binKey2);
+        assert (s.curvePublicKeyZ85 == z85Key2);
+        assert (s.curveSecretKey == zeroKey);
+        assert (s.curveServerKey == zeroKey);
+        s.curvePublicKey = zeroKey;
+
+        s.curveSecretKey = binKey1;
+        assert (s.curveSecretKey == binKey1);
+        assert (s.curveSecretKeyZ85 == z85Key1);
+        s.curveSecretKeyZ85 = z85Key2;
+        assert (s.curveSecretKey == binKey2);
+        assert (s.curveSecretKeyZ85 == z85Key2);
+        assert (s.curvePublicKey == zeroKey);
+        assert (s.curveServerKey == zeroKey);
+        s.curveSecretKey = zeroKey;
+
+        s.curveServerKey = binKey1;
+        assert (s.curveServerKey == binKey1);
+        assert (s.curveServerKeyZ85 == z85Key1);
+        s.curveServerKeyZ85 = z85Key2;
+        assert (s.curveServerKey == binKey2);
+        assert (s.curveServerKeyZ85 == z85Key2);
+        assert (s.curvePublicKey == zeroKey);
+        assert (s.curveSecretKey == zeroKey);
+        s.curveServerKey = zeroKey;
     }
 
     unittest
@@ -1082,9 +1317,15 @@ struct Socket
     Corresponds_to:
         $(ZMQREF zmq_msg_setsockopt()) with $(D ZMQ_SUBSCRIBE).
     */
-    void subscribe(const ubyte[] filterPrefix) { setOption(ZMQ_SUBSCRIBE, filterPrefix); }
+    void subscribe(const ubyte[] filterPrefix)
+    {
+        setArrayOption(ZMQ_SUBSCRIBE, filterPrefix);
+    }
     /// ditto
-    void subscribe(const  char[] filterPrefix) { setOption(ZMQ_SUBSCRIBE, filterPrefix); }
+    void subscribe(const  char[] filterPrefix)
+    {
+        setArrayOption(ZMQ_SUBSCRIBE, filterPrefix);
+    }
 
     ///
     unittest
@@ -1130,9 +1371,15 @@ struct Socket
     Corresponds_to:
         $(ZMQREF zmq_msg_setsockopt()) with $(D ZMQ_SUBSCRIBE).
     */
-    void unsubscribe(const ubyte[] filterPrefix) { setOption(ZMQ_UNSUBSCRIBE, filterPrefix); }
+    void unsubscribe(const ubyte[] filterPrefix)
+    {
+        setArrayOption(ZMQ_UNSUBSCRIBE, filterPrefix);
+    }
     /// ditto
-    void unsubscribe(const  char[] filterPrefix) { setOption(ZMQ_UNSUBSCRIBE, filterPrefix); }
+    void unsubscribe(const char[] filterPrefix)
+    {
+        setArrayOption(ZMQ_UNSUBSCRIBE, filterPrefix);
+    }
 
     ///
     unittest
@@ -1216,7 +1463,10 @@ private:
         return true;
     }
 
+    import std.traits;
+
     T getOption(T)(int option) @trusted
+        if (isScalarType!T)
     {
         T buf;
         auto len = T.sizeof;
@@ -1226,19 +1476,75 @@ private:
         assert(len == T.sizeof);
         return buf;
     }
-    void setOption()(int option, const void[] value)
+
+    void setOption(T)(int option, T value) @trusted
+        if (isScalarType!T)
+    {
+        if (zmq_setsockopt(m_socket, option, &value, value.sizeof) != 0) {
+            throw new ZmqException;
+        }
+    }
+
+    T[] getArrayOption(T)(int option, T[] buf) @trusted
+    {
+        static assert (T.sizeof == 1);
+        auto len = buf.length;
+        if (zmq_getsockopt(m_socket, option, buf.ptr, &len) != 0) {
+            throw new ZmqException;
+        }
+        return buf[0 .. len];
+    }
+
+    void setArrayOption()(int option, const void[] value)
     {
         if (trusted!zmq_setsockopt(m_socket, option, value.ptr, value.length) != 0) {
             throw new ZmqException;
         }
     }
 
-    import std.traits;
-    void setOption(T)(int option, T value) @trusted if (isScalarType!T)
+    char[] getCStringOption(int option, char[] buf)
     {
-        if (zmq_setsockopt(m_socket, option, &value, value.sizeof) != 0) {
-            throw new ZmqException;
+        auto ret = getArrayOption(option, buf);
+        assert (ret.length && ret[$-1] == '\0');
+        return ret[0 .. $-1];
+    }
+
+    enum : size_t
+    {
+        keySizeBin    = 32,
+        keyBufSizeBin = keySizeBin,
+        keySizeZ85    = 40,
+        keyBufSizeZ85 = keySizeZ85 + 1,
+    }
+
+    ubyte[] getCurveKey(int option, ubyte[] buf)
+    {
+        if (buf.length < keyBufSizeBin) {
+            import core.exception: RangeError;
+            throw new RangeError;
         }
+        return getArrayOption(option, buf[0 .. keyBufSizeBin]);
+    }
+
+    char[] getCurveKeyZ85(int option, char[] buf)
+    {
+        if (buf.length < keyBufSizeZ85) {
+            import core.exception: RangeError;
+            throw new RangeError;
+        }
+        return getCStringOption(option, buf[0 .. keyBufSizeZ85]);
+    }
+
+    void setCurveKey(int option, const ubyte[] value)
+    {
+        if (value.length != keySizeBin) throw new Exception("Invalid key size");
+        setArrayOption(option, value);
+    }
+
+    void setCurveKeyZ85(int option, const char[] value)
+    {
+        if (value.length != keySizeZ85) throw new Exception("Invalid key size");
+        setArrayOption(option, value);
     }
 
     Context m_context;
