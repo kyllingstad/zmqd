@@ -2800,108 +2800,6 @@ private:
 
 
 /**
-Utility function which interprets and validates a byte array as a UTF-8 string.
-
-Most of $(ZMQD)'s message API deals in $(D ubyte[]) arrays, but very often,
-the message _data contains plain text.  $(D asString()) allows for easy and
-safe interpretation of raw _data as characters.  It checks that $(D data) is
-a valid UTF-8 encoded string, and returns a $(D char[]) array that refers to
-the same memory region.
-
-Throws:
-    $(STDREF utf,UTFException) if $(D data) is not a valid UTF-8 string.
-See_also:
-    $(STDREF string,representation), which performs the opposite operation.
-*/
-inout(char)[] asString(inout(ubyte)[] data) pure
-{
-    auto s = cast(typeof(return)) data;
-    import std.utf: validate;
-    validate(s);
-    return s;
-}
-
-///
-unittest
-{
-    auto s1 = Socket(SocketType.pair);
-    s1.bind("ipc://zmqd_asString_example");
-    auto s2 = Socket(SocketType.pair);
-    s2.connect("ipc://zmqd_asString_example");
-
-    auto msg = Frame(12);
-    msg.data.asString()[] = "Hello World!";
-    s1.send(msg);
-
-    ubyte[12] buf;
-    s2.receive(buf);
-    assert(buf.asString() == "Hello World!");
-}
-
-unittest
-{
-    auto bytes = cast(ubyte[]) ['f', 'o', 'o'];
-    auto text = bytes.asString();
-    assert (text == "foo");
-    assert (cast(void*) bytes.ptr == cast(void*) text.ptr);
-
-    import std.exception: assertThrown;
-    import std.utf: UTFException;
-    auto b = cast(ubyte[]) [100, 252, 1];
-    assertThrown!UTFException(asString(b));
-}
-
-
-/**
-A class for exceptions thrown when any of the underlying $(ZMQ) C functions
-report an error.
-
-The exception provides a standard error message obtained with
-$(ZMQREF zmq_strerror()), as well as the $(D errno) code set by the $(ZMQ)
-function which reported the error.
-*/
-class ZmqException : Exception
-{
-    /**
-    The $(D errno) code that was set by the $(ZMQ) function that reported
-    the error.
-
-    Corresponds_to:
-        $(ZMQREF zmq_errno())
-    */
-    immutable int errno;
-
-private:
-    this(string file = __FILE__, int line = __LINE__) nothrow
-    {
-        import core.stdc.errno, std.conv;
-        this.errno = core.stdc.errno.errno;
-        string msg;
-        try {
-            msg = trusted!(to!string)(trusted!zmq_strerror(this.errno));
-        } catch (Exception e) { /* We never get here */ }
-        assert(msg.length);     // Still, let's assert as much.
-        super(msg, file, line);
-    }
-}
-
-
-/**
-Exception thrown by $(FREF receiveEvent) on failure to interpret a
-received message as an event description.
-*/
-class InvalidEventException : Exception
-{
-private:
-    this(string file = __FILE__, int line = __LINE__) nothrow
-    {
-        super("The received message is not an event message", file, line);
-    }
-}
-
-
-
-/**
 Encodes a binary key as Z85 printable text.
 
 $(D dest) must be an array whose length is at least $(D 5*data.length/4 + 1),
@@ -2972,7 +2870,6 @@ $(OBJREF assumeSafeAppend) on the array before calling this function.
 Returns:
     An array of size $(D 4*data.length/5) which contains the decoded data.
     This will be a slice of $(D dest) if it is provided.
-
 Throws:
     $(COREF exception,RangeError) if $(D dest) is given but is too small.$(BR)
     $(REF ZmqException) if $(ZMQ) reports an error (i.e., if data.length is not
@@ -3097,7 +2994,112 @@ unittest
 }
 
 
+/**
+Utility function which interprets and validates a byte array as a UTF-8 string.
+
+Most of $(ZMQD)'s message API deals in $(D ubyte[]) arrays, but very often,
+the message _data contains plain text.  $(D asString()) allows for easy and
+safe interpretation of raw _data as characters.  It checks that $(D data) is
+a valid UTF-8 encoded string, and returns a $(D char[]) array that refers to
+the same memory region.
+
+Throws:
+    $(STDREF utf,UTFException) if $(D data) is not a valid UTF-8 string.
+See_also:
+    $(STDREF string,representation), which performs the opposite operation.
+*/
+inout(char)[] asString(inout(ubyte)[] data) pure
+{
+    auto s = cast(typeof(return)) data;
+    import std.utf: validate;
+    validate(s);
+    return s;
+}
+
+///
+unittest
+{
+    auto s1 = Socket(SocketType.pair);
+    s1.bind("ipc://zmqd_asString_example");
+    auto s2 = Socket(SocketType.pair);
+    s2.connect("ipc://zmqd_asString_example");
+
+    auto msg = Frame(12);
+    msg.data.asString()[] = "Hello World!";
+    s1.send(msg);
+
+    ubyte[12] buf;
+    s2.receive(buf);
+    assert(buf.asString() == "Hello World!");
+}
+
+unittest
+{
+    auto bytes = cast(ubyte[]) ['f', 'o', 'o'];
+    auto text = bytes.asString();
+    assert (text == "foo");
+    assert (cast(void*) bytes.ptr == cast(void*) text.ptr);
+
+    import std.exception: assertThrown;
+    import std.utf: UTFException;
+    auto b = cast(ubyte[]) [100, 252, 1];
+    assertThrown!UTFException(asString(b));
+}
+
+
+/**
+A class for exceptions thrown when any of the underlying $(ZMQ) C functions
+report an error.
+
+The exception provides a standard error message obtained with
+$(ZMQREF zmq_strerror()), as well as the $(D errno) code set by the $(ZMQ)
+function which reported the error.
+*/
+class ZmqException : Exception
+{
+    /**
+    The $(D errno) code that was set by the $(ZMQ) function that reported
+    the error.
+
+    Corresponds_to:
+        $(ZMQREF zmq_errno())
+    */
+    immutable int errno;
+
 private:
+    this(string file = __FILE__, int line = __LINE__) nothrow
+    {
+        import core.stdc.errno, std.conv;
+        this.errno = core.stdc.errno.errno;
+        string msg;
+        try {
+            msg = trusted!(to!string)(trusted!zmq_strerror(this.errno));
+        } catch (Exception e) { /* We never get here */ }
+        assert(msg.length);     // Still, let's assert as much.
+        super(msg, file, line);
+    }
+}
+
+
+/**
+Exception thrown by $(FREF receiveEvent) on failure to interpret a
+received message as an event description.
+*/
+class InvalidEventException : Exception
+{
+private:
+    this(string file = __FILE__, int line = __LINE__) nothrow
+    {
+        super("The received message is not an event message", file, line);
+    }
+}
+
+
+// =============================================================================
+// Everything below is internal
+// =============================================================================
+private:
+
 
 struct SharedResource
 {
