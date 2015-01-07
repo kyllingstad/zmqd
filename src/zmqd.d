@@ -3019,6 +3019,84 @@ ubyte[] z85Decode(char[] text)
 }
 
 
+/**
+Generates a new CURVE key pair.
+
+To avoid a memory allocation, preallocated buffers may optionally be supplied
+for the two keys.  Each of these must have a length of at least 41 bytes, enough
+for a 40-character Z85-encoded key plus a terminating zero byte.  If either
+buffer is omitted/$(D null), a new one will be created.
+
+Returns:
+    A tuple that contains the two keys.  Each of these will have a length of
+    40 characters, and will be slices of the input buffers if such have been
+    provided.
+Throws:
+    $(COREF exception,RangeError) if $(D publicKeyBuf) or $(D secretKeyBuf) are
+        not $(D null) but have a length of less than 41 characters.$(BR)
+    $(REF ZmqException) if $(ZMQ) reports an error.
+Corresponds_to:
+    $(ZMQREF zmq_curve_keypair())
+*/
+Tuple!(char[], "publicKey", char[], "secretKey")
+    curveKeyPair(char[] publicKeyBuf = null, char[] secretKeyBuf = null)
+{
+    import core.exception: RangeError;
+    if (publicKeyBuf is null)           publicKeyBuf = new char[41];
+    else if (publicKeyBuf.length < 41)  throw new RangeError;
+    if (secretKeyBuf is null)           secretKeyBuf = new char[41];
+    else if (secretKeyBuf.length < 41)  throw new RangeError;
+
+    import deimos.zmq.utils: zmq_curve_keypair;
+    if (trusted!zmq_curve_keypair(publicKeyBuf.ptr, secretKeyBuf.ptr) != 0) {
+        throw new ZmqException;
+    }
+    return typeof(return)(publicKeyBuf[0 .. 40], secretKeyBuf[0 .. 40]);
+}
+
+///
+unittest
+{
+    auto server = Socket(SocketType.rep);
+    auto serverKeys = curveKeyPair();
+    server.curveServer = true;
+    server.curveSecretKeyZ85 = serverKeys.secretKey;
+    server.bind("inproc://curveKeyPair_test");
+
+    auto client = Socket(SocketType.req);
+    auto clientKeys = curveKeyPair();
+    client.curvePublicKeyZ85 = clientKeys.publicKey;
+    client.curveSecretKeyZ85 = clientKeys.secretKey;
+    client.curveServerKeyZ85 = serverKeys.publicKey;
+    client.connect("inproc://curveKeyPair_test");
+    client.send("hello");
+
+    ubyte[5] buf;
+    assert (server.receive(buf) == 5);
+    assert (buf.asString() == "hello");
+}
+
+@trusted unittest
+{
+    auto k1 = curveKeyPair();
+    assert (k1.publicKey.length == 40);
+    assert (k1.secretKey.length == 40);
+
+    char[82] buf;
+    auto k2 = curveKeyPair(buf[0 .. 41], buf[41 .. 82]);
+    assert (k2.publicKey.length == 40);
+    assert (k2.publicKey.ptr == buf.ptr);
+    assert (k2.secretKey.length == 40);
+    assert (k2.secretKey.ptr == buf.ptr + 41);
+
+    char[82] backup = buf;
+    import core.exception, std.exception;
+    assertThrown!RangeError(curveKeyPair(buf[0 .. 40], buf[41 .. 82]));
+    assertThrown!RangeError(curveKeyPair(buf[0 .. 41], buf[42 .. 82]));
+    assert (backup[] == buf[]);
+}
+
+
 private:
 
 struct SharedResource
