@@ -949,7 +949,7 @@ occurred.
 <code><a href="#Context">Context</a></code> and <code><a href="#Socket">Socket</a></code>, it does <em>not</em> perform reference
 counting, because &#x2205;MQ messages have a form of reference counting of
 their own.  A <code><span class="symbol-target" id="Frame">&nbsp;</span><a class="symbol-link" href="#Frame">Frame</a></code> cannot be copied by normal assignment; use
-<code><a href="#<span class="symbol-target" id="Frame">&nbsp;</span><a class="symbol-link" href="#Frame">Frame</a>.copy"><span class="symbol-target" id="Frame">&nbsp;</span><a class="symbol-link" href="#Frame">Frame</a>.copy()</a></code> for this.
+<code><a href="#Frame.copy">Frame.copy()</a></code> for this.
 <br><br>
 
 A default-initialized <code><span class="symbol-target" id="Frame">&nbsp;</span><a class="symbol-link" href="#Frame">Frame</a></code> is not a valid &#x2205;MQ message frame; it
@@ -1408,21 +1408,8 @@ created via a <code><a href="#Socket.monitor">Socket.monitor()</a></code> call. 
 one message on the <i>socket</i>, parses its contents according to the
 specification in the <code><a href="http://api.zeromq.org/4-0:zmq_socket_monitor()">zmq_socket_monitor()</a></code> reference,
 and returns the event information as an <code><a href="#Event">Event</a></code> object.
-<br><br>
-
-The function will attempt to detect whether the received message
-is in fact an event message, by checking that its length is equal
-to <code>zmq_event_t.sizeof</code> and that the value of the
-<code>zmq_event_t.event</code> field is valid.  If this is not the case,
-an <code><a href="#InvalidEventException">InvalidEventException</a></code> is thrown.
 
 </p>
-<dt>Warning:</dt><dd>
-The format of event messages changed between &#x2205;MQ 3.x and 4.x.
-    For the time being, this implementation only supports 3.x, and
-    the function will throw an <code><a href="#InvalidEventException">InvalidEventException</a></code> if used
-    with a newer version of &#x2205;MQ.
-</dd>
 <dt>Throws</dt><dd><code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.<br>
     <code><a href="#InvalidEventException">InvalidEventException</a></code> if the received message could not
     be interpreted as an event message.
