@@ -1790,12 +1790,7 @@ private:
 /**
 An object that encapsulates a $(ZMQ) message frame.
 
-This $(D struct) is a wrapper around a $(D zmq_msg_t) object.  Unlike
-$(REF Context) and $(REF Socket), it does $(EM not) perform reference
-counting, because $(ZMQ) messages have a form of reference counting of
-their own.  A $(D Frame) cannot be copied by normal assignment; use
-$(FREF _Frame.copy) for this.
-
+This $(D struct) is a wrapper around a $(D zmq_msg_t) object.
 A default-initialized $(D Frame) is not a valid $(ZMQ) message frame; it
 should always be explicitly initialized upon construction using
 $(FREF _Frame.opCall).  Alternatively, it may be initialized later with
@@ -1809,6 +1804,9 @@ msg2.rebuild(2048);         // ...and so does msg2
 ---
 When a $(D Frame) goes out of scope, $(ZMQREF zmq_msg_close()) is
 called on the underlying $(D zmq_msg_t).
+
+A $(D Frame) cannot be copied by normal assignment; use $(FREF _Frame.copy)
+for this.
 */
 struct Frame
 {
