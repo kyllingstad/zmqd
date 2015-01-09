@@ -1794,7 +1794,7 @@ This $(D struct) is a wrapper around a $(D zmq_msg_t) object.  Unlike
 $(REF Context) and $(REF Socket), it does $(EM not) perform reference
 counting, because $(ZMQ) messages have a form of reference counting of
 their own.  A $(D Frame) cannot be copied by normal assignment; use
-$(FREF Frame.copy) for this.
+$(FREF _Frame.copy) for this.
 
 A default-initialized $(D Frame) is not a valid $(ZMQ) message frame; it
 should always be explicitly initialized upon construction using
