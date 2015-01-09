@@ -1,0 +1,14 @@
+PROJECTNAME = zmqd
+REFERENCETOP = index.html
+REPOSRCTREE = https://github.com/kyllingstad/zmqd/tree/master/src
+TITLEBARTEXT = <a href="https://github.com/kyllingstad/zmqd">Github Page</a>
+RESOURCEROOT = bootDoc/
+ISSUETRACKER = https://github.com/kyllingstad/zmqd/issues/$1
+DEFAULTPACKAGE = zmqd
+PACKAGESEP = .
+FAVICON = $(RESOURCEROOT)assets/ico/favicon.ico
+LOGOSRC = $(RESOURCEROOT)assets/img/icon-github.png
+LOGOALT = $(PROJECTNAME)
+LOGOLINK = $(REFERENCETOP)
+COPYRIGHT = Lars T. Kyllingstad
+COPYRIGHTFOOTER = $(COPYRIGHT)
