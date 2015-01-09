@@ -2533,17 +2533,6 @@ one message on the socket, parses its contents according to the
 specification in the $(ZMQREF zmq_socket_monitor()) reference,
 and returns the event information as an $(REF Event) object.
 
-The function will attempt to detect whether the received message
-is in fact an event message, by checking that its length is equal
-to $(D zmq_event_t.sizeof) and that the value of the
-$(D zmq_event_t.event) field is valid.  If this is not the case,
-an $(REF InvalidEventException) is thrown.
-
-Warning:
-    The format of event messages changed between $(ZMQ) 3.x and 4.x.
-    For the time being, this implementation only supports 3.x, and
-    the function will throw an $(REF InvalidEventException) if used
-    with a newer version of $(ZMQ).
 Throws:
     $(REF ZmqException) if $(ZMQ) reports an error.$(BR)
     $(REF InvalidEventException) if the received message could not
