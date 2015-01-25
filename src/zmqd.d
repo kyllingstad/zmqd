@@ -2297,10 +2297,14 @@ Context defaultContext() @trusted
     return ctx;
 }
 
-unittest
+@system unittest
 {
-    auto c1 = defaultContext();
-    auto c2 = defaultContext();
+    import core.thread;
+    Context c1, c2;
+    auto t = new Thread(() { c1 = defaultContext(); });
+    t.start();
+    c2 = defaultContext();
+    t.join();
     assert(c1.handle !is null);
     assert(c1.handle == c2.handle);
 }
