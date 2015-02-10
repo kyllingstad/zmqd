@@ -276,7 +276,12 @@ takes it by value, or into a new variable).
 <br><br>
 
 The socket is automatically closed when the <code><span class="symbol-target" id="Socket">&nbsp;</span><a class="symbol-link" href="#Socket">Socket</a></code> object goes out
-of scope.</p>
+of scope.
+
+</p>
+<dt>Linger period:</dt><dd>
+Note that <span class="symbol-target" id="Socket">&nbsp;</span><a class="symbol-link" href="#Socket">Socket</a> by default sets the socket's linger period to zero.
+This deviates from the &#x2205;MQ default (which is an infinite linger period).</dd>
 </dl>
 <div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>@safe this(SocketType <i>type</i>);
 <br>@safe this(Context <i>context</i>, SocketType <i>type</i>);
