@@ -163,6 +163,10 @@ takes it by value, or into a new variable).
 
 The socket is automatically closed when the $(D Socket) object goes out
 of scope.
+
+Linger_period:
+Note that Socket by default sets the socket's linger period to zero.
+This deviates from the $(ZMQ) default (which is an infinite linger period).
 */
 struct Socket
 {
@@ -192,6 +196,7 @@ struct Socket
         if (m_socket == null) {
             throw new ZmqException;
         }
+        linger = 0.msecs;
     }
 
     /// With default context:
@@ -1130,7 +1135,7 @@ struct Socket
         assert(s.recoveryInterval == 10.seconds);
         assert(s.sendBufferSize == 0);
         assert(s.receiveBufferSize == 0);
-        assert(s.linger == Duration.max);
+        assert(s.linger == 0.hnsecs);
         assert(s.reconnectionInterval == 100.msecs);
         assert(s.maxReconnectionInterval == Duration.zero);
         assert(s.backlog == 100);
