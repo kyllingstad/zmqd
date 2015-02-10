@@ -1244,7 +1244,7 @@ struct Socket
         s.conflate = true;
     }
 
-    @trusted unittest
+    @system unittest
     {
         // The CURVE key options require some special setup, so we test them
         // separately.
@@ -2839,7 +2839,7 @@ char[] z85Encode(ubyte[] data)
     return z85Encode(data, new char[5*data.length/4 + 1]);
 }
 
-@trusted unittest // @trusted because of assertThrown
+@system unittest // @system because of assertThrown
 {
     // TODO: Make data immutable when we update to ZMQ 4.1
     auto data = cast(ubyte[])[0x86, 0x4f, 0xd2, 0x6f, 0xb5, 0x59, 0xf7, 0x5b];
@@ -2900,7 +2900,7 @@ ubyte[] z85Decode(char[] text)
     return z85Decode(text, new ubyte[4*text.length/5]);
 }
 
-@trusted unittest // @trusted because of assertThrown
+@system unittest // @system because of assertThrown
 {
     // TODO: Make data immutable when we update to ZMQ 4.1
     auto text = "HelloWorld".dup;
@@ -2977,7 +2977,7 @@ unittest
     assert (buf.asString() == "hello");
 }
 
-@trusted unittest
+@system unittest
 {
     auto k1 = curveKeyPair();
     assert (k1.publicKey.length == 40);
