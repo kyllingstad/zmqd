@@ -1496,6 +1496,7 @@ private:
     }
 
     T[] getArrayOption(T)(int option, T[] buf) @trusted
+        if (isScalarType!T)
     {
         static assert (T.sizeof == 1);
         auto len = buf.length;
