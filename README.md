@@ -73,19 +73,21 @@ The C implementation of the "Hello World server" from the
 
 The equivalent ∅MQD program looks like this:
 
-    import core.thread, core.time, std.stdio;
+    import core.thread, core.time;
+    import std.stdio;
     import zmqd;
 
     void main()
     {
+        // Socket to talk to clients
         auto responder = Socket(SocketType.rep);
         responder.bind("tcp://*:5555");
 
         while (true) {
-            char[10] buffer;
-            responder.receive(buffer[]);
+            ubyte[10] buffer;
+            responder.receive(buffer);
             writeln("Received Hello");
-            Thread.sleep(seconds(1)); // Do some 'work'
+            Thread.sleep(1.seconds);
             responder.send("World");
         }
     }
