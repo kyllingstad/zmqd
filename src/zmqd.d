@@ -88,6 +88,32 @@ version(Windows) {
 }
 
 
+// Compatibility check
+version(unittest) static this()
+{
+    import std.stdio: stderr;
+    const v = zmqVersion();
+    if (v.major != ZMQ_VERSION_MAJOR || v.minor != ZMQ_VERSION_MINOR) {
+        stderr.writefln(
+            "Warning: Potential ZeroMQ header/library incompatibility: "
+            ~"The header (binding) is for version %d.%d.%d, "
+            ~"while the library is version %d.%d.%d. Unittests may fail.",
+            ZMQ_VERSION_MAJOR, ZMQ_VERSION_MINOR, ZMQ_VERSION_PATCH,
+            v.major, v.minor, v.patch);
+    }
+    // Known incompatibilities
+    import std.algorithm: min, max;
+    const libVersion = ZMQ_MAKE_VERSION(v.major, v.minor, v.patch);
+    const older = min(ZMQ_VERSION, libVersion);
+    const newer = max(ZMQ_VERSION, libVersion);
+    if (older < ZMQ_MAKE_VERSION(4, 1, 0) && newer >= ZMQ_MAKE_VERSION(4, 1, 0)) {
+        stderr.writeln("Note: Version 4.1.0 is known to be ABI incompatible with older versions");
+    } else if (older < ZMQ_MAKE_VERSION(4, 1, 1) && newer >= ZMQ_MAKE_VERSION(4, 1, 1)) {
+        stderr.writeln("Note: Version 4.1.1 is known to be ABI incompatible with older versions");
+    }
+}
+
+
 @safe:
 
 
