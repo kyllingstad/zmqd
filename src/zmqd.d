@@ -87,6 +87,8 @@ version(Windows) {
     import std.c.windows.winsock: SOCKET;
 }
 
+// libsodium is enabled by default, since that is the case with ZeroMQ itself.
+version (WithoutLibsodium) { } else version = WithLibsodium;
 
 // Compatibility check
 version(unittest) static this()
@@ -1037,6 +1039,8 @@ struct Socket
         setArrayOption(ZMQ_PLAIN_PASSWORD, value);
     }
 
+version (WithLibsodium) {
+
     /// ditto
     @property bool curveServer() { return !!getOption!int(ZMQ_CURVE_SERVER); }
     /// ditto
@@ -1135,6 +1139,8 @@ struct Socket
         setCurveKeyZ85(ZMQ_CURVE_SERVERKEY, value);
     }
 
+} // version (WithLibsodium)
+
     /// ditto
     @property char[] zapDomain() { return getZapDomain(new char[256]); }
     /// ditto
@@ -1183,7 +1189,9 @@ struct Socket
         assert(!s.plainServer);
         assert(s.getPlainUsername(new char[8]).length == 0);
         assert(s.getPlainPassword(new char[8]).length == 0);
-        assert(!s.curveServer);
+        version (WithLibsodium) {
+            assert(!s.curveServer);
+        }
         assert(s.zapDomain.length == 0);
 
         // Test setters and getters together
@@ -1244,15 +1252,17 @@ struct Socket
         s.plainServer = true;
         assert(s.mechanism == Security.plain);
         assert(s.plainServer);
-        assert(!s.curveServer);
-        s.curveServer = true;
-        assert(s.mechanism == Security.curve);
-        assert(!s.plainServer);
-        assert(s.curveServer);
+        version (WithLibsodium) {
+            assert(!s.curveServer);
+            s.curveServer = true;
+            assert(s.mechanism == Security.curve);
+            assert(!s.plainServer);
+            assert(s.curveServer);
+        }
         s.plainServer = false;
         assert(s.mechanism == Security.none);
         assert(!s.plainServer);
-        assert(!s.curveServer);
+        version (WithLibsodium) assert(!s.curveServer);
         s.plainUsername = "foobar";
         assert(s.getPlainUsername(new char[8]) == "foobar");
         assert(s.mechanism == Security.plain);
@@ -1270,7 +1280,7 @@ struct Socket
         s.conflate = true;
     }
 
-    @system unittest
+    version (WithLibsodium) @system unittest
     {
         // The CURVE key options require some special setup, so we test them
         // separately.
@@ -1546,6 +1556,7 @@ private:
         return ret[0 .. $-1];
     }
 
+version (WithLibsodium) {
     enum : size_t
     {
         keySizeBin    = 32,
@@ -1583,6 +1594,7 @@ private:
         if (value.length != keySizeZ85) throw new Exception("Invalid key size");
         setArrayOption(option, value);
     }
+} // version (WithLibsodium)
 
     Context m_context;
     SocketType m_type;
@@ -2829,6 +2841,8 @@ private:
 }
 
 
+version (WithLibsodium) {
+
 /**
 Encodes a binary key as Z85 printable text.
 
@@ -3022,6 +3036,8 @@ unittest
     assertThrown!RangeError(curveKeyPair(buf[0 .. 41], buf[42 .. 82]));
     assert (backup[] == buf[]);
 }
+
+} //version (WithLibsodium)
 
 
 /**
