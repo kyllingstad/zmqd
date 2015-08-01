@@ -32,13 +32,37 @@ are very welcome.
 What you need is:
 
   * A somewhat up-to-date [D compiler](http://wiki.dlang.org/Compilers)
-  * The [∅MQ libraries](http://zeromq.org/intro:get-the-software)
-  * The [∅MQ bindings](https://github.com/D-Programming-Deimos/ZeroMQ) from
-    Deimos (the correct version is automatically fetched if you use
-    [Dub](http://code.dlang.org/)).
+  * The [∅MQ libraries](http://zeromq.org/intro:get-the-software) v4.x
+  * The [∅MQ C library bindings](https://github.com/D-Programming-Deimos/ZeroMQ)
+    from Deimos.
 
 Tell the compiler where to find the libraries and the import files, and
 you're good to go.
+
+It is of course also possible to use [Dub](http://code.dlang.org/) to install
+[the zmqd package](http://code.dlang.org/packages/zmqd) and its dependencies,
+or to use it to build ∅MQD from source.
+
+### A word of caution about the C library bindings ###
+
+As mentioned, you need the
+[∅MQ C bindings](https://github.com/D-Programming-Deimos/ZeroMQ) to be able
+to build and use ∅MQD.  If you use Dub, a compatible version of the C
+library bindings will automatically be fetched.  However, this is
+not not necessarily compatible with the ∅MQ *library* version you have
+installed.  There are known ABI incompatibilities between different versions
+of ∅MQ (different minor versions, even) so it is a good idea to make sure
+these match.  With Dub, the appropriate version of the ∅MQ bindings can be
+selected by modifying the file `dub.selections.json` (package `zeromq`).
+If you build manually, make sure to check out the correct version from
+[the repository](https://github.com/D-Programming-Deimos/ZeroMQ) (it has
+version number tags).
+
+To help detect incompatibilities, the ∅MQD unittests include a simple
+compatibility check which warns about possible problems.  The simplest way
+to run the tests is to use Dub, as follows:
+
+    dub test zmqd
 
 ## Example: Hello World server ##
 
