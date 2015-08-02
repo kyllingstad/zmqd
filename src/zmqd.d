@@ -2988,7 +2988,9 @@ Tuple!(char[], "publicKey", char[], "secretKey")
     if (secretKeyBuf is null)           secretKeyBuf = new char[41];
     else if (secretKeyBuf.length < 41)  throw new RangeError;
 
-    import deimos.zmq.utils: zmq_curve_keypair;
+    static if (ZMQ_VERSION < ZMQ_MAKE_VERSION(4, 1, 0)) {
+        import deimos.zmq.utils: zmq_curve_keypair;
+    }
     if (trusted!zmq_curve_keypair(publicKeyBuf.ptr, secretKeyBuf.ptr) != 0) {
         throw new ZmqException;
     }
