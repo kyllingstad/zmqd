@@ -7,8 +7,8 @@ It is a rather thin wrapper that maps closely to the C API, while making it
 safer, easier and more pleasant to use.  Here's how:
 
   * Errors are signalled by means of exceptions rather than return codes.
-  * Functions are appropriately marked with `@safe`/`@trusted`/`@system`,
-    `pure` and `nothrow`.
+  * Functions are appropriately marked with `@safe`, `pure` and `nothrow`,
+    thus facilitating their use in high-level D code.
   * Memory and resources (i.e. contexts, sockets and messages) are
     automatically managed, thus preventing leaks.
   * Context, socket and message options are implemented as properties.
@@ -22,7 +22,7 @@ http://kyllingstad.github.io/zmqd/.
 
 ## Terms of use ##
 
-∅MQD is released under the terms of the
+∅MQD is free and open-source software, released under the terms of the
 [Mozilla Public License v. 2.0](http://mozilla.org/MPL/2.0/).  This allows
 you to mix it with other files under a different, even proprietary licence.
 However, the source code files of ∅MQD itself, and any modifications you make
