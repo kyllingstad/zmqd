@@ -58,7 +58,7 @@ $(LINK2 https://github.com/kyllingstad/zmqd/tree/master/examples,$(D examples))
 subdirectory of the $(ZMQD) source repository.
 
 Version:
-    1.0.0-beta (compatible with $(ZMQ) >= 4.0.0)
+    1.0.0 (compatible with $(ZMQ) >= 4.0.0)
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
 Copyright:
