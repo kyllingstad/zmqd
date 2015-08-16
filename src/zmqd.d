@@ -5,8 +5,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
 /**
-A thin wrapper around the low-level C API of the $(LINK2 http://zeromq.org,$(ZMQ))
-messaging framework, for the $(LINK2 http://dlang.org,D programming language).
+$(ZMQD) – a thin wrapper around the low-level C API of the
+$(LINK2 http://zeromq.org,$(ZMQ)) messaging framework.
 
 Most functions in this module have a one-to-one relationship with functions
 in the underlying C API.  Some adaptations have been made to make the API
