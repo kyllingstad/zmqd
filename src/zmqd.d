@@ -1,3 +1,9 @@
+/*
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+*/
+
 /**
 A thin wrapper around the low-level C API of the $(LINK2 http://zeromq.org,$(ZMQ))
 messaging framework, for the $(LINK2 http://dlang.org,D programming language).
@@ -56,9 +62,10 @@ Version:
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
 Copyright:
-    Copyright (c) 2013–2014, Lars T. Kyllingstad. All rights reserved.
+    Copyright (c) 2013–2015, Lars T. Kyllingstad. All rights reserved.
 License:
-    $(ZMQD) is released under a BSD licence (see LICENCE.txt for details).$(BR)
+    $(ZMQD) is released under the terms of the
+    $(LINK2 https://www.mozilla.org/MPL/2.0/index.txt,Mozilla Public License v. 2.0).$(BR)
     Please refer to the $(LINK2 http://zeromq.org/area:licensing,$(ZMQ) site)
     for details about $(ZMQ) licensing.
 Macros:

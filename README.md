@@ -20,6 +20,15 @@ both familiar to ∅MQ users and natural to D users.
 The API documentation may be browsed online at
 http://kyllingstad.github.io/zmqd/.
 
+## Terms of use ##
+
+∅MQD is released under the terms of the
+[Mozilla Public License v. 2.0](http://mozilla.org/MPL/2.0/).  This allows
+you to mix it with other files under a different, even proprietary licence.
+However, the source code files of ∅MQD itself, and any modifications you make
+to them,  must remain under the MPL and freely available in source form.  For
+more information, see Mozilla's MPL [FAQ](http://www.mozilla.org/MPL/2.0/FAQ.html).
+
 ## Support and contributions ##
 
 If you have questions, enhancement requests or bug reports, please submit
