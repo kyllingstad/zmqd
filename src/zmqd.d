@@ -1647,6 +1647,8 @@ Throws:
     $(REF ZmqException) if $(ZMQ) reports an error.
 Corresponds_to:
     $(ZMQREF zmq_proxy())
+See_Also:
+    $(FREF steerableProxy)
 */
 void proxy(ref Socket frontend, ref Socket backend)
 {
@@ -1661,6 +1663,111 @@ void proxy(ref Socket frontend, ref Socket backend, ref Socket capture)
     const rc = trusted!zmq_proxy(frontend.handle, backend.handle, capture.handle);
     assert (rc == -1);
     throw new ZmqException;
+}
+
+
+/**
+Starts the built-in $(ZMQ) proxy with _control flow.
+
+Note that the order of the two last parameters is reversed compared to
+$(ZMQREF zmq_proxy_steerable()).  That is, the $(D control) socket always
+comes before the $(D capture) socket.  Furthermore, unlike in $(ZMQ),
+$(D control) is mandatory.  (Without the _control socket one can simply
+use $(FREF proxy).)
+
+Throws:
+    $(REF ZmqException) if $(ZMQ) reports an error.
+Corresponds_to:
+    $(ZMQREF zmq_proxy_steerable())
+See_Also:
+    $(FREF proxy)
+*/
+void steerableProxy(ref Socket frontend, ref Socket backend, ref Socket control)
+{
+    const rc = trusted!zmq_proxy_steerable(
+        frontend.handle, backend.handle, null, control.handle);
+    if (rc == -1) throw new ZmqException;
+}
+
+/// ditto
+void steerableProxy(ref Socket frontend, ref Socket backend, ref Socket control, ref Socket capture)
+{
+    const rc = trusted!zmq_proxy_steerable(
+        frontend.handle, backend.handle, capture.handle, control.handle);
+    if (rc == -1) throw new ZmqException;
+}
+
+@system unittest
+{
+    import core.thread;
+    auto t = new Thread(() {
+        auto frontend = Socket(SocketType.router);
+        frontend.bind("inproc://zmqd_steerableProxy_unittest_fe");
+        auto backend  = Socket(SocketType.dealer);
+        backend.bind("inproc://zmqd_steerableProxy_unittest_be");
+        auto controllee = Socket(SocketType.pair);
+        controllee.bind("inproc://zmqd_steerableProxy_unittest_ctl");
+        steerableProxy(frontend, backend, controllee);
+    });
+    t.start();
+    auto client = Socket(SocketType.req);
+    client.connect("inproc://zmqd_steerableProxy_unittest_fe");
+    auto server  = Socket(SocketType.rep);
+    server.connect("inproc://zmqd_steerableProxy_unittest_be");
+    auto controller = Socket(SocketType.pair);
+    controller.connect("inproc://zmqd_steerableProxy_unittest_ctl");
+
+    auto cf = Frame(1);
+    cf.data[0] = 86;
+    client.send(cf);
+    auto sf = Frame();
+    server.receive(sf);
+    assert(sf.size == 1 && sf.data[0] == 86);
+    sf.data[0] = 87;
+    server.send(sf);
+    client.receive(cf);
+    assert(cf.size == 1 && cf.data[0] == 87);
+
+    controller.send("TERMINATE");
+    t.join();
+}
+
+@system unittest
+{
+    import core.thread;
+    auto t = new Thread(() {
+        auto frontend = Socket(SocketType.pull);
+        frontend.bind("inproc://zmqd_steerableProxy2_unittest_fe");
+        auto backend  = Socket(SocketType.push);
+        backend.bind("inproc://zmqd_steerableProxy2_unittest_be");
+        auto controllee = Socket(SocketType.pair);
+        controllee.bind("inproc://zmqd_steerableProxy2_unittest_ctl");
+        auto capture = Socket(SocketType.push);
+        capture.bind("inproc://zmqd_steerableProxy2_unittest_cpt");
+        steerableProxy(frontend, backend, controllee, capture);
+    });
+    t.start();
+    auto client = Socket(SocketType.push);
+    client.connect("inproc://zmqd_steerableProxy2_unittest_fe");
+    auto server  = Socket(SocketType.pull);
+    server.connect("inproc://zmqd_steerableProxy2_unittest_be");
+    auto controller = Socket(SocketType.pair);
+    controller.connect("inproc://zmqd_steerableProxy2_unittest_ctl");
+    auto capturer = Socket(SocketType.pull);
+    capturer.connect("inproc://zmqd_steerableProxy2_unittest_cpt");
+
+    auto cf = Frame(1);
+    cf.data[0] = 86;
+    client.send(cf);
+    auto sf = Frame();
+    server.receive(sf);
+    assert(sf.size == 1 && sf.data[0] == 86);
+    auto pf = Frame();
+    capturer.receive(pf);
+    assert(pf.size == 1 && pf.data[0] == 86);
+
+    controller.send("TERMINATE");
+    t.join();
 }
 
 
