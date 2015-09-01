@@ -17,6 +17,8 @@ The names of functions and types in ∅MQD are very similar to those in ∅MQ,
 but they follow the D naming conventions.  Thus, the library should feel
 both familiar to ∅MQ users and natural to D users.
 
+## Documentation ##
+
 The API documentation may be browsed online at
 http://kyllingstad.github.io/zmqd/.
 
