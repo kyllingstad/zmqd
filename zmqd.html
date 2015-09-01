@@ -163,7 +163,7 @@ D, and can be found in the
 subdirectory of the &#x2205;MQD source repository.
 
 </p>
-<dt>Version</dt><dd>1.0.0 (compatible with &#x2205;MQ &gt;= 4.0.0)
+<dt>Version</dt><dd>1.1.0 (compatible with &#x2205;MQ &gt;= 4.0.0)
 </dd>
 <dt>Authors</dt><dd><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
 </dd>
@@ -289,7 +289,7 @@ This deviates from the &#x2205;MQ default (which is an infinite linger period).<
 </h3></div>
 <div class="declaration-content"><dl><p>Creates a new &#x2205;MQ socket.
 </p>
-<p>If <code>context</code> is not specified, the default context (as returned
+<p>If <code><i>context</i></code> is not specified, the default <i>context</i> (as returned
     by <code><a href="#defaultContext">defaultContext()</a></code>) is used.
 
 </p>
@@ -398,7 +398,7 @@ s.connect(<span class="d_string">"inproc://zmqd_disconnect_example"</span>);
 <div class="declaration-content"><dl><p>Sends a message frame.
 </p>
 <p><code>send</code> blocks until the frame has been queued on the socket.
-    <code>trySend</code> performs the operation in non-blocking mode, and returns
+    <code><span class="symbol-target" id="trySend">&nbsp;</span><a class="symbol-link" href="#trySend">trySend</a></code> performs the operation in non-blocking mode, and returns
     a <code>bool</code> value that signifies whether the frame was queued on the
     socket.
 <br><br>
@@ -415,12 +415,12 @@ s.connect(<span class="d_string">"inproc://zmqd_disconnect_example"</span>);
 </dd>
 <dt>Corresponds to:</dt><dd>
 <code><a href="http://api.zeromq.org/4-0:zmq_send()">zmq_send()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the
-        case of <code>trySend</code>, and with the <code>ZMQ_SNDMORE</code> flag if
+        case of <code><span class="symbol-target" id="trySend">&nbsp;</span><a class="symbol-link" href="#trySend">trySend</a></code>, and with the <code>ZMQ_SNDMORE</code> flag if
         <code><i>more</i> == <span class="d_keyword">true</span></code>).</dd>
 <dt>Examples</dt><dd><pre class="d_code">
 <span class="d_keyword">auto</span> sck = Socket(SocketType.pub);
-sck.send(<span class="d_keyword">cast</span>(<span class="d_keyword">ubyte</span>[]) [11, 226, 92]);
-sck.send(<span class="d_string">"Hello World!"</span>);
+sck.<u>send</u>(<span class="d_keyword">cast</span>(<span class="d_keyword">ubyte</span>[]) [11, 226, 92]);
+sck.<u>send</u>(<span class="d_string">"Hello World!"</span>);
 </pre>
 </dd></dl>
 </div>
@@ -430,7 +430,7 @@ sck.send(<span class="d_string">"Hello World!"</span>);
 <div class="declaration-content"><dl><p>Sends a message frame.
 </p>
 <p><code>send</code> blocks until the frame has been queued on the socket.
-    <code>trySend</code> performs the operation in non-blocking mode, and returns
+    <code><span class="symbol-target" id="trySend">&nbsp;</span><a class="symbol-link" href="#trySend">trySend</a></code> performs the operation in non-blocking mode, and returns
     a <code>bool</code> value that signifies whether the frame was queued on the
     socket.
 <br><br>
@@ -443,13 +443,13 @@ sck.send(<span class="d_string">"Hello World!"</span>);
 </dd>
 <dt>Corresponds to:</dt><dd>
 <code><a href="http://api.zeromq.org/4-0:zmq_msg_send()">zmq_msg_send()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the
-        case of <code>trySend</code>, and with the <code>ZMQ_SNDMORE</code> flag if
+        case of <code><span class="symbol-target" id="trySend">&nbsp;</span><a class="symbol-link" href="#trySend">trySend</a></code>, and with the <code>ZMQ_SNDMORE</code> flag if
         <code><i>more</i> == <span class="d_keyword">true</span></code>).</dd>
 <dt>Examples</dt><dd><pre class="d_code">
 <span class="d_keyword">auto</span> sck = Socket(SocketType.pub);
 <span class="d_keyword">auto</span> <b>msg</b> = Frame(12);
 <b>msg</b>.data.asString()[] = <span class="d_string">"Hello World!"</span>;
-sck.send(<b>msg</b>);
+sck.<u>send</u>(<b>msg</b>);
 </pre>
 </dd></dl>
 </div>
@@ -461,7 +461,7 @@ sck.send(<b>msg</b>);
 <div class="declaration-content"><dl><p>Sends a constant-memory message frame.
 </p>
 <p><code>sendConst</code> blocks until the frame has been queued on the socket.
-    <code>trySendConst</code> performs the operation in non-blocking mode, and returns
+    <code><span class="symbol-target" id="trySendConst">&nbsp;</span><a class="symbol-link" href="#trySendConst">trySendConst</a></code> performs the operation in non-blocking mode, and returns
     a <code>bool</code> value that signifies whether the frame was queued on the
     socket.
 <br><br>
@@ -479,8 +479,8 @@ sck.send(<b>msg</b>);
 <dt>Examples</dt><dd><pre class="d_code">
 <span class="d_keyword">static</span> <span class="d_keyword">immutable</span> arr = <span class="d_keyword">cast</span>(<span class="d_keyword">ubyte</span>[]) [11, 226, 92];
 <span class="d_keyword">auto</span> sck = Socket(SocketType.pub);
-sck.sendConst(arr);
-sck.sendConst(<span class="d_string">"Hello World!"</span>);
+sck.<u>sendConst</u>(arr);
+sck.<u>sendConst</u>(<span class="d_string">"Hello World!"</span>);
 </pre>
 </dd></dl>
 </div>
@@ -491,7 +491,7 @@ sck.sendConst(<span class="d_string">"Hello World!"</span>);
 </p>
 <p><code>receive</code> blocks until the request can be satisfied, and returns the
     number of bytes in the frame.
-    <code>tryReceive</code> performs the operation in non-blocking mode, and returns
+    <code><span class="symbol-target" id="tryReceive">&nbsp;</span><a class="symbol-link" href="#tryReceive">tryReceive</a></code> performs the operation in non-blocking mode, and returns
     a <code><a href="http://dlang.org/phobos/std_typecons.html#.Tuple">std.typecons.Tuple</a></code> which contains the size of the frame along
     with a <code>bool</code> value that signifies whether a frame was received.
     (If the latter is <code><span class="d_keyword">false</span></code>, the former is always set to zero.)
@@ -501,7 +501,7 @@ sck.sendConst(<span class="d_string">"Hello World!"</span>);
 </dd>
 <dt>Corresponds to:</dt><dd>
 <code><a href="http://api.zeromq.org/4-0:zmq_recv()">zmq_recv()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the case
-        of <code>tryReceive</code>).</dd>
+        of <code><span class="symbol-target" id="tryReceive">&nbsp;</span><a class="symbol-link" href="#tryReceive">tryReceive</a></code>).</dd>
 <dt>Examples</dt><dd><pre class="d_code">
 <span class="d_comment">// Sender
 </span><span class="d_keyword">auto</span> snd = Socket(SocketType.req);
@@ -513,7 +513,7 @@ snd.send(<span class="d_string">"Hello World!"</span>);
 <span class="d_keyword">auto</span> rcv = Socket(SocketType.rep);
 rcv.bind(<span class="d_string">"inproc://zmqd_receive_example"</span>);
 <span class="d_keyword">char</span>[256] buf;
-<span class="d_keyword">immutable</span> len  = rcv.receive(buf.representation);
+<span class="d_keyword">immutable</span> len  = rcv.<u>receive</u>(buf.representation);
 <span class="d_keyword">assert</span> (buf[0 .. len] == <span class="d_string">"Hello World!"</span>);
 </pre>
 </dd></dl>
@@ -525,7 +525,7 @@ rcv.bind(<span class="d_string">"inproc://zmqd_receive_example"</span>);
 </p>
 <p><code>receive</code> blocks until the request can be satisfied, and returns the
     number of bytes in the frame.
-    <code>tryReceive</code> performs the operation in non-blocking mode, and returns
+    <code><span class="symbol-target" id="tryReceive">&nbsp;</span><a class="symbol-link" href="#tryReceive">tryReceive</a></code> performs the operation in non-blocking mode, and returns
     a <code><a href="http://dlang.org/phobos/std_typecons.html#.Tuple">std.typecons.Tuple</a></code> which contains the size of the frame along
     with a <code>bool</code> value that signifies whether a frame was received.
     (If the latter is <code><span class="d_keyword">false</span></code>, the former is always set to zero.)
@@ -535,7 +535,7 @@ rcv.bind(<span class="d_string">"inproc://zmqd_receive_example"</span>);
 </dd>
 <dt>Corresponds to:</dt><dd>
 <code><a href="http://api.zeromq.org/4-0:zmq_msg_recv()">zmq_msg_recv()</a></code> (with the <code>ZMQ_DONTWAIT</code> flag, in the case
-        of <code>tryReceive</code>).</dd>
+        of <code><span class="symbol-target" id="tryReceive">&nbsp;</span><a class="symbol-link" href="#tryReceive">tryReceive</a></code>).</dd>
 <dt>Examples</dt><dd><pre class="d_code">
 <span class="d_comment">// Sender
 </span><span class="d_keyword">auto</span> snd = Socket(SocketType.req);
@@ -547,7 +547,7 @@ snd.send(<span class="d_string">"Hello World!"</span>);
 <span class="d_keyword">auto</span> rcv = Socket(SocketType.rep);
 rcv.bind(<span class="d_string">"inproc://zmqd_msg_receive_example"</span>);
 <span class="d_keyword">auto</span> <b>msg</b> = Frame();
-rcv.receive(<b>msg</b>);
+rcv.<u>receive</u>(<b>msg</b>);
 <span class="d_keyword">assert</span> (<b>msg</b>.data.asString() == <span class="d_string">"Hello World!"</span>);
 </pre>
 </dd></dl>
@@ -670,30 +670,30 @@ rcv.receive(<b>msg</b>);
 </p>
 <p>Each of these has a one-to-one correspondence with an option passed to
     <code><a href="http://api.zeromq.org/4-0:zmq_getsockopt()">zmq_getsockopt()</a></code> and <code><a href="http://api.zeromq.org/4-0:zmq_setsockopt()">zmq_setsockopt()</a></code>. For
-    example, <code>identity</code> corresponds to <code>ZMQ_IDENTITY</code>,
-    <code>receiveBufferSize</code> corresponds to <code>ZMQ_RCVBUF</code>, etc.
+    example, <code><span class="symbol-target" id="identity">&nbsp;</span><a class="symbol-link" href="#identity">identity</a></code> corresponds to <code>ZMQ_IDENTITY</code>,
+    <code><span class="symbol-target" id="receiveBufferSize">&nbsp;</span><a class="symbol-link" href="#receiveBufferSize">receiveBufferSize</a></code> corresponds to <code>ZMQ_RCVBUF</code>, etc.
 
 </p>
 <dt>Notes:</dt><dd>
-    <ul>        <li>For convenience, the setter for the <code>identity</code> property
+    <ul>        <li>For convenience, the setter for the <code><span class="symbol-target" id="identity">&nbsp;</span><a class="symbol-link" href="#identity">identity</a></code> property
             accepts strings.  To retrieve a string with the getter, use
             the <code><a href="#asString">asString()</a></code> function.
-<pre class="d_code">sck.identity = <span class="d_string">"foobar"</span>;
-<span class="d_keyword">assert</span> (sck.identity.asString() == <span class="d_string">"foobar"</span>);
+<pre class="d_code">sck.<u>identity</u> = <span class="d_string">"foobar"</span>;
+<span class="d_keyword">assert</span> (sck.<u>identity</u>.asString() == <span class="d_string">"foobar"</span>);
 </pre>
             </li>
-        <li>The <code>linger</code>, <code>receiveTimeout</code> and <code>sendTimeout</code>
-            properties may have the special value <code><a href="http://dlang.org/phobos/core_time.html#.Duration.max">core.time.Duration.max</a></code>,
+        <li>The <code><span class="symbol-target" id="linger">&nbsp;</span><a class="symbol-link" href="#linger">linger</a></code>, <code><span class="symbol-target" id="receiveTimeout">&nbsp;</span><a class="symbol-link" href="#receiveTimeout">receiveTimeout</a></code> and <code><span class="symbol-target" id="sendTimeout">&nbsp;</span><a class="symbol-link" href="#sendTimeout">sendTimeout</a></code>
+            properties may have the special <i>value</i> <code><a href="http://dlang.org/phobos/core_time.html#.Duration.max">core.time.Duration.max</a></code>,
             which in this context specifies an infinite duration.  This  is
-            translated to an option value of -1 in the C API (and it is also
-            the default value for all of them).</li>
+            translated to an option <i>value</i> of -1 in the C API (and it is also
+            the default <i>value</i> for all of them).</li>
         <li>Some options have array type, and these allow the user to supply
-            a buffer in which to store the value, to avoid a GC allocation.
-            The return value is then a slice of this buffer.
+            a buffer in which to store the <i>value</i>, to avoid a GC allocation.
+            The return <i>value</i> is then a slice of this buffer.
             These are not marked as <code>@property</code>, but are prefixed with
-            "get" (e.g. <code>getIdentity()</code>).  A user-supplied buffer is
-            <i>required</i> for some options, namely <code>getPlainUsername()</code>
-            and <code>getPlainPassword()</code>, and these do not have <code>@property</code>
+            "get" (e.g. <code><span class="symbol-target" id="getIdentity">&nbsp;</span><a class="symbol-link" href="#getIdentity">getIdentity</a>()</code>).  A user-supplied buffer is
+            <i>required</i> for some options, namely <code><span class="symbol-target" id="getPlainUsername">&nbsp;</span><a class="symbol-link" href="#getPlainUsername">getPlainUsername</a>()</code>
+            and <code><span class="symbol-target" id="getPlainPassword">&nbsp;</span><a class="symbol-link" href="#getPlainPassword">getPlainPassword</a>()</code>, and these do not have <code>@property</code>
             versions.  <code>getCurveXxxKey()</code> and <code>getCurveXxxKeyZ85()</code>
             require buffers which are at least 32 and 41 bytes long,
             respectively.</li>
@@ -707,7 +707,7 @@ rcv.receive(<b>msg</b>);
         <code><a href="http://dlang.org/phobos/std_conv.html#.ConvOverflowException">std.conv.ConvOverflowException</a></code> if a given <code>Duration</code> is
             longer than the number of milliseconds that will fit in an <code>int</code>
             (only applies to properties of <code><a href="http://dlang.org/phobos/core_time.html#.Duration">core.time.Duration</a></code> type).<br>
-        <code><a href="http://dlang.org/phobos/core_exception.html#.RangeError">core.exception.RangeError</a></code> if the <code>dest</code> buffers passed to
+        <code><a href="http://dlang.org/phobos/core_exception.html#.RangeError">core.exception.RangeError</a></code> if the <code><i>dest</i></code> buffers passed to
             <code>getCurveXxxKey()</code> or <code>getCurveXxxKeyZ85()</code> are less than
             32 or 41 bytes long, respectively.
 </dd>
@@ -818,7 +818,29 @@ manually destroyed in a different thread.
 <dt>Throws</dt><dd><code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </dd>
 <dt>Corresponds to:</dt><dd>
-<code><a href="http://api.zeromq.org/4-0:zmq_proxy()">zmq_proxy()</a></code></dd>
+<code><a href="http://api.zeromq.org/4-0:zmq_proxy()">zmq_proxy()</a></code>
+</dd>
+<dt>See Also</dt><dd><code><a href="#steerableProxy">steerableProxy()</a></code></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>@safe void <span class="symbol-target" id="steerableProxy">&nbsp;</span><a class="symbol-link" href="#steerableProxy">steerableProxy</a>(ref Socket <i>frontend</i>, ref Socket <i>backend</i>, ref Socket <i>control</i>);
+<br>@safe void <span class="symbol-target" id="steerableProxy">&nbsp;</span><a class="symbol-link" href="#steerableProxy">steerableProxy</a>(ref Socket <i>frontend</i>, ref Socket <i>backend</i>, ref Socket <i>control</i>, ref Socket <i>capture</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Starts the built-in &#x2205;MQ proxy with control flow.
+</p>
+<p>Note that the order of the two last parameters is reversed compared to
+<code><a href="http://api.zeromq.org/4-0:zmq_proxy_steerable()">zmq_proxy_steerable()</a></code>.  That is, the <code><i>control</i></code> socket always
+comes before the <code><i>capture</i></code> socket.  Furthermore, unlike in &#x2205;MQ,
+<code><i>control</i></code> is mandatory.  (Without the control socket one can simply
+use <code><a href="#proxy">proxy()</a></code>.)
+
+</p>
+<dt>Throws</dt><dd><code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
+</dd>
+<dt>Corresponds to:</dt><dd>
+<code><a href="http://api.zeromq.org/4-0:zmq_proxy_steerable()">zmq_proxy_steerable()</a></code>
+</dd>
+<dt>See Also</dt><dd><code><a href="#proxy">proxy()</a></code></dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>@trusted uint <span class="symbol-target" id="poll">&nbsp;</span><a class="symbol-link" href="#poll">poll</a>(PollItem[] <i>items</i>, Duration <i>timeout</i> = Duration.max);
@@ -1120,8 +1142,8 @@ msg.<u>rebuild</u>(buf);
 </h3></div>
 <div class="declaration-content"><dl><p>Copies frame content to another message frame.
 </p>
-<p><code><span class="symbol-target" id="copy">&nbsp;</span><a class="symbol-link" href="#copy">copy</a>()</code> returns a new <code>Frame</code> object, while <code>copyTo(dest)</code>
-    copies the contents of this <code>Frame</code> into <code>dest</code>.  <code>dest</code> must
+<p><code><span class="symbol-target" id="copy">&nbsp;</span><a class="symbol-link" href="#copy">copy</a>()</code> returns a new <code>Frame</code> object, while <code><span class="symbol-target" id="copyTo">&nbsp;</span><a class="symbol-link" href="#copyTo">copyTo</a>(<i>dest</i>)</code>
+    copies the contents of this <code>Frame</code> into <code><i>dest</i></code>.  <code><i>dest</i></code> must
     be a valid (i.e. initialized) <code>Frame</code>.
 
 </p>
@@ -1137,7 +1159,7 @@ These functions may not do what you think they do.  Please refer
 <span class="d_keyword">import</span> std.string: representation;
 <span class="d_keyword">auto</span> msg1 = Frame(3);
 msg1.data[] = <span class="d_string">"foo"</span>.representation;
-<span class="d_keyword">auto</span> msg2 = msg1.copy();
+<span class="d_keyword">auto</span> msg2 = msg1.<u>copy</u>();
 <span class="d_keyword">assert</span> (msg2.data.asString() == <span class="d_string">"foo"</span>);
 </pre>
 </dd></dl>
@@ -1147,8 +1169,8 @@ msg1.data[] = <span class="d_string">"foo"</span>.representation;
 </h3></div>
 <div class="declaration-content"><dl><p>Moves frame content to another message frame.
 </p>
-<p><code><span class="symbol-target" id="move">&nbsp;</span><a class="symbol-link" href="#move">move</a>()</code> returns a new <code>Frame</code> object, while <code>moveTo(dest)</code>
-    moves the contents of this <code>Frame</code> to <code>dest</code>.  <code>dest</code> must
+<p><code><span class="symbol-target" id="move">&nbsp;</span><a class="symbol-link" href="#move">move</a>()</code> returns a new <code>Frame</code> object, while <code><span class="symbol-target" id="moveTo">&nbsp;</span><a class="symbol-link" href="#moveTo">moveTo</a>(<i>dest</i>)</code>
+    moves the contents of this <code>Frame</code> to <code><i>dest</i></code>.  <code><i>dest</i></code> must
     be a valid (i.e. initialized) <code>Frame</code>.
 
 </p>
@@ -1160,7 +1182,7 @@ msg1.data[] = <span class="d_string">"foo"</span>.representation;
 <span class="d_keyword">import</span> std.string: representation;
 <span class="d_keyword">auto</span> msg1 = Frame(3);
 msg1.data[] = <span class="d_string">"foo"</span>.representation;
-<span class="d_keyword">auto</span> msg2 = msg1.move();
+<span class="d_keyword">auto</span> msg2 = msg1.<u>move</u>();
 <span class="d_keyword">assert</span> (msg1.size == 0);
 <span class="d_keyword">assert</span> (msg2.data.asString() == <span class="d_string">"foo"</span>);
 </pre>
