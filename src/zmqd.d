@@ -2359,7 +2359,7 @@ private:
         body
     {
         import core.memory;
-        static extern(C) zmqd_Frame_init_data_free(void* dataPtr, void* block)
+        static extern(C) void zmqd_Frame_init_data_free(void* dataPtr, void* block)
             @trusted nothrow
         {
             GC.removeRoot(dataPtr);
