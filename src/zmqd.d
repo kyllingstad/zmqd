@@ -2016,21 +2016,16 @@ struct Frame
     /** $(DDOC_ANCHOR Frame.opCall_data)
     Initializes a $(ZMQ) message frame from a supplied buffer.
 
-    Warning:
-        Some care must be taken when using this function, as $(ZMQ) expects
-        to take full ownership of the supplied buffer.  Client code should
-        therefore avoid retaining any references to it, including slices that
-        contain, overlap with or are contained in $(D data).
-        $(ZMQ) makes no guarantee that the buffer is not modified,
-        and it does not specify when the buffer is released.
+    $(D data) must refer to a slice of memory which has been allocated with the
+    garbage collector.  Ownership will be transferred temporarily to $(ZMQ),
+    and then transferred back to the GC when $(ZMQ) is done using the buffer.
 
-        An additional complication is caused by the fact that most arrays in D
-        are owned by the garbage collector.  This is solved by adding the array
-        pointer as a new garbage collector root before passing it to
-        $(ZMQREF zmq_msg_init_data()), thus preventing the GC from collecting
-        it.  The root is then removed again in the deallocator callback
-        function which is called by $(ZMQ) when it no longer requires
-        the buffer, thus allowing the GC to collect it.
+    Warning:
+        Some care must be taken when using this function, as there is no telling
+        when (or whether) $(ZMQ) relinquishes ownership of the buffer.
+        Client code should therefore avoid retaining any references to it,
+        including slices that contain, overlap with or are contained in
+        $(D data).
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
