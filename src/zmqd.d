@@ -2013,19 +2013,42 @@ struct Frame
         assert(msg.size == 123);
     }
 
+    /**
+    The function pointer type for memory-freeing callback functions passed to
+    $(D $(LINK2 #Frame.opCall_data,Frame(ubyte[], _FreeData, void*))).
+    */
+    @system alias extern(C) void function(void*, void*) nothrow FreeData;
+
     /** $(DDOC_ANCHOR Frame.opCall_data)
     Initializes a $(ZMQ) message frame from a supplied buffer.
 
-    $(D data) must refer to a slice of memory which has been allocated with the
-    garbage collector.  Ownership will be transferred temporarily to $(ZMQ),
-    and then transferred back to the GC when $(ZMQ) is done using the buffer.
+    If $(D free) is not specified, $(D data) $(EM must) refer to a slice of
+    memory which has been allocated by the garbage collector (typically using
+    operator $(D new)).  Ownership will then be transferred temporarily to
+    $(ZMQ), and then transferred back to the GC when $(ZMQ) is done using the
+    buffer.
+
+    For memory which is $(EM not) garbage collected, the argument $(D free)
+    must be a pointer to a function that will release the memory, which will
+    be called when $(ZMQ) no longer needs the buffer.  $(D free) must point to
+    a function with the following signature:
+    ---
+    extern(C) void f(void* d, void* h) nothrow;
+    ---
+    When it is called, $(D d) will be equal to $(D data.ptr), while $(D h) will
+    be equal to $(D hint) (which is optional and null by default).
+
+    $(D free) is passed directly to the underlying $(ZMQ) C function, which is
+    why it needs to be $(D extern(C)).
 
     Warning:
         Some care must be taken when using this function, as there is no telling
-        when (or whether) $(ZMQ) relinquishes ownership of the buffer.
-        Client code should therefore avoid retaining any references to it,
-        including slices that contain, overlap with or are contained in
-        $(D data).
+        when, whether, or in which thread $(ZMQ) relinquishes ownership of the
+        buffer.  Client code should therefore avoid retaining any references to
+        it, including slices that contain, overlap with or are contained in
+        $(D data).  For the "non-GC" version, client code should in general not
+        retain slices or pointers to any memory which will be released when
+        $(D free) is called.
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
@@ -2038,13 +2061,60 @@ struct Frame
         return m;
     }
 
+    /// ditto
+    static Frame opCall(ubyte[] data, FreeData free, void* hint = null) @system
+    {
+        Frame m;
+        m.init(data, free, hint);
+        return m;
+    }
+
     ///
     unittest
     {
+        // Garbage-collected memory
         auto buf = new ubyte[123];
         auto msg = Frame(buf);
         assert(msg.size == buf.length);
         assert(msg.data.ptr == buf.ptr);
+    }
+
+    ///
+    @system unittest
+    {
+        // Manually managed memory
+        import core.stdc.stdlib: malloc, free;
+        static extern(C) void myFree(void* data, void* hint) nothrow { free(data); }
+        auto buf = (cast(ubyte*) malloc(10))[0 .. 10];
+        auto msg = Frame(buf, &myFree);
+        assert(msg.size == buf.length);
+        assert(msg.data.ptr == buf.ptr);
+    }
+
+    @system unittest
+    {
+        // Non-documentation unittest.  Let's see if the data *actually* gets freed.
+        ubyte buffer = 81;
+        bool released = false;
+        static extern(C) void myFree(void* data, void* hint) nothrow
+        {
+            auto typedData = cast(ubyte*) data;
+            auto typedHint = cast(bool*) hint;
+            assert(*typedData == 81);
+            assert(!*typedHint);
+            *typedData = 0;
+            *typedHint = true;
+        }
+        // New scope, so the frame gets released at the end.
+        {
+            auto frame = Frame((&buffer)[0 .. 1], &myFree, &released);
+            assert(frame.size == 1);
+            assert(frame.data.ptr == &buffer);
+            assert(buffer == 81);
+            assert(!released);
+        }
+        assert(buffer == 0);
+        assert(released);
     }
 
     /**
@@ -2109,7 +2179,10 @@ struct Frame
     This function will first call $(FREF Frame.close) to release the
     resources associated with the message frame, and then it will
     initialize it anew, exactly as if it were constructed  with
-    $(D $(LINK2 #Frame.opCall_data,Frame(data))).
+    $(D Frame(data)) or $(D Frame(data, free, hint)).
+
+    Some care must be taken when using these functions.  Please read the
+    $(D $(LINK2 #Frame.opCall_data,Frame(ubyte[]))) documentation.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -2122,13 +2195,36 @@ struct Frame
         init(data);
     }
 
+    /// ditto
+    @system void rebuild(ubyte[] data, FreeData free, void* hint = null)
+    {
+        close();
+        init(data, free, hint);
+    }
+
     ///
     unittest
     {
+        // Garbage-collected memory
         auto msg = Frame(256);
         assert (msg.size == 256);
         auto buf = new ubyte[123];
         msg.rebuild(buf);
+        assert(msg.size == buf.length);
+        assert(msg.data.ptr == buf.ptr);
+    }
+
+    ///
+    @system unittest
+    {
+        // Manually managed memory
+        import core.stdc.stdlib: malloc, free;
+        static extern(C) void myFree(void* data, void* hint) nothrow { free(data); }
+
+        auto msg = Frame(256);
+        assert (msg.size == 256);
+        auto buf = (cast(ubyte*) malloc(10))[0 .. 10];
+        msg.rebuild(buf, &myFree);
         assert(msg.size == buf.length);
         assert(msg.data.ptr == buf.ptr);
     }
@@ -2354,7 +2450,7 @@ private:
         body
     {
         import core.memory;
-        static extern(C) void zmqd_Frame_init_data_free(void* dataPtr, void* block)
+        static extern(C) void zmqd_Frame_init_gcFree(void* dataPtr, void* block)
             @trusted nothrow
         {
             GC.removeRoot(dataPtr);
@@ -2369,8 +2465,15 @@ private:
         GC.setAttr(block, GC.BlkAttr.NO_MOVE);
         scope(failure) if (movable) GC.clrAttr(block, GC.BlkAttr.NO_MOVE);
 
-        if (trusted!zmq_msg_init_data(&m_msg, data.ptr, data.length,
-                                      &zmqd_Frame_init_data_free, block) != 0) {
+        init(data, &zmqd_Frame_init_gcFree, block);
+    }
+
+    void init(ubyte[] data, FreeData free, void* hint) @system
+        in { assert (!m_initialized); }
+        out { assert (m_initialized); }
+        body
+    {
+        if (zmq_msg_init_data(&m_msg, data.ptr, data.length, free, hint) != 0) {
             throw new ZmqException;
         }
         m_initialized = true;
