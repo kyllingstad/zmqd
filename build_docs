@@ -1,0 +1,23 @@
+#!/bin/sh
+packageCache=$HOME/.dub/packages
+if [ ! -d "$packageCache" ]; then
+    echo "Dub package cache not found. Please build zmqd with dub before running this script."
+    exit 1
+fi
+zeromqVerSpec=`cat .dub/dub.json | grep zeromq | sed 's/\s*"zeromq":\s*"\([a-zA-Z0-9.+-]\+\)\+"/zeromq-\1/'`
+if [ -z "$zeromqVerSpec" ]; then
+    echo "Dub build data not found. Please build zmqd with dub before running this script."
+    exit 2
+fi
+ghPagesDir="gh-pages"
+if [ ! -e "$ghPagesDir" ]; then
+    remoteURL=`git remote -v | grep 'origin\s.*(fetch)' | sed 's/origin\s\+\(\S\+\)\s\+(fetch)/\1/'`
+    git clone "$remoteURL" "$ghPagesDir"
+    cd "$ghPagesDir"
+    git checkout gh-pages
+    git submodule init
+    git submodule update
+else
+    cd "$ghPagesDir"
+fi
+rdmd bootDoc/generate.d ../src --modules=bootDoc-config/modules.ddoc --settings=bootDoc-config/settings.ddoc -I$packageCache/$zeromqVerSpec
