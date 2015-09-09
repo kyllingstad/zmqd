@@ -1020,35 +1020,65 @@ for this.</p>
 </pre>
 </dd></dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>static @safe Frame <span class="symbol-target" id="opCall">&nbsp;</span><a class="symbol-link" href="#opCall">opCall</a>(ubyte[] <i>data</i>);
+<hr><div class="row-fluid declaration"><h3>alias <span class="symbol-target" id="FreeData">&nbsp;</span><a class="symbol-link" href="#FreeData">FreeData</a> = extern (C) void function(void*, void*) nothrow @system;
+</h3></div>
+<div class="declaration-content"><dl><p>The function pointer type for memory-freeing callback functions passed to
+    <code><a href="#Frame.opCall_data">Frame(ubyte[], FreeData, void*)</a></code>.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>static @system Frame <span class="symbol-target" id="opCall">&nbsp;</span><a class="symbol-link" href="#opCall">opCall</a>(ubyte[] <i>data</i>);
+<br>static @system Frame <span class="symbol-target" id="opCall">&nbsp;</span><a class="symbol-link" href="#opCall">opCall</a>(ubyte[] <i>data</i>, FreeData <i>free</i>, void* <i>hint</i> = null);
 </h3></div>
 <div class="declaration-content"><dl><p>
     Initializes a &#x2205;MQ message frame from a supplied buffer.
 </p>
-<dt>Warning:</dt><dd>
-Some care must be taken when using this function, as &#x2205;MQ expects
-        to take full ownership of the supplied buffer.  Client code should
-        therefore avoid retaining any references to it, including slices that
-        contain, overlap with or are contained in <code><i>data</i></code>.
-        &#x2205;MQ makes no guarantee that the buffer is not modified,
-        and it does not specify when the buffer is released.
+<p>    If <code><i>free</i></code> is not specified, <code><i>data</i></code> <em>must</em> refer to a slice of
+    memory which has been allocated by the garbage collector (typically using
+    operator <code>new</code>).  Ownership will then be transferred temporarily to
+    &#x2205;MQ, and then transferred back to the GC when &#x2205;MQ is done using the
+    buffer.
 <br><br>
 
-        An additional complication is caused by the fact that most arrays in D
-        are owned by the garbage collector.  This is solved by adding the array
-        pointer as a new garbage collector root before passing it to
-        <code><a href="http://api.zeromq.org/4-0:zmq_msg_init_data()">zmq_msg_init_data()</a></code>, thus preventing the GC from collecting
-        it.  The root is then removed again in the deallocator callback
-        function which is called by &#x2205;MQ when it no longer requires
-        the buffer, thus allowing the GC to collect it.
+    For memory which is <em>not</em> garbage collected, the argument <code><i>free</i></code>
+    must be a pointer to a function that will release the memory, which will
+    be called when &#x2205;MQ no longer needs the buffer.  <code><i>free</i></code> must point to
+    a function with the following signature:
+<pre class="d_code"><span class="d_keyword">extern</span>(C) <span class="d_keyword">void</span> f(<span class="d_keyword">void</span>* d, <span class="d_keyword">void</span>* h) <span class="d_keyword">nothrow</span>;
+</pre>
+    When it is called, <code>d</code> will be equal to <code><i>data</i>.ptr</code>, while <code>h</code> will
+    be equal to <code><i>hint</i></code> (which is optional and <span class="d_keyword">null</span> by default).
+<br><br>
+
+    <code><i>free</i></code> is passed directly to the underlying &#x2205;MQ C function, which is
+    why it needs to be <code>extern(C)</code>.
+
+</p>
+<dt>Warning:</dt><dd>
+Some care must be taken when using this function, as there is no telling
+        when, whether, or in which thread &#x2205;MQ relinquishes ownership of the
+        buffer.  Client code should therefore avoid retaining any references to
+        it, including slices that contain, overlap with or are contained in
+        <code><i>data</i></code>.  For the "non-GC" version, client code should in general not
+        retain slices or pointers to any memory which will be released when
+        <code><i>free</i></code> is called.
 </dd>
 <dt>Throws</dt><dd><code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
 </dd>
 <dt>Corresponds to:</dt><dd>
 <code><a href="http://api.zeromq.org/4-0:zmq_msg_init_data()">zmq_msg_init_data()</a></code></dd>
 <dt>Examples</dt><dd><pre class="d_code">
-<span class="d_keyword">auto</span> buf = <span class="d_keyword">new</span> <span class="d_keyword">ubyte</span>[123];
+<span class="d_comment">// Garbage-collected memory
+</span><span class="d_keyword">auto</span> buf = <span class="d_keyword">new</span> <span class="d_keyword">ubyte</span>[123];
 <span class="d_keyword">auto</span> msg = Frame(buf);
+<span class="d_keyword">assert</span>(msg.size == buf.length);
+<span class="d_keyword">assert</span>(msg.<b>data</b>.ptr == buf.ptr);
+</pre>
+</dd><dt>Examples</dt><dd><pre class="d_code">
+<span class="d_comment">// Manually managed memory
+</span><span class="d_keyword">import</span> core.stdc.stdlib: malloc, <b>free</b>;
+<span class="d_keyword">static</span> <span class="d_keyword">extern</span>(C) <span class="d_keyword">void</span> myFree(<span class="d_keyword">void</span>* <b>data</b>, <span class="d_keyword">void</span>* <b>hint</b>) <span class="d_keyword">nothrow</span> { <b>free</b>(<b>data</b>); }
+<span class="d_keyword">auto</span> buf = (<span class="d_keyword">cast</span>(<span class="d_keyword">ubyte</span>*) malloc(10))[0 .. 10];
+<span class="d_keyword">auto</span> msg = Frame(buf, &amp;myFree);
 <span class="d_keyword">assert</span>(msg.size == buf.length);
 <span class="d_keyword">assert</span>(msg.<b>data</b>.ptr == buf.ptr);
 </pre>
@@ -1098,14 +1128,19 @@ msg.<u>rebuild</u>(1024);
 </pre>
 </dd></dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>@safe void <span class="symbol-target" id="rebuild">&nbsp;</span><a class="symbol-link" href="#rebuild">rebuild</a>(ubyte[] <i>data</i>);
+<hr><div class="row-fluid declaration"><h3>@system void <span class="symbol-target" id="rebuild">&nbsp;</span><a class="symbol-link" href="#rebuild">rebuild</a>(ubyte[] <i>data</i>);
+<br>@system void <span class="symbol-target" id="rebuild">&nbsp;</span><a class="symbol-link" href="#rebuild">rebuild</a>(ubyte[] <i>data</i>, FreeData <i>free</i>, void* <i>hint</i> = null);
 </h3></div>
 <div class="declaration-content"><dl><p>Reinitializes the Frame object from a supplied buffer.
 </p>
 <p>This function will first call <code><a href="#Frame.close">Frame.close()</a></code> to release the
     resources associated with the message frame, and then it will
     initialize it anew, exactly as if it were constructed  with
-    <code><a href="#Frame.opCall_data">Frame(<i>data</i>)</a></code>.
+    <code>Frame(<i>data</i>)</code> or <code>Frame(<i>data</i>, <i>free</i>, <i>hint</i>)</code>.
+<br><br>
+
+    Some care must be taken when using these functions.  Please read the
+    <code><a href="#Frame.opCall_data">Frame(ubyte[])</a></code> documentation.
 
 </p>
 <dt>Throws</dt><dd><code><a href="#ZmqException">ZmqException</a></code> if &#x2205;MQ reports an error.
@@ -1113,10 +1148,23 @@ msg.<u>rebuild</u>(1024);
 <dt>Corresponds to:</dt><dd>
 <code><a href="http://api.zeromq.org/4-0:zmq_msg_close()">zmq_msg_close()</a></code> followed by <code><a href="http://api.zeromq.org/4-0:zmq_msg_init_data()">zmq_msg_init_data()</a></code>.</dd>
 <dt>Examples</dt><dd><pre class="d_code">
-<span class="d_keyword">auto</span> msg = Frame(256);
+<span class="d_comment">// Garbage-collected memory
+</span><span class="d_keyword">auto</span> msg = Frame(256);
 <span class="d_keyword">assert</span> (msg.size == 256);
 <span class="d_keyword">auto</span> buf = <span class="d_keyword">new</span> <span class="d_keyword">ubyte</span>[123];
 msg.<u>rebuild</u>(buf);
+<span class="d_keyword">assert</span>(msg.size == buf.length);
+<span class="d_keyword">assert</span>(msg.<b>data</b>.ptr == buf.ptr);
+</pre>
+</dd><dt>Examples</dt><dd><pre class="d_code">
+<span class="d_comment">// Manually managed memory
+</span><span class="d_keyword">import</span> core.stdc.stdlib: malloc, <b>free</b>;
+<span class="d_keyword">static</span> <span class="d_keyword">extern</span>(C) <span class="d_keyword">void</span> myFree(<span class="d_keyword">void</span>* <b>data</b>, <span class="d_keyword">void</span>* <b>hint</b>) <span class="d_keyword">nothrow</span> { <b>free</b>(<b>data</b>); }
+
+<span class="d_keyword">auto</span> msg = Frame(256);
+<span class="d_keyword">assert</span> (msg.size == 256);
+<span class="d_keyword">auto</span> buf = (<span class="d_keyword">cast</span>(<span class="d_keyword">ubyte</span>*) malloc(10))[0 .. 10];
+msg.<u>rebuild</u>(buf, &amp;myFree);
 <span class="d_keyword">assert</span>(msg.size == buf.length);
 <span class="d_keyword">assert</span>(msg.<b>data</b>.ptr == buf.ptr);
 </pre>
