@@ -2054,7 +2054,7 @@ struct Frame
     Corresponds_to:
         $(ZMQREF zmq_msg_init_data())
     */
-    static Frame opCall(ubyte[] data)
+    static Frame opCall(ubyte[] data) @system
     {
         Frame m;
         m.init(data);
@@ -2070,7 +2070,7 @@ struct Frame
     }
 
     ///
-    unittest
+    @system unittest
     {
         // Garbage-collected memory
         auto buf = new ubyte[123];
@@ -2189,21 +2189,21 @@ struct Frame
     Corresponds_to:
         $(ZMQREF zmq_msg_close()) followed by $(ZMQREF zmq_msg_init_data()).
     */
-    void rebuild(ubyte[] data)
+    void rebuild(ubyte[] data) @system
     {
         close();
         init(data);
     }
 
     /// ditto
-    @system void rebuild(ubyte[] data, FreeData free, void* hint = null)
+    void rebuild(ubyte[] data, FreeData free, void* hint = null) @system
     {
         close();
         init(data, free, hint);
     }
 
     ///
-    unittest
+    @system unittest
     {
         // Garbage-collected memory
         auto msg = Frame(256);
@@ -2444,14 +2444,13 @@ private:
         m_initialized = true;
     }
 
-    private void init(ubyte[] data) @trusted
+    private void init(ubyte[] data) @system
         in { assert (!m_initialized); }
         out { assert (m_initialized); }
         body
     {
         import core.memory;
-        static extern(C) void zmqd_Frame_init_gcFree(void* dataPtr, void* block)
-            @trusted nothrow
+        static extern(C) void zmqd_Frame_init_gcFree(void* dataPtr, void* block) nothrow
         {
             GC.removeRoot(dataPtr);
             GC.clrAttr(block, GC.BlkAttr.NO_MOVE);
