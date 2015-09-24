@@ -2,7 +2,7 @@
     "name"          : "zmqd",
     "description"   : "A safe and convenient wrapper for the ∅MQ/ZeroMQ messaging framework",
     "homepage"      : "https://github.com/kyllingstad/zmqd",
-    "copyright"     : "Copyright (c) 2013–2014, Lars T. Kyllingstad",
+    "copyright"     : "Copyright (c) 2013–2015, Lars T. Kyllingstad",
     "license"       : "MPL-2.0",
     "authors"       : [ "Lars T. Kyllingstad" ],
     "dependencies"  : { "zeromq": "~>4.0" },
