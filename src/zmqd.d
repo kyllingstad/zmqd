@@ -97,6 +97,11 @@ version(Windows) {
 // libsodium is enabled by default, since that is the case with ZeroMQ itself.
 version (WithoutLibsodium) { } else version = WithLibsodium;
 
+// Include ZMQ >= 4.1 features?
+static if (ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)) {
+    version = ZeroMQ41;
+}
+
 // Compatibility check
 version(unittest) static this()
 {
@@ -2711,6 +2716,60 @@ struct Context
         ctx.maxSockets = 512;
         assert (ctx.maxSockets == 512);
     }
+
+    /**
+    The largest configurable number of sockets.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_get()) with $(D ZMQ_SOCKET_LIMIT).
+    */
+    version (ZeroMQ41)
+    @property int socketLimit()
+    {
+        return getOption(ZMQ_SOCKET_LIMIT);
+    }
+
+    ///
+    version (ZeroMQ41)
+    unittest
+    {
+        auto ctx = Context();
+        assert (ctx.socketLimit > 0);
+    }
+
+    /**
+    IPv6 option.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
+        $(D ZMQ_IPV6).
+    */
+    version (ZeroMQ41)
+    @property bool ipv6()
+    {
+        return !!getOption(ZMQ_IPV6);
+    }
+
+    /// ditto
+    version (ZeroMQ41)
+    @property void ipv6(bool value)
+    {
+        setOption(ZMQ_IPV6, value ? 1 : 0);
+    }
+
+    ///
+    version (ZeroMQ41)
+    unittest
+    {
+        auto ctx = Context();
+        ctx.ipv6 = true;
+        assert (ctx.ipv6 == true);
+    }
+
 
     /**
     The $(D void*) pointer used by the underlying C API to refer to the context.
