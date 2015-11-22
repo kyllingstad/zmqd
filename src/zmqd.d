@@ -2425,6 +2425,43 @@ struct Frame
     }
 
     /**
+    The file descriptor of the socket the message was read from.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_get()) with $(D ZMQ_SRCFD).
+    */
+    @property FD sourceFD()
+    {
+        return cast(FD) getProperty(ZMQ_SRCFD);
+    }
+
+    /**
+    Whether the message MAY share underlying storage with another copy.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_get()) with $(D ZMQ_SRCFD).
+    */
+    @property bool sharedStorage()
+    {
+        return !!getProperty(ZMQ_SHARED);
+    }
+
+    unittest
+    {
+        import std.string: representation;
+        auto msg1 = Frame(100); // Big message to avoid small-string optimisation
+        msg1.data[0 .. 3] = "foo".representation;
+        assert (!msg1.sharedStorage);
+        auto msg2 = msg1.copy();
+        assert (msg2.sharedStorage); // Warning: The ZMQ docs only say that this MAY be true
+        assert (msg2.data[0 .. 3].asString() == "foo");
+    }
+
+    /**
     A pointer to the underlying $(D zmq_msg_t).
     */
     @property inout(zmq_msg_t)* handle() inout pure nothrow
@@ -2487,6 +2524,15 @@ private:
             throw new ZmqException;
         }
         m_initialized = true;
+    }
+
+    int getProperty(int property) @trusted
+    {
+        const value = zmq_msg_get(&m_msg, property);
+        if (value == -1) {
+            throw new ZmqException;
+        }
+        return value;
     }
 
     bool m_initialized;
