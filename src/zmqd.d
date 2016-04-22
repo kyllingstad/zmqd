@@ -775,8 +775,7 @@ struct Socket
         $(LI The $(D linger), $(D receiveTimeout) and $(D sendTimeout)
             properties may have the special value $(COREF time,Duration.max),
             which in this context specifies an infinite duration.  This  is
-            translated to an option value of -1 in the C API (and it is also
-            the default value for all of them).)
+            translated to an option value of -1 in the C API.
         $(LI Some options have array type, and these allow the user to supply
             a buffer in which to store the value, to avoid a GC allocation.
             The return value is then a slice of this buffer.
