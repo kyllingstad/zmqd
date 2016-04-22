@@ -91,7 +91,7 @@ import deimos.zmq.zmq;
 
 
 version(Windows) {
-    import std.c.windows.winsock: SOCKET;
+    import core.sys.windows.winsock2: SOCKET;
 }
 
 // libsodium is enabled by default, since that is the case with ZeroMQ itself.
