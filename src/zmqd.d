@@ -1665,6 +1665,8 @@ void proxy(ref Socket frontend, ref Socket backend, ref Socket capture)
 }
 
 
+static if (ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 0, 5)) {
+
 /**
 Starts the built-in $(ZMQ) proxy with _control flow.
 
@@ -1674,6 +1676,9 @@ comes before the $(D capture) socket.  Furthermore, unlike in $(ZMQ),
 $(D control) is mandatory.  (Without the _control socket one can simply
 use $(FREF proxy).)
 
+Versions:
+    This function is only available when using the bindings for ZeroMQ
+    4.0.5 or later.
 Throws:
     $(REF ZmqException) if $(ZMQ) reports an error.
 Corresponds_to:
@@ -1768,6 +1773,8 @@ void steerableProxy(ref Socket frontend, ref Socket backend, ref Socket control,
     controller.send("TERMINATE");
     t.join();
 }
+
+} // end static if (version >= 4.0.5)
 
 
 deprecated("zmqd.poll() has a new signature as of v0.4")
