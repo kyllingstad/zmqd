@@ -94,12 +94,29 @@ version(Windows) {
     import core.sys.windows.winsock2: SOCKET;
 }
 
-// libsodium is enabled by default, since that is the case with ZeroMQ itself.
-version (WithoutLibsodium) { } else version = WithLibsodium;
-
 // Include ZMQ >= 4.1 features?
 static if (ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)) {
     version = ZeroMQ41;
+    version (unittest) pragma (msg, "ZeroMQ 4.1 features enabled");
+}
+
+// Curve and GSSAPI are enabled by default.
+version (WithoutLibsodium) {
+    version (unittest) pragma (msg, "Curve disabled");
+} else {
+    version = WithLibsodium;
+    version (unittest) pragma (msg, "Curve enabled");
+}
+
+version (WithoutGSSAPI) {
+    version (unittest) pragma (msg, "GSSAPI disabled");
+} else {
+    static if (ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)) {
+        version = WithGSSAPI;
+        version (unittest) pragma (msg, "GSSAPI enabled");
+    } else {
+        version (unittest) pragma (msg, "GSSAPI not available");
+    }
 }
 
 // Compatibility check
@@ -1134,6 +1151,71 @@ version (WithLibsodium) {
     /// ditto
     @property void zapDomain(const char[] value) { setArrayOption(ZMQ_ZAP_DOMAIN, value); }
 
+    /// ditto
+    version (ZeroMQ41)
+    @property void routerHandover(bool value) { setOption(ZMQ_ROUTER_HANDOVER, value ? 1 : 0); }
+
+    /// ditto
+    version (ZeroMQ41)
+    @property void connectionRID(const ubyte[] value) { setArrayOption(ZMQ_CONNECT_RID, value); }
+
+    /// ditto
+    version (ZeroMQ41)
+    @property int typeOfService() { return getOption!int(ZMQ_TOS); }
+    /// ditto
+    version (ZeroMQ41)
+    @property void typeOfService(int value) { setOption(ZMQ_TOS, value); }
+
+    /// ditto
+    version (WithGSSAPI)
+    @property bool gssapiPlaintext() { return !!getOption!int(ZMQ_GSSAPI_PLAINTEXT); }
+    /// ditto
+    version (WithGSSAPI)
+    @property void gssapiPlaintext(bool value) { setOption(ZMQ_GSSAPI_PLAINTEXT, value ? 1 : 0); }
+
+    /// ditto
+    version (WithGSSAPI)
+    @property char[] gssapiPrincipal() { return getGssapiPrincipal(new char[256]); }
+    /// ditto
+    version (WithGSSAPI)
+    char[] getGssapiPrincipal(char[] dest) { return getCStringOption(ZMQ_GSSAPI_PRINCIPAL, dest); }
+    /// ditto
+    version (WithGSSAPI)
+    @property void gssapiPrincipal(const char[] value) { setArrayOption(ZMQ_GSSAPI_PRINCIPAL, value); }
+
+    /// ditto
+    version (WithGSSAPI)
+    @property bool gssapiServer() { return !!getOption!int(ZMQ_GSSAPI_SERVER); }
+    /// ditto
+    version (WithGSSAPI)
+    @property void gssapiServer(bool value) { setOption(ZMQ_GSSAPI_SERVER, value ? 1 : 0); }
+
+    /// ditto
+    version (WithGSSAPI)
+    @property char[] gssapiServicePrincipal() { return getGssapiServicePrincipal(new char[256]); }
+    /// ditto
+    version (WithGSSAPI)
+    char[] getGssapiServicePrincipal(char[] dest) { return getCStringOption(ZMQ_GSSAPI_SERVICE_PRINCIPAL, dest); }
+    /// ditto
+    version (WithGSSAPI)
+    @property void gssapiServicePrincipal(const char[] value) { setArrayOption(ZMQ_GSSAPI_SERVICE_PRINCIPAL, value); }
+
+    /// ditto
+    version (ZeroMQ41)
+    @property Duration handshakeInterval()
+    {
+        const auto value = getOption!int(ZMQ_HANDSHAKE_IVL);
+        return value == 0 ? Duration.max : msecs(value);
+    }
+    /// ditto
+    version (ZeroMQ41)
+    @property void handshakeInterval(Duration value)
+    {
+        import std.conv: to;
+        setOption(ZMQ_HANDSHAKE_IVL,
+                  value == Duration.max ? 0 : to!int(value.total!"msecs"()));
+    }
+
     // deprecated options
     deprecated("Use the 'immediate' property instead")
     @property bool delayAttachOnConnect() { return !!getOption!int(ZMQ_DELAY_ATTACH_ON_CONNECT); }
@@ -1189,6 +1271,16 @@ version (WithLibsodium) {
             assert(!s.curveServer);
         }
         assert(s.zapDomain.length == 0);
+        version (ZeroMQ41) assert(s.typeOfService == 0);
+        version (WithGSSAPI) {
+            assert(!s.gssapiPlaintext);
+            assert(s.gssapiPrincipal.length == 0);
+            assert(!s.gssapiServer);
+            assert(s.gssapiServicePrincipal.length == 0);
+        }
+        version (ZeroMQ41) {
+            assert(s.handshakeInterval == 30000.msecs);
+        }
 
         // Test setters and getters together
         s.threadAffinity = 1;
@@ -1271,6 +1363,24 @@ version (WithLibsodium) {
         assert(s.mechanism == Security.none);
         s.zapDomain = "my_zap_domain";
         assert(s.zapDomain == "my_zap_domain");
+        version (ZeroMQ41) {
+            s.typeOfService = 1;
+            assert(s.typeOfService == 1);
+        }
+        version (WithGSSAPI) {
+            s.gssapiPlaintext = true;
+            assert(s.gssapiPlaintext);
+            s.gssapiPrincipal = "myPrincipal";
+            assert(s.gssapiPrincipal == "myPrincipal");
+            s.gssapiServer = true;
+            assert(s.gssapiServer);
+            s.gssapiServicePrincipal = "myServicePrincipal";
+            assert(s.gssapiServicePrincipal == "myServicePrincipal");
+        }
+        version (ZeroMQ41) {
+            s.handshakeInterval = 60000.msecs;
+            assert(s.handshakeInterval == 60000.msecs);
+        }
 
         // Test write-only options
         s.conflate = true;
@@ -1330,6 +1440,10 @@ version (WithLibsodium) {
         auto rt = Socket(SocketType.router);
         rt.routerMandatory = true;
         rt.probeRouter = true;
+        version (ZeroMQ41) {
+            rt.routerHandover = true;
+            rt.connectionRID = cast(ubyte[]) [ 10, 20, 30 ];
+        }
         auto xp = Socket(SocketType.xpub);
         xp.xpubVerbose = true;
         auto rq = Socket(SocketType.req);
