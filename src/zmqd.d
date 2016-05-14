@@ -726,23 +726,6 @@ struct Socket
     }
 
     /**
-    The socket _type.
-
-    Throws:
-        $(REF ZmqException) if $(ZMQ) reports an error.
-    Corresponds_to:
-        $(ZMQREF zmq_getsockopt()) with $(D ZMQ_TYPE).
-    */
-    @property SocketType type() { return getOption!SocketType(ZMQ_TYPE); }
-
-    ///
-    unittest
-    {
-        auto sck = Socket(SocketType.xpub);
-        assert (sck.type == SocketType.xpub);
-    }
-
-    /**
     Whether there are _more message frames to follow.
 
     Throws:
@@ -807,16 +790,6 @@ struct Socket
     Corresponds_to:
         $(ZMQREF zmq_getsockopt()) and $(ZMQREF zmq_setsockopt()).
     */
-    @property int sendHWM() { return getOption!int(ZMQ_SNDHWM); }
-    /// ditto
-    @property void sendHWM(int value) { setOption(ZMQ_SNDHWM, value); }
-
-    /// ditto
-    @property int receiveHWM() { return getOption!int(ZMQ_RCVHWM); }
-    /// ditto
-    @property void receiveHWM(int value) { setOption(ZMQ_RCVHWM, value); }
-
-    /// ditto
     @property ulong threadAffinity() { return getOption!ulong(ZMQ_AFFINITY); }
     /// ditto
     @property void threadAffinity(ulong value) { setOption(ZMQ_AFFINITY, value); }
@@ -858,6 +831,15 @@ struct Socket
     @property void receiveBufferSize(int value) { setOption(ZMQ_RCVBUF, value); }
 
     /// ditto
+    @property FD fd() { return getOption!FD(ZMQ_FD); }
+
+    /// ditto
+    @property PollFlags events() { return getOption!PollFlags(ZMQ_EVENTS); }
+
+    /// ditto
+    @property SocketType type() { return getOption!SocketType(ZMQ_TYPE); }
+
+    /// ditto
     @property Duration linger()
     {
         const auto value = getOption!int(ZMQ_LINGER);
@@ -884,6 +866,11 @@ struct Socket
     }
 
     /// ditto
+    @property int backlog() { return getOption!int(ZMQ_BACKLOG); }
+    /// ditto
+    @property void backlog(int value) { setOption(ZMQ_BACKLOG, value); }
+
+    /// ditto
     @property Duration maxReconnectionInterval()
     {
         return getOption!int(ZMQ_RECONNECT_IVL_MAX).msecs;
@@ -896,14 +883,19 @@ struct Socket
     }
 
     /// ditto
-    @property int backlog() { return getOption!int(ZMQ_BACKLOG); }
-    /// ditto
-    @property void backlog(int value) { setOption(ZMQ_BACKLOG, value); }
-
-    /// ditto
     @property long maxMsgSize() { return getOption!long(ZMQ_MAXMSGSIZE); }
     /// ditto
     @property void maxMsgSize(long value) { setOption(ZMQ_MAXMSGSIZE, value); }
+
+    /// ditto
+    @property int sendHWM() { return getOption!int(ZMQ_SNDHWM); }
+    /// ditto
+    @property void sendHWM(int value) { setOption(ZMQ_SNDHWM, value); }
+
+    /// ditto
+    @property int receiveHWM() { return getOption!int(ZMQ_RCVHWM); }
+    /// ditto
+    @property void receiveHWM(int value) { setOption(ZMQ_RCVHWM, value); }
 
     /// ditto
     @property int multicastHops() { return getOption!int(ZMQ_MULTICAST_HOPS); }
@@ -939,36 +931,6 @@ struct Socket
     }
 
     /// ditto
-    @property bool ipv6() { return !!getOption!int(ZMQ_IPV6); }
-    /// ditto
-    @property void ipv6(bool value) { setOption(ZMQ_IPV6, value ? 1 : 0); }
-
-    /// ditto
-    deprecated("Use !ipv6 instead")
-    @property bool ipv4Only() { return !ipv6; }
-    /// ditto
-    deprecated("Use ipv6 = !value instead")
-    @property void ipv4Only(bool value) { ipv6 = !value; }
-
-    /// ditto
-    @property bool immediate() { return !!getOption!int(ZMQ_IMMEDIATE); }
-    /// ditto
-    @property void immediate(bool value) { setOption!int(ZMQ_IMMEDIATE, value ? 1 : 0); }
-
-    /// ditto
-    deprecated("Use the 'immediate' property instead")
-    @property bool delayAttachOnConnect() { return !!getOption!int(ZMQ_DELAY_ATTACH_ON_CONNECT); }
-    /// ditto
-    deprecated("Use the 'immediate' property instead")
-    @property void delayAttachOnConnect(bool value) { setOption(ZMQ_DELAY_ATTACH_ON_CONNECT, value ? 1 : 0); }
-
-    /// ditto
-    @property FD fd() { return getOption!FD(ZMQ_FD); }
-
-    /// ditto
-    @property PollFlags events() { return getOption!PollFlags(ZMQ_EVENTS); }
-
-    /// ditto
     @property char[] lastEndpoint() @trusted
     {
         // This function is not @safe because it calls a @system function
@@ -985,26 +947,9 @@ struct Socket
     @property void routerMandatory(bool value) { setOption(ZMQ_ROUTER_MANDATORY, value ? 1 : 0); }
 
     /// ditto
-    @property void probeRouter(bool value) { setOption(ZMQ_PROBE_ROUTER, value ? 1 : 0); }
-
-    /// ditto
-    @property void xpubVerbose(bool value) { setOption(ZMQ_XPUB_VERBOSE, value ? 1 : 0); }
-
-    /// ditto
-    @property void reqCorrelate(bool value) { setOption(ZMQ_REQ_CORRELATE, value ? 1 : 0); }
-
-    /// ditto
-    @property void reqRelaxed(bool value) { setOption(ZMQ_REQ_RELAXED, value ? 1 : 0); }
-
-    /// ditto
     @property int tcpKeepalive() { return getOption!int(ZMQ_TCP_KEEPALIVE); }
     /// ditto
     @property void tcpKeepalive(int value) { setOption(ZMQ_TCP_KEEPALIVE, value); }
-
-    /// ditto
-    @property int tcpKeepaliveIdle() { return getOption!int(ZMQ_TCP_KEEPALIVE_IDLE); }
-    /// ditto
-    @property void tcpKeepaliveIdle(int value) { setOption(ZMQ_TCP_KEEPALIVE_IDLE, value); }
 
     /// ditto
     @property int tcpKeepaliveCnt() { return getOption!int(ZMQ_TCP_KEEPALIVE_CNT); }
@@ -1012,9 +957,27 @@ struct Socket
     @property void tcpKeepaliveCnt(int value) { setOption(ZMQ_TCP_KEEPALIVE_CNT, value); }
 
     /// ditto
+    @property int tcpKeepaliveIdle() { return getOption!int(ZMQ_TCP_KEEPALIVE_IDLE); }
+    /// ditto
+    @property void tcpKeepaliveIdle(int value) { setOption(ZMQ_TCP_KEEPALIVE_IDLE, value); }
+
+    /// ditto
     @property int tcpKeepaliveIntvl() { return getOption!int(ZMQ_TCP_KEEPALIVE_INTVL); }
     /// ditto
     @property void tcpKeepaliveIntvl(int value) { setOption(ZMQ_TCP_KEEPALIVE_INTVL, value); }
+
+    /// ditto
+    @property bool immediate() { return !!getOption!int(ZMQ_IMMEDIATE); }
+    /// ditto
+    @property void immediate(bool value) { setOption!int(ZMQ_IMMEDIATE, value ? 1 : 0); }
+
+    /// ditto
+    @property void xpubVerbose(bool value) { setOption(ZMQ_XPUB_VERBOSE, value ? 1 : 0); }
+
+    /// ditto
+    @property bool ipv6() { return !!getOption!int(ZMQ_IPV6); }
+    /// ditto
+    @property void ipv6(bool value) { setOption(ZMQ_IPV6, value ? 1 : 0); }
 
     /// ditto
     @property Security mechanism()
@@ -1153,14 +1116,36 @@ version (WithLibsodium) {
 } // version (WithLibsodium)
 
     /// ditto
+    @property void probeRouter(bool value) { setOption(ZMQ_PROBE_ROUTER, value ? 1 : 0); }
+
+    /// ditto
+    @property void reqCorrelate(bool value) { setOption(ZMQ_REQ_CORRELATE, value ? 1 : 0); }
+
+    /// ditto
+    @property void reqRelaxed(bool value) { setOption(ZMQ_REQ_RELAXED, value ? 1 : 0); }
+
+    /// ditto
+    @property void conflate(bool value) { setOption(ZMQ_CONFLATE, value ? 1 : 0); }
+
+    /// ditto
     @property char[] zapDomain() { return getZapDomain(new char[256]); }
     /// ditto
     char[] getZapDomain(char[] dest) { return getCStringOption(ZMQ_ZAP_DOMAIN, dest); }
     /// ditto
     @property void zapDomain(const char[] value) { setArrayOption(ZMQ_ZAP_DOMAIN, value); }
 
-    /// ditto
-    @property void conflate(bool value) { setOption(ZMQ_CONFLATE, value ? 1 : 0); }
+    // deprecated options
+    deprecated("Use the 'immediate' property instead")
+    @property bool delayAttachOnConnect() { return !!getOption!int(ZMQ_DELAY_ATTACH_ON_CONNECT); }
+
+    deprecated("Use the 'immediate' property instead")
+    @property void delayAttachOnConnect(bool value) { setOption(ZMQ_DELAY_ATTACH_ON_CONNECT, value ? 1 : 0); }
+
+    deprecated("Use !ipv6 instead")
+    @property bool ipv4Only() { return !ipv6; }
+
+    deprecated("Use ipv6 = !value instead")
+    @property void ipv4Only(bool value) { ipv6 = !value; }
 
     unittest
     {
@@ -1169,33 +1154,33 @@ version (WithLibsodium) {
         const e = "inproc://unittest2";
         s.bind(e);
         import core.time;
-        assert(s.type == SocketType.xpub);
-        assert(s.sendHWM == 1000);
-        assert(s.receiveHWM == 1000);
         assert(s.threadAffinity == 0);
         assert(s.identity == null);
         assert(s.rate == 100);
         assert(s.recoveryInterval == 10.seconds);
         assert(s.sendBufferSize == 0);
         assert(s.receiveBufferSize == 0);
-        assert(s.linger == 0.hnsecs);
-        assert(s.reconnectionInterval == 100.msecs);
-        assert(s.maxReconnectionInterval == Duration.zero);
-        assert(s.backlog == 100);
-        assert(s.maxMsgSize == -1);
-        assert(s.multicastHops == 1);
-        assert(s.receiveTimeout == Duration.max);
-        assert(s.sendTimeout == Duration.max);
-        assert(!s.ipv6);
-        assert(!s.immediate);
         version(Posix) {
             assert(s.fd > 2); // 0, 1 and 2 are the standard streams
         }
         assert(s.events == PollFlags.pollOut);
+        assert(s.type == SocketType.xpub);
+        assert(s.linger == 0.hnsecs);
+        assert(s.reconnectionInterval == 100.msecs);
+        assert(s.backlog == 100);
+        assert(s.maxReconnectionInterval == Duration.zero);
+        assert(s.maxMsgSize == -1);
+        assert(s.sendHWM == 1000);
+        assert(s.receiveHWM == 1000);
+        assert(s.multicastHops == 1);
+        assert(s.receiveTimeout == Duration.max);
+        assert(s.sendTimeout == Duration.max);
         assert(s.tcpKeepalive == -1);
-        assert(s.tcpKeepaliveIdle == -1);
         assert(s.tcpKeepaliveCnt == -1);
+        assert(s.tcpKeepaliveIdle == -1);
         assert(s.tcpKeepaliveIntvl == -1);
+        assert(!s.immediate);
+        assert(!s.ipv6);
         assert(s.mechanism == Security.none);
         assert(!s.plainServer);
         assert(s.getPlainUsername(new char[8]).length == 0);
@@ -1206,10 +1191,6 @@ version (WithLibsodium) {
         assert(s.zapDomain.length == 0);
 
         // Test setters and getters together
-        s.sendHWM = 500;
-        assert(s.sendHWM == 500);
-        s.receiveHWM = 600;
-        assert(s.receiveHWM == 600);
         s.threadAffinity = 1;
         assert(s.threadAffinity == 1);
         s.identity = cast(ubyte[]) [ 65, 66, 67 ];
@@ -1232,12 +1213,16 @@ version (WithLibsodium) {
         assert(s.linger == Duration.max);
         s.reconnectionInterval = 200_000.usecs;
         assert(s.reconnectionInterval == 200.msecs);
-        s.maxReconnectionInterval = 300_000.usecs;
-        assert(s.maxReconnectionInterval == 300.msecs);
         s.backlog = 50;
         assert(s.backlog == 50);
+        s.maxReconnectionInterval = 300_000.usecs;
+        assert(s.maxReconnectionInterval == 300.msecs);
         s.maxMsgSize = 1000;
         assert(s.maxMsgSize == 1000);
+        s.sendHWM = 500;
+        assert(s.sendHWM == 500);
+        s.receiveHWM = 600;
+        assert(s.receiveHWM == 600);
         s.multicastHops = 2;
         assert(s.multicastHops == 2);
         s.receiveTimeout = 3.seconds;
@@ -1248,18 +1233,18 @@ version (WithLibsodium) {
         assert(s.sendTimeout == 2.seconds);
         s.sendTimeout = Duration.max;
         assert(s.sendTimeout == Duration.max);
-        s.ipv6 = true;
-        assert(s.ipv6);
-        s.immediate = true;
-        assert(s.immediate);
         s.tcpKeepalive = 1;
         assert(s.tcpKeepalive == 1);
-        s.tcpKeepaliveIdle = 0;
-        assert(s.tcpKeepaliveIdle == 0);
         s.tcpKeepaliveCnt = 1;
         assert(s.tcpKeepaliveCnt == 1);
+        s.tcpKeepaliveIdle = 0;
+        assert(s.tcpKeepaliveIdle == 0);
         s.tcpKeepaliveIntvl = 0;
         assert(s.tcpKeepaliveIntvl == 0);
+        s.immediate = true;
+        assert(s.immediate);
+        s.ipv6 = true;
+        assert(s.ipv6);
         s.plainServer = true;
         assert(s.mechanism == Security.plain);
         assert(s.plainServer);
