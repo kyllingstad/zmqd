@@ -95,29 +95,12 @@ version(Windows) {
 }
 
 // Include ZMQ >= 4.1 features?
-static if (ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)) {
-    version = ZeroMQ41;
-    version (unittest) pragma (msg, "ZeroMQ 4.1 features enabled");
-}
+private enum ZMQ41 = ZMQ_MAKE_VERSION(4, 1, 0);
 
-// Curve and GSSAPI are enabled by default.
-version (WithoutLibsodium) {
-    version (unittest) pragma (msg, "Curve disabled");
-} else {
-    version = WithLibsodium;
-    version (unittest) pragma (msg, "Curve enabled");
-}
-
-version (WithoutGSSAPI) {
-    version (unittest) pragma (msg, "GSSAPI disabled");
-} else {
-    static if (ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)) {
-        version = WithGSSAPI;
-        version (unittest) pragma (msg, "GSSAPI enabled");
-    } else {
-        version (unittest) pragma (msg, "GSSAPI not available");
-    }
-}
+// Compile with debug=ZMQD_DisableCurveTests to be able to successfully
+// run unittests even if the local ZMQ library is not compiled with Curve
+// support.
+debug (ZMQD_DisableCurveTests) { } else debug = WithCurveTests;
 
 // Compatibility check
 version(unittest) static this()
@@ -162,6 +145,25 @@ Tuple!(int, "major", int, "minor", int, "patch") zmqVersion() nothrow
     typeof(return) v;
     trusted!zmq_version(&v.major, &v.minor, &v.patch);
     return v;
+}
+
+
+static if (ZMQ_VERSION >= ZMQ41) {
+    /**
+    Checks for a ZMQ capability.
+
+    Corresponds_to:
+        $(ZMQREF zmq_has())
+    */
+    bool zmqHas(const char[] capability) nothrow
+    {
+        return 0 != trusted!zmq_has(zeroTermString(capability));
+    }
+
+    unittest
+    {
+        assert (!zmqHas("this ain't a capability"));
+    }
 }
 
 
@@ -1030,8 +1032,6 @@ struct Socket
         setArrayOption(ZMQ_PLAIN_PASSWORD, value);
     }
 
-version (WithLibsodium) {
-
     /// ditto
     @property bool curveServer() { return !!getOption!int(ZMQ_CURVE_SERVER); }
     /// ditto
@@ -1130,8 +1130,6 @@ version (WithLibsodium) {
         setCurveKeyZ85(ZMQ_CURVE_SERVERKEY, value);
     }
 
-} // version (WithLibsodium)
-
     /// ditto
     @property void probeRouter(bool value) { setOption(ZMQ_PROBE_ROUTER, value ? 1 : 0); }
 
@@ -1151,70 +1149,56 @@ version (WithLibsodium) {
     /// ditto
     @property void zapDomain(const char[] value) { setArrayOption(ZMQ_ZAP_DOMAIN, value); }
 
-    /// ditto
-    version (ZeroMQ41)
-    @property void routerHandover(bool value) { setOption(ZMQ_ROUTER_HANDOVER, value ? 1 : 0); }
+    static if (ZMQ_VERSION >= ZMQ41) {
+        /// ditto
+        @property void routerHandover(bool value) { setOption(ZMQ_ROUTER_HANDOVER, value ? 1 : 0); }
 
-    /// ditto
-    version (ZeroMQ41)
-    @property void connectionRID(const ubyte[] value) { setArrayOption(ZMQ_CONNECT_RID, value); }
+        /// ditto
+        @property void connectionRID(const ubyte[] value) { setArrayOption(ZMQ_CONNECT_RID, value); }
 
-    /// ditto
-    version (ZeroMQ41)
-    @property int typeOfService() { return getOption!int(ZMQ_TOS); }
-    /// ditto
-    version (ZeroMQ41)
-    @property void typeOfService(int value) { setOption(ZMQ_TOS, value); }
+        /// ditto
+        @property int typeOfService() { return getOption!int(ZMQ_TOS); }
+        /// ditto
+        @property void typeOfService(int value) { setOption(ZMQ_TOS, value); }
 
-    /// ditto
-    version (WithGSSAPI)
-    @property bool gssapiPlaintext() { return !!getOption!int(ZMQ_GSSAPI_PLAINTEXT); }
-    /// ditto
-    version (WithGSSAPI)
-    @property void gssapiPlaintext(bool value) { setOption(ZMQ_GSSAPI_PLAINTEXT, value ? 1 : 0); }
+        /// ditto
+        @property bool gssapiPlaintext() { return !!getOption!int(ZMQ_GSSAPI_PLAINTEXT); }
+        /// ditto
+        @property void gssapiPlaintext(bool value) { setOption(ZMQ_GSSAPI_PLAINTEXT, value ? 1 : 0); }
 
-    /// ditto
-    version (WithGSSAPI)
-    @property char[] gssapiPrincipal() { return getGssapiPrincipal(new char[256]); }
-    /// ditto
-    version (WithGSSAPI)
-    char[] getGssapiPrincipal(char[] dest) { return getCStringOption(ZMQ_GSSAPI_PRINCIPAL, dest); }
-    /// ditto
-    version (WithGSSAPI)
-    @property void gssapiPrincipal(const char[] value) { setArrayOption(ZMQ_GSSAPI_PRINCIPAL, value); }
+        /// ditto
+        @property char[] gssapiPrincipal() { return getGssapiPrincipal(new char[256]); }
+        /// ditto
+        char[] getGssapiPrincipal(char[] dest) { return getCStringOption(ZMQ_GSSAPI_PRINCIPAL, dest); }
+        /// ditto
+        @property void gssapiPrincipal(const char[] value) { setArrayOption(ZMQ_GSSAPI_PRINCIPAL, value); }
 
-    /// ditto
-    version (WithGSSAPI)
-    @property bool gssapiServer() { return !!getOption!int(ZMQ_GSSAPI_SERVER); }
-    /// ditto
-    version (WithGSSAPI)
-    @property void gssapiServer(bool value) { setOption(ZMQ_GSSAPI_SERVER, value ? 1 : 0); }
+        /// ditto
+        @property bool gssapiServer() { return !!getOption!int(ZMQ_GSSAPI_SERVER); }
+        /// ditto
+        @property void gssapiServer(bool value) { setOption(ZMQ_GSSAPI_SERVER, value ? 1 : 0); }
 
-    /// ditto
-    version (WithGSSAPI)
-    @property char[] gssapiServicePrincipal() { return getGssapiServicePrincipal(new char[256]); }
-    /// ditto
-    version (WithGSSAPI)
-    char[] getGssapiServicePrincipal(char[] dest) { return getCStringOption(ZMQ_GSSAPI_SERVICE_PRINCIPAL, dest); }
-    /// ditto
-    version (WithGSSAPI)
-    @property void gssapiServicePrincipal(const char[] value) { setArrayOption(ZMQ_GSSAPI_SERVICE_PRINCIPAL, value); }
+        /// ditto
+        @property char[] gssapiServicePrincipal() { return getGssapiServicePrincipal(new char[256]); }
+        /// ditto
+        char[] getGssapiServicePrincipal(char[] dest) { return getCStringOption(ZMQ_GSSAPI_SERVICE_PRINCIPAL, dest); }
+        /// ditto
+        @property void gssapiServicePrincipal(const char[] value) { setArrayOption(ZMQ_GSSAPI_SERVICE_PRINCIPAL, value); }
 
-    /// ditto
-    version (ZeroMQ41)
-    @property Duration handshakeInterval()
-    {
-        const auto value = getOption!int(ZMQ_HANDSHAKE_IVL);
-        return value == 0 ? Duration.max : msecs(value);
-    }
-    /// ditto
-    version (ZeroMQ41)
-    @property void handshakeInterval(Duration value)
-    {
-        import std.conv: to;
-        setOption(ZMQ_HANDSHAKE_IVL,
-                  value == Duration.max ? 0 : to!int(value.total!"msecs"()));
-    }
+        /// ditto
+        @property Duration handshakeInterval()
+        {
+            const auto value = getOption!int(ZMQ_HANDSHAKE_IVL);
+            return value == 0 ? Duration.max : msecs(value);
+        }
+        /// ditto
+        @property void handshakeInterval(Duration value)
+        {
+            import std.conv: to;
+            setOption(ZMQ_HANDSHAKE_IVL,
+                    value == Duration.max ? 0 : to!int(value.total!"msecs"()));
+        }
+    } // static if (ZMQ_VERSION >= ZMQ41)
 
     // deprecated options
     deprecated("Use the 'immediate' property instead")
@@ -1267,18 +1251,18 @@ version (WithLibsodium) {
         assert(!s.plainServer);
         assert(s.getPlainUsername(new char[8]).length == 0);
         assert(s.getPlainPassword(new char[8]).length == 0);
-        version (WithLibsodium) {
+        debug (WithCurveTests) {
             assert(!s.curveServer);
         }
         assert(s.zapDomain.length == 0);
-        version (ZeroMQ41) assert(s.typeOfService == 0);
-        version (WithGSSAPI) {
-            assert(!s.gssapiPlaintext);
-            assert(s.gssapiPrincipal.length == 0);
-            assert(!s.gssapiServer);
-            assert(s.gssapiServicePrincipal.length == 0);
-        }
-        version (ZeroMQ41) {
+        static if (ZMQ_VERSION >= ZMQ41) {
+            assert(s.typeOfService == 0);
+            if (zmqHas("gssapi")) {
+                assert(!s.gssapiPlaintext);
+                assert(s.gssapiPrincipal.length == 0);
+                assert(!s.gssapiServer);
+                assert(s.gssapiServicePrincipal.length == 0);
+            }
             assert(s.handshakeInterval == 30000.msecs);
         }
 
@@ -1340,7 +1324,7 @@ version (WithLibsodium) {
         s.plainServer = true;
         assert(s.mechanism == Security.plain);
         assert(s.plainServer);
-        version (WithLibsodium) {
+        debug (WithCurveTests) {
             assert(!s.curveServer);
             s.curveServer = true;
             assert(s.mechanism == Security.curve);
@@ -1350,7 +1334,7 @@ version (WithLibsodium) {
         s.plainServer = false;
         assert(s.mechanism == Security.none);
         assert(!s.plainServer);
-        version (WithLibsodium) assert(!s.curveServer);
+        debug (WithCurveTests) assert(!s.curveServer);
         s.plainUsername = "foobar";
         assert(s.getPlainUsername(new char[8]) == "foobar");
         assert(s.mechanism == Security.plain);
@@ -1363,21 +1347,19 @@ version (WithLibsodium) {
         assert(s.mechanism == Security.none);
         s.zapDomain = "my_zap_domain";
         assert(s.zapDomain == "my_zap_domain");
-        version (ZeroMQ41) {
+        static if (ZMQ_VERSION >= ZMQ41) {
             s.typeOfService = 1;
             assert(s.typeOfService == 1);
-        }
-        version (WithGSSAPI) {
-            s.gssapiPlaintext = true;
-            assert(s.gssapiPlaintext);
-            s.gssapiPrincipal = "myPrincipal";
-            assert(s.gssapiPrincipal == "myPrincipal");
-            s.gssapiServer = true;
-            assert(s.gssapiServer);
-            s.gssapiServicePrincipal = "myServicePrincipal";
-            assert(s.gssapiServicePrincipal == "myServicePrincipal");
-        }
-        version (ZeroMQ41) {
+            if (zmqHas("gssapi")) {
+                s.gssapiPlaintext = true;
+                assert(s.gssapiPlaintext);
+                s.gssapiPrincipal = "myPrincipal";
+                assert(s.gssapiPrincipal == "myPrincipal");
+                s.gssapiServer = true;
+                assert(s.gssapiServer);
+                s.gssapiServicePrincipal = "myServicePrincipal";
+                assert(s.gssapiServicePrincipal == "myServicePrincipal");
+            }
             s.handshakeInterval = 60000.msecs;
             assert(s.handshakeInterval == 60000.msecs);
         }
@@ -1386,7 +1368,7 @@ version (WithLibsodium) {
         s.conflate = true;
     }
 
-    version (WithLibsodium) @system unittest
+    debug (WithCurveTests) @system unittest
     {
         // The CURVE key options require some special setup, so we test them
         // separately.
@@ -1440,7 +1422,7 @@ version (WithLibsodium) {
         auto rt = Socket(SocketType.router);
         rt.routerMandatory = true;
         rt.probeRouter = true;
-        version (ZeroMQ41) {
+        static if (ZMQ_VERSION >= ZMQ41) {
             rt.routerHandover = true;
             rt.connectionRID = cast(ubyte[]) [ 10, 20, 30 ];
         }
@@ -1666,7 +1648,6 @@ private:
         return ret[0 .. $-1];
     }
 
-version (WithLibsodium) {
     enum : size_t
     {
         keySizeBin    = 32,
@@ -1704,7 +1685,6 @@ version (WithLibsodium) {
         if (value.length != keySizeZ85) throw new Exception("Invalid key size");
         setArrayOption(option, value);
     }
-} // version (WithLibsodium)
 
     Context m_context;
     SocketType m_type;
@@ -2523,42 +2503,44 @@ struct Frame
         return !!trusted!zmq_msg_more(&m_msg);
     }
 
-    /**
-    The file descriptor of the socket the message was read from.
+    static if (ZMQ_VERSION >= ZMQ41) {
+        /**
+        The file descriptor of the socket the message was read from.
 
-    Throws:
-        $(REF ZmqException) if $(ZMQ) reports an error.
-    Corresponds_to:
-        $(ZMQREF zmq_msg_get()) with $(D ZMQ_SRCFD).
-    */
-    @property FD sourceFD()
-    {
-        return cast(FD) getProperty(ZMQ_SRCFD);
-    }
+        Throws:
+            $(REF ZmqException) if $(ZMQ) reports an error.
+        Corresponds_to:
+            $(ZMQREF zmq_msg_get()) with $(D ZMQ_SRCFD).
+        */
+        @property FD sourceFD()
+        {
+            return cast(FD) getProperty(ZMQ_SRCFD);
+        }
 
-    /**
-    Whether the message MAY share underlying storage with another copy.
+        /**
+        Whether the message MAY share underlying storage with another copy.
 
-    Throws:
-        $(REF ZmqException) if $(ZMQ) reports an error.
-    Corresponds_to:
-        $(ZMQREF zmq_msg_get()) with $(D ZMQ_SRCFD).
-    */
-    @property bool sharedStorage()
-    {
-        return !!getProperty(ZMQ_SHARED);
-    }
+        Throws:
+            $(REF ZmqException) if $(ZMQ) reports an error.
+        Corresponds_to:
+            $(ZMQREF zmq_msg_get()) with $(D ZMQ_SRCFD).
+        */
+        @property bool sharedStorage()
+        {
+            return !!getProperty(ZMQ_SHARED);
+        }
 
-    unittest
-    {
-        import std.string: representation;
-        auto msg1 = Frame(100); // Big message to avoid small-string optimisation
-        msg1.data[0 .. 3] = "foo".representation;
-        assert (!msg1.sharedStorage);
-        auto msg2 = msg1.copy();
-        assert (msg2.sharedStorage); // Warning: The ZMQ docs only say that this MAY be true
-        assert (msg2.data[0 .. 3].asString() == "foo");
-    }
+        unittest
+        {
+            import std.string: representation;
+            auto msg1 = Frame(100); // Big message to avoid small-string optimisation
+            msg1.data[0 .. 3] = "foo".representation;
+            assert (!msg1.sharedStorage);
+            auto msg2 = msg1.copy();
+            assert (msg2.sharedStorage); // Warning: The ZMQ docs only say that this MAY be true
+            assert (msg2.data[0 .. 3].asString() == "foo");
+        }
+    } // static if (ZMQ_VERSION >= ZMQ41)
 
     /**
     A pointer to the underlying $(D zmq_msg_t).
@@ -2862,59 +2844,55 @@ struct Context
         assert (ctx.maxSockets == 512);
     }
 
-    /**
-    The largest configurable number of sockets.
+    static if (ZMQ_VERSION >= ZMQ41) {
+        /**
+        The largest configurable number of sockets.
 
-    Throws:
-        $(REF ZmqException) if $(ZMQ) reports an error.
-    Corresponds_to:
-        $(ZMQREF zmq_ctx_get()) with $(D ZMQ_SOCKET_LIMIT).
-    */
-    version (ZeroMQ41)
-    @property int socketLimit()
-    {
-        return getOption(ZMQ_SOCKET_LIMIT);
+        Throws:
+            $(REF ZmqException) if $(ZMQ) reports an error.
+        Corresponds_to:
+            $(ZMQREF zmq_ctx_get()) with $(D ZMQ_SOCKET_LIMIT).
+        */
+        @property int socketLimit()
+        {
+            return getOption(ZMQ_SOCKET_LIMIT);
+        }
+
+        ///
+        unittest
+        {
+            auto ctx = Context();
+            assert (ctx.socketLimit > 0);
+        }
+
+        /**
+        IPv6 option.
+
+        Throws:
+            $(REF ZmqException) if $(ZMQ) reports an error.
+        Corresponds_to:
+            $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
+            $(D ZMQ_IPV6).
+        */
+        @property bool ipv6()
+        {
+            return !!getOption(ZMQ_IPV6);
+        }
+
+        /// ditto
+        @property void ipv6(bool value)
+        {
+            setOption(ZMQ_IPV6, value ? 1 : 0);
+        }
+
+        ///
+        unittest
+        {
+            auto ctx = Context();
+            ctx.ipv6 = true;
+            assert (ctx.ipv6 == true);
+        }
     }
-
-    ///
-    version (ZeroMQ41)
-    unittest
-    {
-        auto ctx = Context();
-        assert (ctx.socketLimit > 0);
-    }
-
-    /**
-    IPv6 option.
-
-    Throws:
-        $(REF ZmqException) if $(ZMQ) reports an error.
-    Corresponds_to:
-        $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
-        $(D ZMQ_IPV6).
-    */
-    version (ZeroMQ41)
-    @property bool ipv6()
-    {
-        return !!getOption(ZMQ_IPV6);
-    }
-
-    /// ditto
-    version (ZeroMQ41)
-    @property void ipv6(bool value)
-    {
-        setOption(ZMQ_IPV6, value ? 1 : 0);
-    }
-
-    ///
-    version (ZeroMQ41)
-    unittest
-    {
-        auto ctx = Context();
-        ctx.ipv6 = true;
-        assert (ctx.ipv6 == true);
-    }
-
 
     /**
     The $(D void*) pointer used by the underlying C API to refer to the context.
@@ -3262,8 +3240,6 @@ private:
 }
 
 
-version (WithLibsodium) {
-
 /**
 Encodes a binary key as Z85 printable text.
 
@@ -3300,7 +3276,7 @@ char[] z85Encode(ubyte[] data)
     return z85Encode(data, new char[5*data.length/4 + 1]);
 }
 
-@system unittest // @system because of assertThrown
+debug (WithCurveTests) @system unittest // @system because of assertThrown
 {
     // TODO: Make data immutable when we update to ZMQ 4.1
     auto data = cast(ubyte[])[0x86, 0x4f, 0xd2, 0x6f, 0xb5, 0x59, 0xf7, 0x5b];
@@ -3361,7 +3337,7 @@ ubyte[] z85Decode(char[] text)
     return z85Decode(text, new ubyte[4*text.length/5]);
 }
 
-@system unittest // @system because of assertThrown
+debug (WithCurveTests) @system unittest // @system because of assertThrown
 {
     // TODO: Make data immutable when we update to ZMQ 4.1
     auto text = "HelloWorld".dup;
@@ -3419,7 +3395,7 @@ Tuple!(char[], "publicKey", char[], "secretKey")
 }
 
 ///
-unittest
+debug (WithCurveTests) unittest
 {
     auto server = Socket(SocketType.rep);
     auto serverKeys = curveKeyPair();
@@ -3440,7 +3416,7 @@ unittest
     assert (buf.asString() == "hello");
 }
 
-@system unittest
+debug (WithCurveTests) @system unittest
 {
     auto k1 = curveKeyPair();
     assert (k1.publicKey.length == 40);
@@ -3459,8 +3435,6 @@ unittest
     assertThrown!RangeError(curveKeyPair(buf[0 .. 41], buf[42 .. 82]));
     assert (backup[] == buf[]);
 }
-
-} //version (WithLibsodium)
 
 
 /**

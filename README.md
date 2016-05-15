@@ -75,6 +75,13 @@ to run the tests is to use Dub, as follows:
 
     dub test zmqd
 
+Note that some of the unittests will fail if your ∅MQ library was not built
+with Curve support.  (This is typically only an issue with ∅MQ v4.0.x.)
+To disable these tests, use the `debug` specifier `ZMQD_DisableCurveTests`,
+e.g. like this:
+
+    dub test --debug=ZMQD_DisableCurveTests zmqd
+
 ## Example: Hello World server ##
 
 The C implementation of the "Hello World server" from the
