@@ -79,9 +79,9 @@ Macros:
     OBJREF = $(D $(LINK2 http://dlang.org/phobos/object.html#.$1,$1))
     STDREF = $(D $(LINK2 http://dlang.org/phobos/std_$1.html#.$2,std.$1.$2))
     ANCHOR = <span id="$1"></span>
-    ZMQ    = &#x2205;MQ
+    ZMQ    = ZeroMQ
     ZMQAPI = $(LINK2 http://api.zeromq.org/4-0:$1,$+)
-    ZMQD   = $(ZMQ)D
+    ZMQD   = $(EM zmqd)
     ZMQREF = $(D $(ZMQAPI $1,$1))
 */
 module zmqd;
@@ -151,7 +151,7 @@ Tuple!(int, "major", int, "minor", int, "patch") zmqVersion() nothrow
 
 static if (ZMQ_VERSION >= ZMQ41) {
     /**
-    Checks for a ZMQ capability.
+    Checks for a $(ZMQ) capability.
 
     Corresponds_to:
         $(ZMQREF zmq_has())
