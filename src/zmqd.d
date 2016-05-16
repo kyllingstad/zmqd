@@ -2804,7 +2804,7 @@ struct Context
     Detaches from the $(ZMQ) context.
 
     If this is the last reference to the context, it will be destroyed with
-    $(ZMQREF zmq_ctx_destroy()).
+    $(ZMQREF zmq_ctx_term()).
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
