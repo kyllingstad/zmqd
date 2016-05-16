@@ -62,7 +62,7 @@ Version:
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
 Copyright:
-    Copyright (c) 2013–2015, Lars T. Kyllingstad. All rights reserved.
+    Copyright (c) 2013–2016, Lars T. Kyllingstad. All rights reserved.
 License:
     $(ZMQD) is released under the terms of the
     $(LINK2 https://www.mozilla.org/MPL/2.0/index.txt,Mozilla Public License v. 2.0).$(BR)
