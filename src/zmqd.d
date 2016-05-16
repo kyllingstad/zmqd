@@ -3680,9 +3680,7 @@ struct SharedResource
 
     void detach()
     {
-        if (m_payload) {
-            if (auto ex = nothrowDetach()) throw ex;
-        }
+        if (auto ex = nothrowDetach()) throw ex;
     }
 
     void forceRelease() @system
