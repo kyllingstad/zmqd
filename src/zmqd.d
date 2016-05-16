@@ -78,6 +78,7 @@ Macros:
     COREF  = $(D $(LINK2 http://dlang.org/phobos/core_$1.html#.$2,core.$1.$2))
     OBJREF = $(D $(LINK2 http://dlang.org/phobos/object.html#.$1,$1))
     STDREF = $(D $(LINK2 http://dlang.org/phobos/std_$1.html#.$2,std.$1.$2))
+    ANCHOR = <span id="$1"></span>
     ZMQ    = &#x2205;MQ
     ZMQAPI = $(LINK2 http://api.zeromq.org/4-0:$1,$+)
     ZMQD   = $(ZMQ)D
@@ -778,7 +779,7 @@ struct Socket
         assert (!sck.more);
     }
 
-    /** $(DDOC_ANCHOR Socket.misc_options)
+    /** $(ANCHOR Socket.misc_options)
     Misc. socket options.
 
     Each of these has a one-to-one correspondence with an option passed to
@@ -2103,7 +2104,7 @@ struct Frame
         assert(msg.size == 0);
     }
 
-    /** $(DDOC_ANCHOR Frame.opCall_size)
+    /** $(ANCHOR Frame.opCall_size)
     Initializes a $(ZMQ) message frame of a specified size.
 
     Throws:
@@ -2131,7 +2132,7 @@ struct Frame
     */
     @system alias extern(C) void function(void*, void*) nothrow FreeData;
 
-    /** $(DDOC_ANCHOR Frame.opCall_data)
+    /** $(ANCHOR Frame.opCall_data)
     Initializes a $(ZMQ) message frame from a supplied buffer.
 
     If $(D free) is not specified, $(D data) $(EM must) refer to a slice of
