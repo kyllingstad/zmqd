@@ -868,8 +868,9 @@ struct Socket
     @property void linger(Duration value)
     {
         import std.conv: to;
-        setOption(ZMQ_LINGER,
-                  value == Duration.max ? -1 : to!int(value.total!"msecs"()));
+        setOption(
+            ZMQ_LINGER,
+            value == Duration.max ? -1 : to!int(value.total!"msecs"()));
     }
 
     /// ditto
@@ -931,8 +932,9 @@ struct Socket
     @property void receiveTimeout(Duration value)
     {
         import std.conv: to;
-        setOption(ZMQ_RCVTIMEO,
-                  value == Duration.max ? -1 : to!int(value.total!"msecs"()));
+        setOption(
+            ZMQ_RCVTIMEO,
+            value == Duration.max ? -1 : to!int(value.total!"msecs"()));
     }
 
     /// ditto
@@ -945,8 +947,9 @@ struct Socket
     @property void sendTimeout(Duration value)
     {
         import std.conv: to;
-        setOption(ZMQ_SNDTIMEO,
-                  value == Duration.max ? -1 : to!int(value.total!"msecs"()));
+        setOption(
+            ZMQ_SNDTIMEO,
+            value == Duration.max ? -1 : to!int(value.total!"msecs"()));
     }
 
     /// ditto
@@ -1195,8 +1198,9 @@ struct Socket
         @property void handshakeInterval(Duration value)
         {
             import std.conv: to;
-            setOption(ZMQ_HANDSHAKE_IVL,
-                    value == Duration.max ? 0 : to!int(value.total!"msecs"()));
+            setOption(
+                ZMQ_HANDSHAKE_IVL,
+                value == Duration.max ? 0 : to!int(value.total!"msecs"()));
         }
     } // static if (ZMQ_VERSION >= ZMQ41)
 
