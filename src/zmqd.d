@@ -2824,6 +2824,74 @@ struct Context
     }
 
     /**
+    Forcefully terminates the context.
+
+    By using this function, one effectively circumvents the reference-counting
+    mechanism for managing the context.  After it returns, all other
+    $(D Context) objects that used to refer to the same context will be in a
+    state which is functionally equivalent to the default-initialized state
+    (i.e., $(REF Context.initialized) is $(D false) and $(REF Context.handle)
+    is $(D null)).
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_term())
+    */
+    void terminate() @system
+    {
+        m_resource.forceRelease();
+    }
+
+    ///
+    @system unittest
+    {
+        auto ctx1 = Context();
+        auto ctx2 = ctx1;
+        assert (ctx1.initialized);
+        assert (ctx2.initialized);
+        assert (ctx1.handle == ctx2.handle);
+        ctx2.terminate();
+        assert (!ctx1.initialized);
+        assert (!ctx2.initialized);
+        assert (ctx1.handle == null);
+        assert (ctx2.handle == null);
+    }
+
+    @system unittest
+    {
+        auto ctx = Context();
+
+        void threadFunc()
+        {
+            auto server = Socket(ctx, SocketType.rep);
+            server.bind("inproc://Context_terminate_unittest");
+            try {
+                server.receive(null);
+                server.send("");
+                server.receive(null);
+                assert (false, "Never get here");
+            } catch (ZmqException e) {
+                assert (e.errno == ETERM);
+            }
+        }
+
+        import core.thread: Thread;
+        auto thread = new Thread(&threadFunc);
+        thread.start();
+
+        auto client = Socket(ctx, SocketType.req);
+        client.connect("inproc://Context_terminate_unittest");
+        client.send("");
+        client.receive(null);
+        client.close();
+
+        ctx.terminate();
+        thread.join();
+    }
+
+
+    /**
     The number of I/O threads.
 
     Throws:
@@ -3617,6 +3685,20 @@ struct SharedResource
         }
     }
 
+    void forceRelease() @system
+    {
+        if (m_payload) {
+            scope(exit) m_payload = null;
+            decRefCount();
+            if (m_payload.handle != null) {
+                scope(exit) m_payload.handle = null;
+                if (auto ex = m_payload.release(m_payload.handle)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
     @property inout(shared(void))* handle() inout pure nothrow
     {
         if (m_payload) {
@@ -3647,7 +3729,9 @@ private:
     {
         if (m_payload) {
             scope(exit) m_payload = null;
-            if (decRefCount() < 1) return m_payload.release(m_payload.handle);
+            if (decRefCount() < 1 && m_payload.handle != null) {
+                return m_payload.release(m_payload.handle);
+            }
         }
         return null;
     }
@@ -3662,8 +3746,8 @@ private:
 
     invariant()
     {
-        assert (m_payload is null || (m_payload.refCount > 0 &&
-            m_payload.handle !is null && m_payload.release !is null));
+        assert (m_payload is null ||
+            (m_payload.refCount > 0 && m_payload.release !is null));
     }
 }
 
@@ -3771,6 +3855,32 @@ private:
         assert (raw == 1);
     }
     assert (raw == 0);
+}
+
+// forceRelease() test
+@system unittest
+{
+    import std.exception: assertNotThrown, assertThrown;
+    static Exception myFree(shared(void)* p) @trusted nothrow
+    {
+        auto v = cast(shared(int)*) p;
+        if (*v == 0) {
+            return new Exception("double release");
+        } else {
+            *v = 0;
+            return null;
+        }
+    }
+
+    shared int i = 1;
+
+    auto ra = SharedResource(&i, &myFree);
+    auto rb = ra;
+    assert (ra.handle == &i);
+    assert (rb.handle == ra.handle);
+    rb.forceRelease();
+    assert (rb.handle == null);
+    assert (ra.handle == null);
 }
 
 
