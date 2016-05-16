@@ -204,6 +204,23 @@ enum Security
 
 
 /**
+A special $(COREF time,Duration) value used to signify an infinite
+timeout or time interval in certain contexts.
+
+The places where this value may be used are:
+$(UL
+    $(LI $(LINK2 #Socket.misc_options,certain socket options))
+    $(LI $(FREF poll))
+)
+
+Note:
+Since $(D core.time.Duration) doesn't reserve such a special value, the
+actual value of $(D infiniteDuration) is $(COREF time,Duration.max).
+*/
+enum infiniteDuration = Duration.max;
+
+
+/**
 An object that encapsulates a $(ZMQ) socket.
 
 A default-initialized $(D Socket) is not a valid $(ZMQ) socket; it
@@ -761,7 +778,7 @@ struct Socket
         assert (!sck.more);
     }
 
-    /**
+    /** $(DDOC_ANCHOR Socket.misc_options)
     Misc. socket options.
 
     Each of these has a one-to-one correspondence with an option passed to
@@ -781,9 +798,9 @@ struct Socket
             )
         $(LI The $(D linger), $(D receiveTimeout), $(D sendTimeout) and
             $(D handshakeInterval) properties may have the special value
-            $(COREF time,Duration.max), which is used to specify an infinite
-            duration.  This  is translated to an option value of -1 or 0
-            (depending on which property is being set) in the C API.)
+            $(REF infiniteDuration).  This  is translated to an option
+            value of -1 or 0 (depending on which property is being set)
+            in the C API.)
         $(LI Some options have array type, and these allow the user to supply
             a buffer in which to store the value, to avoid a GC allocation.
             The return value is then a slice of this buffer.
@@ -863,7 +880,7 @@ struct Socket
     @property Duration linger()
     {
         const auto value = getOption!int(ZMQ_LINGER);
-        return value == -1 ? Duration.max : value.msecs;
+        return value == -1 ? infiniteDuration : value.msecs;
     }
     /// ditto
     @property void linger(Duration value)
@@ -871,7 +888,7 @@ struct Socket
         import std.conv: to;
         setOption(
             ZMQ_LINGER,
-            value == Duration.max ? -1 : to!int(value.total!"msecs"()));
+            value == infiniteDuration ? -1 : to!int(value.total!"msecs"()));
     }
 
     /// ditto
@@ -927,7 +944,7 @@ struct Socket
     @property Duration receiveTimeout()
     {
         const value = getOption!int(ZMQ_RCVTIMEO);
-        return value == -1 ? Duration.max : value.msecs;
+        return value == -1 ? infiniteDuration : value.msecs;
     }
     /// ditto
     @property void receiveTimeout(Duration value)
@@ -935,14 +952,14 @@ struct Socket
         import std.conv: to;
         setOption(
             ZMQ_RCVTIMEO,
-            value == Duration.max ? -1 : to!int(value.total!"msecs"()));
+            value == infiniteDuration ? -1 : to!int(value.total!"msecs"()));
     }
 
     /// ditto
     @property Duration sendTimeout()
     {
         const value = getOption!int(ZMQ_SNDTIMEO);
-        return value == -1 ? Duration.max : value.msecs;
+        return value == -1 ? infiniteDuration : value.msecs;
     }
     /// ditto
     @property void sendTimeout(Duration value)
@@ -950,7 +967,7 @@ struct Socket
         import std.conv: to;
         setOption(
             ZMQ_SNDTIMEO,
-            value == Duration.max ? -1 : to!int(value.total!"msecs"()));
+            value == infiniteDuration ? -1 : to!int(value.total!"msecs"()));
     }
 
     /// ditto
@@ -1193,7 +1210,7 @@ struct Socket
         @property Duration handshakeInterval()
         {
             const auto value = getOption!int(ZMQ_HANDSHAKE_IVL);
-            return value == 0 ? Duration.max : msecs(value);
+            return value == 0 ? infiniteDuration : msecs(value);
         }
         /// ditto
         @property void handshakeInterval(Duration value)
@@ -1201,7 +1218,7 @@ struct Socket
             import std.conv: to;
             setOption(
                 ZMQ_HANDSHAKE_IVL,
-                value == Duration.max ? 0 : to!int(value.total!"msecs"()));
+                value == infiniteDuration ? 0 : to!int(value.total!"msecs"()));
         }
     } // static if (ZMQ_VERSION >= ZMQ41)
 
@@ -1244,8 +1261,8 @@ struct Socket
         assert(s.sendHWM == 1000);
         assert(s.receiveHWM == 1000);
         assert(s.multicastHops == 1);
-        assert(s.receiveTimeout == Duration.max);
-        assert(s.sendTimeout == Duration.max);
+        assert(s.receiveTimeout == infiniteDuration);
+        assert(s.sendTimeout == infiniteDuration);
         assert(s.tcpKeepalive == -1);
         assert(s.tcpKeepaliveCnt == -1);
         assert(s.tcpKeepaliveIdle == -1);
@@ -1290,8 +1307,8 @@ struct Socket
         assert(s.linger == Duration.zero);
         s.linger = 100_000.usecs;
         assert(s.linger == 100.msecs);
-        s.linger = Duration.max;
-        assert(s.linger == Duration.max);
+        s.linger = infiniteDuration;
+        assert(s.linger == infiniteDuration);
         s.reconnectionInterval = 200_000.usecs;
         assert(s.reconnectionInterval == 200.msecs);
         s.backlog = 50;
@@ -1308,12 +1325,12 @@ struct Socket
         assert(s.multicastHops == 2);
         s.receiveTimeout = 3.seconds;
         assert(s.receiveTimeout == 3_000_000.usecs);
-        s.receiveTimeout = Duration.max;
-        assert(s.receiveTimeout == Duration.max);
+        s.receiveTimeout = infiniteDuration;
+        assert(s.receiveTimeout == infiniteDuration);
         s.sendTimeout = 2_000_000.usecs;
         assert(s.sendTimeout == 2.seconds);
-        s.sendTimeout = Duration.max;
-        assert(s.sendTimeout == Duration.max);
+        s.sendTimeout = infiniteDuration;
+        assert(s.sendTimeout == infiniteDuration);
         s.tcpKeepalive = 1;
         assert(s.tcpKeepalive == 1);
         s.tcpKeepaliveCnt = 1;
@@ -1867,13 +1884,13 @@ void steerableProxy(ref Socket frontend, ref Socket backend, ref Socket control,
 
 
 deprecated("zmqd.poll() has a new signature as of v0.4")
-uint poll(zmq_pollitem_t[] items, Duration timeout = Duration.max)
+uint poll(zmq_pollitem_t[] items, Duration timeout = infiniteDuration)
 {
     import std.conv: to;
     const n = trusted!zmq_poll(
         items.ptr,
         to!int(items.length),
-        timeout == Duration.max ? -1 : to!int(timeout.total!"msecs"()));
+        timeout == infiniteDuration ? -1 : to!int(timeout.total!"msecs"()));
     if (n < 0) throw new ZmqException;
     return cast(uint) n;
 }
@@ -1882,9 +1899,9 @@ uint poll(zmq_pollitem_t[] items, Duration timeout = Duration.max)
 /**
 Input/output multiplexing.
 
-The $(D timeout) parameter may have the special value
-$(COREF time,Duration.max), which in this context specifies an infinite
-duration.  This is translated to an argument value of -1 in the C API.
+The $(D timeout) parameter may have the special value $(REF infiniteDuration)
+which means no _timeout.  This is translated to an argument value of -1 in the
+C API.
 
 Returns:
     The number of $(REF PollItem) structures with events signalled in
@@ -1894,7 +1911,7 @@ Throws:
 Corresponds_to:
     $(ZMQREF zmq_poll())
 */
-uint poll(PollItem[] items, Duration timeout = Duration.max) @trusted
+uint poll(PollItem[] items, Duration timeout = infiniteDuration) @trusted
 {
     // Here we use a trick where we pretend the array of PollItems is
     // actually an array of zmq_pollitem_t, to avoid an unnecessary
@@ -1906,7 +1923,7 @@ uint poll(PollItem[] items, Duration timeout = Duration.max) @trusted
     const n = zmq_poll(
         cast(zmq_pollitem_t*) items.ptr,
         to!int(items.length),
-        timeout == Duration.max ? -1 : to!int(timeout.total!"msecs"()));
+        timeout == infiniteDuration ? -1 : to!int(timeout.total!"msecs"()));
     if (n < 0) throw new ZmqException;
     return cast(uint) n;
 }
