@@ -779,10 +779,11 @@ struct Socket
             assert (sck.identity.asString() == "foobar");
             ---
             )
-        $(LI The $(D linger), $(D receiveTimeout) and $(D sendTimeout)
-            properties may have the special value $(COREF time,Duration.max),
-            which in this context specifies an infinite duration.  This  is
-            translated to an option value of -1 in the C API.)
+        $(LI The $(D linger), $(D receiveTimeout), $(D sendTimeout) and
+            $(D handshakeInterval) properties may have the special value
+            $(COREF time,Duration.max), which is used to specify an infinite
+            duration.  This  is translated to an option value of -1 or 0
+            (depending on which property is being set) in the C API.)
         $(LI Some options have array type, and these allow the user to supply
             a buffer in which to store the value, to avoid a GC allocation.
             The return value is then a slice of this buffer.
