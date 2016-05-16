@@ -2540,6 +2540,41 @@ struct Frame
             assert (msg2.sharedStorage); // Warning: The ZMQ docs only say that this MAY be true
             assert (msg2.data[0 .. 3].asString() == "foo");
         }
+
+        /**
+        Gets message metadata.
+
+        $(D metadataUnsafe()) is faster than $(D metadata()) because it
+        directly returns the array which comes from $(ZMQREF zmq_msg_gets()),
+        whereas the latter returns a freshly GC-allocated copy of it.  However,
+        the array returned by $(D metadataUnsafe()) is owned by the underlying
+        $(ZMQ) message and gets destroyed along with it, so care must be
+        taken when using this function.
+
+        Throws:
+            $(REF ZmqException) if $(ZMQ) reports an error.
+        Corresponds_to:
+            $(ZMQREF zmq_msg_gets())
+        */
+        char[] metadata(const char[] property) @trusted
+            in { assert(m_initialized); }
+            body
+        {
+            return metadataUnsafe(property).dup;
+        }
+
+        /// ditto
+        const(char)[] metadataUnsafe(const char[] property) @system
+            in { assert(m_initialized); }
+            body
+        {
+            if (auto value = zmq_msg_gets(handle, zeroTermString(property))) {
+                import std.string: fromStringz;
+                return fromStringz(value);
+            } else {
+                throw new ZmqException();
+            }
+        }
     } // static if (ZMQ_VERSION >= ZMQ41)
 
     /**
