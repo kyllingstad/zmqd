@@ -14,13 +14,13 @@ safer, easier and more pleasant to use; most importantly:
 $(UL
     $(LI
         Errors are signalled by means of exceptions rather than return
-        codes.  In particular, the $(REF ZmqException) class provides
+        codes.  The $(REF ZmqException) class provides
         a standard textual message for any error condition, but it also
         provides access to the $(D errno) code set by the C function
         that reported the error.)
     $(LI
-        Functions are appropriately marked with $(D @safe), $(D pure)
-        and $(D nothrow), thus facilitating their use in high-level D code.)
+        Functions are marked with $(D @safe), $(D pure) and $(D nothrow)
+        as appropriate, thus facilitating their use in high-level D code.)
     $(LI
         Memory and resources (i.e. contexts, sockets and messages) are
         automatically managed, thus preventing leaks.)
@@ -190,7 +190,7 @@ enum SocketType
 }
 
 
-/// Security mechanisms.
+/// _Security mechanisms.
 enum Security
 {
     /// $(ZMQAPI zmq_null,NULL): No security or confidentiality.
@@ -251,7 +251,7 @@ struct Socket
     /**
     Creates a new $(ZMQ) socket.
 
-    If $(D context) is not specified, the default context (as returned
+    If $(D context) is not specified, the default _context (as returned
     by $(FREF defaultContext)) is used.
 
     Throws:
@@ -444,7 +444,7 @@ struct Socket
     socket.
 
     The $(D more) parameter specifies whether this is a multipart message
-    and there are more frames to follow.
+    and there are _more frames to follow.
 
     The $(D char[]) overload is a convenience function that simply casts
     the string argument to $(D ubyte[]).
@@ -505,7 +505,7 @@ struct Socket
     socket.
 
     The $(D more) parameter specifies whether this is a multipart message
-    and there are more frames to follow.
+    and there are _more frames to follow.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -552,7 +552,7 @@ struct Socket
     socket.
 
     The $(D more) parameter specifies whether this is a multipart message
-    and there are more frames to follow.
+    and there are _more frames to follow.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -780,9 +780,9 @@ struct Socket
     }
 
     /** $(ANCHOR Socket.misc_options)
-    Misc. socket options.
+    Miscellaneous socket options.
 
-    Each of these has a one-to-one correspondence with an option passed to
+    Each of these corresponds to an option passed to
     $(ZMQREF zmq_getsockopt()) and $(ZMQREF zmq_setsockopt()). For
     example, $(D identity) corresponds to $(D ZMQ_IDENTITY),
     $(D receiveBufferSize) corresponds to $(D ZMQ_RCVBUF), etc.
@@ -798,16 +798,16 @@ struct Socket
             ---
             )
         $(LI The $(D linger), $(D receiveTimeout), $(D sendTimeout) and
-            $(D handshakeInterval) properties may have the special value
+            $(D handshakeInterval) properties may have the special _value
             $(REF infiniteDuration).  This  is translated to an option
-            value of -1 or 0 (depending on which property is being set)
+            _value of -1 or 0 (depending on which property is being set)
             in the C API.)
-        $(LI Some options have array type, and these allow the user to supply
-            a buffer in which to store the value, to avoid a GC allocation.
-            The return value is then a slice of this buffer.
+        $(LI Some options have array _type, and these allow the user to supply
+            a buffer in which to store the _value, to avoid a GC allocation.
+            The return _value is then a slice of this buffer.
             These are not marked as $(D @property), but are prefixed with
             "get" (e.g. $(D getIdentity())).  A user-supplied buffer is
-            $(I required) for some options, namely $(D getPlainUsername())
+            $(EM required) for some options, namely $(D getPlainUsername())
             and $(D getPlainPassword()), and these do not have $(D @property)
             versions.  $(D getCurveXxxKey()) and $(D getCurveXxxKeyZ85())
             require buffers which are at least 32 and 41 bytes long,
@@ -821,7 +821,7 @@ struct Socket
         $(REF ZmqException) if $(ZMQ) reports an error.$(BR)
         $(STDREF conv,ConvOverflowException) if a given $(D Duration) is
             longer than the number of milliseconds that will fit in an $(D int)
-            (only applies to properties of $(COREF time,Duration) type).$(BR)
+            (only applies to properties of $(COREF time,Duration) _type).$(BR)
         $(COREF exception,RangeError) if the $(D dest) buffers passed to
             $(D getCurveXxxKey()) or $(D getCurveXxxKeyZ85()) are less than
             32 or 41 bytes long, respectively.
@@ -1555,11 +1555,11 @@ struct Socket
     }
 
     /**
-    Spawns a PAIR socket that publishes socket state changes (events) over
-    the INPROC transport to the given endpoint.
+    Spawns a PAIR socket that publishes socket state changes (_events) over
+    the INPROC transport to the given _endpoint.
 
     Which event types should be published may be selected by bitwise-ORing
-    together different $(REF EventType) flags in the $(D event) parameter.
+    together different $(REF EventType) flags in the $(D events) parameter.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -2026,7 +2026,7 @@ struct PollItem
     }
 
     /**
-    Requested events.
+    Requested _events.
 
     Corresponds_to:
         $(D $(ZMQAPI zmq_poll,zmq_pollitem_t.events))
@@ -2073,7 +2073,7 @@ auto msg3 = Frame(1024);    // 1K frame
 msg1.rebuild(2048);         // msg1 now has size 2K
 msg2.rebuild(2048);         // ...and so does msg2
 ---
-When a $(D Frame) goes out of scope, $(ZMQREF zmq_msg_close()) is
+When a $(D Frame) object is destroyed, $(ZMQREF zmq_msg_close()) is
 called on the underlying $(D zmq_msg_t).
 
 A $(D Frame) cannot be copied by normal assignment; use $(FREF _Frame.copy)
@@ -2105,7 +2105,7 @@ struct Frame
     }
 
     /** $(ANCHOR Frame.opCall_size)
-    Initializes a $(ZMQ) message frame of a specified size.
+    Initializes a $(ZMQ) message frame of the specified _size.
 
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
@@ -2125,12 +2125,6 @@ struct Frame
         auto msg = Frame(123);
         assert(msg.size == 123);
     }
-
-    /**
-    The function pointer type for memory-freeing callback functions passed to
-    $(D $(LINK2 #Frame.opCall_data,Frame(ubyte[], _FreeData, void*))).
-    */
-    @system alias extern(C) void function(void*, void*) nothrow FreeData;
 
     /** $(ANCHOR Frame.opCall_data)
     Initializes a $(ZMQ) message frame from a supplied buffer.
@@ -2162,6 +2156,8 @@ struct Frame
         $(D data).  For the "non-GC" version, client code should in general not
         retain slices or pointers to any memory which will be released when
         $(D free) is called.
+    See_Also:
+        $(REF Frame.FreeData)
     Throws:
         $(REF ZmqException) if $(ZMQ) reports an error.
     Corresponds_to:
@@ -2229,6 +2225,12 @@ struct Frame
         assert(buffer == 0);
         assert(released);
     }
+
+    /**
+    The function pointer type for memory-freeing callback functions passed to
+    $(D $(LINK2 #Frame.opCall_data,Frame(ubyte[], _FreeData, void*))).
+    */
+    @system alias extern(C) void function(void*, void*) nothrow FreeData;
 
     /**
     Reinitializes the Frame object as an empty message.
@@ -2471,7 +2473,7 @@ struct Frame
     }
 
     /**
-    The message frame content size in bytes.
+    The message frame content _size in bytes.
 
     Corresponds_to:
         $(ZMQREF zmq_msg_size())
@@ -2514,7 +2516,7 @@ struct Frame
     }
 
     /**
-    Whether there are more message frames to retrieve.
+    Whether there are _more message frames to retrieve.
 
     Corresponds_to:
         $(ZMQREF zmq_msg_more())
@@ -2546,7 +2548,7 @@ struct Frame
         Throws:
             $(REF ZmqException) if $(ZMQ) reports an error.
         Corresponds_to:
-            $(ZMQREF zmq_msg_get()) with $(D ZMQ_SRCFD).
+            $(ZMQREF zmq_msg_get()) with $(D ZMQ_SHARED).
         */
         @property bool sharedStorage()
         {
@@ -2565,7 +2567,7 @@ struct Frame
         }
 
         /**
-        Gets message metadata.
+        Gets message _metadata.
 
         $(D metadataUnsafe()) is faster than $(D metadata()) because it
         directly returns the array which comes from $(ZMQREF zmq_msg_gets()),
@@ -3095,12 +3097,12 @@ enum EventType
 
 
 /**
-Receives a message on the given socket and interprets it as a socket
+Receives a message on the given _socket and interprets it as a _socket
 state change event.
 
-$(D socket) must be a PAIR socket which is connected to an endpoint
+$(D socket) must be a PAIR _socket which is connected to an endpoint
 created via a $(FREF Socket.monitor) call.  $(D receiveEvent()) receives
-one message on the socket, parses its contents according to the
+one message on the _socket, parses its contents according to the
 specification in the $(ZMQREF zmq_socket_monitor()) reference,
 and returns the event information as an $(REF Event) object.
 
@@ -3109,7 +3111,7 @@ Throws:
     $(REF InvalidEventException) if the received message could not
     be interpreted as an event message.
 See_also:
-    $(FREF Socket.monitor), for monitoring socket state changes.
+    $(FREF Socket.monitor), for monitoring _socket state changes.
 */
 Event receiveEvent(ref Socket socket) @system
 {
@@ -3224,30 +3226,18 @@ version (Posix) @system unittest
 /**
 Information about a socket state change.
 
-Corresponds_to:
-    $(ZMQAPI zmq_socket_monitor,$(D zmq_event_t))
 See_also:
     $(FREF receiveEvent)
 */
 struct Event
 {
-    /**
-    The event type.
-
-    Corresponds_to:
-        $(D zmq_event_t.event)
-    */
+    /// The event _type.
     @property EventType type() const pure nothrow
     {
         return m_type;
     }
 
-    /**
-    The peer address.
-
-    Corresponds_to:
-        $(D zmq_event_t.data.xyz.addr), where $(D xyz) is the event-specific union.
-    */
+    /// The peer _address.
     @property string address() const pure nothrow
     {
         return m_address;
@@ -3261,8 +3251,6 @@ struct Event
 
     Throws:
         $(D Error) if the property is called for a wrong event type.
-    Corresponds_to:
-        $(D zmq_event_t.data.xyz.addr), where $(D xyz) is the event-specific union.
     */
     @property FD fd() const pure nothrow
     {
@@ -3283,15 +3271,13 @@ struct Event
     }
 
     /**
-    The $(D errno) code for the error which triggered the event.
+    The $(D _errno) code for the error which triggered the event.
 
     This property function may only be called if $(REF Event.type) is either
     $(D bindFailed), $(D acceptFailed) or $(D closeFailed).
 
     Throws:
         $(D Error) if the property is called for a wrong event type.
-    Corresponds_to:
-        $(D zmq_event_t.data.xyz.addr), where $(D xyz) is the event-specific union.
     */
     @property int errno() const pure nothrow
     {
@@ -3319,8 +3305,6 @@ struct Event
 
     Throws:
         $(D Error) if the property is called for a wrong event type.
-    Corresponds_to:
-        $(D zmq_event_t.data.connect_retried.interval)
     */
     @property Duration interval() const pure nothrow
     {
@@ -3379,8 +3363,8 @@ Returns:
     it is provided.
 Throws:
     $(COREF exception,RangeError) if $(D dest) is given but is too small.$(BR)
-    $(REF ZmqException) if $(ZMQ) reports an error (i.e., if data.length is not
-    a multiple of 4).
+    $(REF ZmqException) if $(ZMQ) reports an error (i.e., if $(D data.length)
+    is not a multiple of 4).
 Corresponds_to:
     $(ZMQREF zmq_z85_encode())
 */
@@ -3422,7 +3406,7 @@ debug (WithCurveTests) @system unittest // @system because of assertThrown
 
 
 /**
-Decodes a binary key from Z85 printable text.
+Decodes a binary key from Z85 printable _text.
 
 $(D dest) must be an array whose length is at least $(D 4*data.length/5),
 which will be used to store the return value.
@@ -3432,15 +3416,16 @@ Note that $(ZMQREF zmq_z85_decode()) expects a zero-terminated string, so a zero
 byte will be appended to $(D text) if it does not contain one already.  However,
 this may trigger a (possibly unwanted) GC allocation.  To avoid this, either
 make sure that the last character in $(D text) is $(D '\0'), or use
-$(OBJREF assumeSafeAppend) on the array before calling this function.
+$(OBJREF assumeSafeAppend) on the array before calling this function (provided
+this is safe).
 
 Returns:
     An array of size $(D 4*data.length/5) which contains the decoded data.
     This will be a slice of $(D dest) if it is provided.
 Throws:
     $(COREF exception,RangeError) if $(D dest) is given but is too small.$(BR)
-    $(REF ZmqException) if $(ZMQ) reports an error (i.e., if data.length is not
-    a multiple of 5).
+    $(REF ZmqException) if $(ZMQ) reports an error (i.e., if $(D data.length)
+    is not a multiple of 5).
 Corresponds_to:
     $(ZMQREF zmq_z85_decode())
 */
@@ -3484,7 +3469,7 @@ debug (WithCurveTests) @system unittest // @system because of assertThrown
 
 
 /**
-Generates a new CURVE key pair.
+Generates a new Curve key pair.
 
 To avoid a memory allocation, preallocated buffers may optionally be supplied
 for the two keys.  Each of these must have a length of at least 41 bytes, enough
@@ -3627,7 +3612,7 @@ function which reported the error.
 class ZmqException : Exception
 {
     /**
-    The $(D errno) code that was set by the $(ZMQ) function that reported
+    The $(D _errno) code that was set by the $(ZMQ) function that reported
     the error.
 
     Corresponds_to:
