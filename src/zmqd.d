@@ -1238,58 +1238,10 @@ struct Socket
 
     unittest
     {
-        // We test all the socket options by checking that they have their default value.
         auto s = Socket(SocketType.xpub);
         const e = "inproc://unittest2";
         s.bind(e);
         import core.time;
-        assert(s.threadAffinity == 0);
-        assert(s.identity == null);
-        assert(s.rate == 100);
-        assert(s.recoveryInterval == 10.seconds);
-        assert(s.sendBufferSize == 0);
-        assert(s.receiveBufferSize == 0);
-        version(Posix) {
-            assert(s.fd > 2); // 0, 1 and 2 are the standard streams
-        }
-        assert(s.events == PollFlags.pollOut);
-        assert(s.type == SocketType.xpub);
-        assert(s.linger == 0.hnsecs);
-        assert(s.reconnectionInterval == 100.msecs);
-        assert(s.backlog == 100);
-        assert(s.maxReconnectionInterval == Duration.zero);
-        assert(s.maxMsgSize == -1);
-        assert(s.sendHWM == 1000);
-        assert(s.receiveHWM == 1000);
-        assert(s.multicastHops == 1);
-        assert(s.receiveTimeout == infiniteDuration);
-        assert(s.sendTimeout == infiniteDuration);
-        assert(s.tcpKeepalive == -1);
-        assert(s.tcpKeepaliveCnt == -1);
-        assert(s.tcpKeepaliveIdle == -1);
-        assert(s.tcpKeepaliveIntvl == -1);
-        assert(!s.immediate);
-        assert(!s.ipv6);
-        assert(s.mechanism == Security.none);
-        assert(!s.plainServer);
-        assert(s.getPlainUsername(new char[8]).length == 0);
-        assert(s.getPlainPassword(new char[8]).length == 0);
-        debug (WithCurveTests) {
-            assert(!s.curveServer);
-        }
-        assert(s.zapDomain.length == 0);
-        static if (ZMQ_VERSION >= ZMQ41) {
-            assert(s.typeOfService == 0);
-            if (zmqHas("gssapi")) {
-                assert(!s.gssapiPlaintext);
-                assert(s.gssapiPrincipal.length == 0);
-                assert(!s.gssapiServer);
-                assert(s.gssapiServicePrincipal.length == 0);
-            }
-            assert(s.handshakeInterval == 30000.msecs);
-        }
-
-        // Test setters and getters together
         s.threadAffinity = 1;
         assert(s.threadAffinity == 1);
         s.identity = cast(ubyte[]) [ 65, 66, 67 ];
@@ -1304,6 +1256,11 @@ struct Socket
         assert(s.sendBufferSize == 500);
         s.receiveBufferSize = 600;
         assert(s.receiveBufferSize == 600);
+        version(Posix) {
+            assert(s.fd > 2); // 0, 1 and 2 are the standard streams
+        }
+        assert(s.events == PollFlags.pollOut);
+        assert(s.type == SocketType.xpub);
         s.linger = Duration.zero;
         assert(s.linger == Duration.zero);
         s.linger = 100_000.usecs;
