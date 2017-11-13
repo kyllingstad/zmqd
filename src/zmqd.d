@@ -131,6 +131,7 @@ version(unittest) static this()
 
 @safe:
 
+T* ptr(T)(T[] arr) { return arr.length == 0 ? null : &arr[0]; }
 
 /**
 Reports the $(ZMQ) library version.
@@ -459,7 +460,7 @@ struct Socket
     void send(const ubyte[] data, bool more = false)
     {
         immutable flags = more ? ZMQ_SNDMORE : 0;
-        if (trusted!zmq_send(m_socket, data.ptr, data.length, flags) < 0) {
+        if (trusted!zmq_send(m_socket, ptr(data), data.length, flags) < 0) {
             throw new ZmqException;
         }
     }
@@ -474,7 +475,7 @@ struct Socket
     bool trySend(const ubyte[] data, bool more = false)
     {
         immutable flags = ZMQ_DONTWAIT | (more ? ZMQ_SNDMORE : 0);
-        if (trusted!zmq_send(m_socket, data.ptr, data.length, flags) < 0) {
+        if (trusted!zmq_send(m_socket, ptr(data), data.length, flags) < 0) {
             import core.stdc.errno;
             if (errno == EAGAIN) return false;
             else throw new ZmqException;
@@ -564,7 +565,7 @@ struct Socket
     void sendConst(immutable ubyte[] data, bool more = false)
     {
         immutable flags = more ? ZMQ_SNDMORE : 0;
-        if (trusted!zmq_send_const(m_socket, data.ptr, data.length, flags) < 0) {
+        if (trusted!zmq_send_const(m_socket, ptr(data), data.length, flags) < 0) {
             throw new ZmqException;
         }
     }
@@ -579,7 +580,7 @@ struct Socket
     bool trySendConst(immutable ubyte[] data, bool more = false)
     {
         immutable flags = ZMQ_DONTWAIT | (more ? ZMQ_SNDMORE : 0);
-        if (trusted!zmq_send_const(m_socket, data.ptr, data.length, flags) < 0) {
+        if (trusted!zmq_send_const(m_socket, ptr(data), data.length, flags) < 0) {
             import core.stdc.errno;
             if (errno == EAGAIN) return false;
             else throw new ZmqException;
@@ -621,7 +622,7 @@ struct Socket
     */
     size_t receive(ubyte[] data)
     {
-        immutable len = trusted!zmq_recv(m_socket, data.ptr, data.length, 0);
+        immutable len = trusted!zmq_recv(m_socket, ptr(data), data.length, 0);
         if (len >= 0) {
             import std.conv;
             return to!size_t(len);
@@ -633,7 +634,7 @@ struct Socket
     /// ditto
     Tuple!(size_t, bool) tryReceive(ubyte[] data)
     {
-        immutable len = trusted!zmq_recv(m_socket, data.ptr, data.length, ZMQ_DONTWAIT);
+        immutable len = trusted!zmq_recv(m_socket, ptr(data), data.length, ZMQ_DONTWAIT);
         if (len >= 0) {
             import std.conv;
             return typeof(return)(to!size_t(len), true);
@@ -1616,7 +1617,7 @@ private:
 
     void setArrayOption()(int option, const void[] value)
     {
-        if (trusted!zmq_setsockopt(m_socket, option, value.ptr, value.length) != 0) {
+        if (trusted!zmq_setsockopt(m_socket, option, ptr(value), value.length) != 0) {
             throw new ZmqException;
         }
     }
@@ -1846,7 +1847,7 @@ uint poll(zmq_pollitem_t[] items, Duration timeout = infiniteDuration)
 {
     import std.conv: to;
     const n = trusted!zmq_poll(
-        items.ptr,
+        ptr(items),
         to!int(items.length),
         timeout == infiniteDuration ? -1 : to!int(timeout.total!"msecs"()));
     if (n < 0) throw new ZmqException;
@@ -3331,7 +3332,7 @@ char[] z85Encode(ubyte[] data, char[] dest)
     import core.exception: RangeError;
     immutable len = 5 * data.length / 4;
     if (dest.length < len+1) throw new RangeError;
-    if (trusted!zmq_z85_encode(dest.ptr, data.ptr, data.length) == null) {
+    if (trusted!zmq_z85_encode(ptr(dest), ptr(data), data.length) == null) {
         throw new ZmqException;
     }
     return dest[0 .. len];
@@ -3393,7 +3394,7 @@ ubyte[] z85Decode(char[] text, ubyte[] dest)
     immutable len = 4 * text.length/5;
     if (dest.length < len) throw new RangeError;
     if (text[$-1] != '\0') text ~= '\0';
-    if (trusted!zmq_z85_decode(dest.ptr, text.ptr) == null) {
+    if (trusted!zmq_z85_decode(ptr(dest), ptr(text)) == null) {
         throw new ZmqException;
     }
     return dest[0 .. len];
@@ -3456,7 +3457,7 @@ Tuple!(char[], "publicKey", char[], "secretKey")
     static if (ZMQ_VERSION < ZMQ_MAKE_VERSION(4, 1, 0)) {
         import deimos.zmq.utils: zmq_curve_keypair;
     }
-    if (trusted!zmq_curve_keypair(publicKeyBuf.ptr, secretKeyBuf.ptr) != 0) {
+    if (trusted!zmq_curve_keypair(ptr(publicKeyBuf), ptr(secretKeyBuf)) != 0) {
         throw new ZmqException;
     }
     return typeof(return)(publicKeyBuf[0 .. 40], secretKeyBuf[0 .. 40]);
@@ -3549,7 +3550,7 @@ unittest
     auto bytes = cast(ubyte[]) ['f', 'o', 'o'];
     auto text = bytes.asString();
     assert (text == "foo");
-    assert (cast(void*) bytes.ptr == cast(void*) text.ptr);
+    assert (cast(void*) ptr(bytes) == cast(void*) ptr(text));
 
     import std.exception: assertThrown;
     import std.utf: UTFException;
@@ -3872,7 +3873,7 @@ const(char)* zeroTermString(const char[] s) nothrow
     if (buf.length < len) buf.length = max(len, 1023);
     buf[0 .. s.length] = s;
     buf[s.length] = '\0';
-    return buf.ptr;
+    return ptr(buf);
 }
 
 @system unittest
