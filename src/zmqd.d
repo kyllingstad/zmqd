@@ -476,8 +476,8 @@ struct Socket
     {
         immutable flags = ZMQ_DONTWAIT | (more ? ZMQ_SNDMORE : 0);
         if (trusted!zmq_send(m_socket, ptr(data), data.length, flags) < 0) {
-            import core.stdc.errno;
-            if (errno == EAGAIN) return false;
+            import core.stdc.errno: EAGAIN;
+            if (trusted!zmq_errno() == EAGAIN) return false;
             else throw new ZmqException;
         }
         return true;
@@ -528,8 +528,8 @@ struct Socket
     {
         immutable flags = ZMQ_DONTWAIT | (more ? ZMQ_SNDMORE : 0);
         if (trusted!zmq_msg_send(msg.handle, m_socket, flags) < 0) {
-            import core.stdc.errno;
-            if (errno == EAGAIN) return false;
+            import core.stdc.errno: EAGAIN;
+            if (trusted!zmq_errno() == EAGAIN) return false;
             else throw new ZmqException;
         }
         return true;
@@ -581,8 +581,8 @@ struct Socket
     {
         immutable flags = ZMQ_DONTWAIT | (more ? ZMQ_SNDMORE : 0);
         if (trusted!zmq_send_const(m_socket, ptr(data), data.length, flags) < 0) {
-            import core.stdc.errno;
-            if (errno == EAGAIN) return false;
+            import core.stdc.errno: EAGAIN;
+            if (trusted!zmq_errno() == EAGAIN) return false;
             else throw new ZmqException;
         }
         return true;
@@ -639,8 +639,8 @@ struct Socket
             import std.conv;
             return typeof(return)(to!size_t(len), true);
         } else {
-            import core.stdc.errno;
-            if (errno == EAGAIN) {
+            import core.stdc.errno: EAGAIN;
+            if (trusted!zmq_errno() == EAGAIN) {
                 return typeof(return)(0, false);
             } else {
                 throw new ZmqException;
@@ -719,8 +719,8 @@ struct Socket
             import std.conv;
             return typeof(return)(to!size_t(len), true);
         } else {
-            import core.stdc.errno;
-            if (errno == EAGAIN) {
+            import core.stdc.errno: EAGAIN;
+            if (trusted!zmq_errno() == EAGAIN) {
                 return typeof(return)(0, false);
             } else {
                 throw new ZmqException;
@@ -3581,8 +3581,8 @@ class ZmqException : Exception
 private:
     this(string file = __FILE__, int line = __LINE__) nothrow
     {
-        import core.stdc.errno, std.conv;
-        this.errno = core.stdc.errno.errno;
+        import std.conv;
+        this.errno = trusted!zmq_errno();
         string msg;
         try {
             msg = trusted!(to!string)(trusted!zmq_strerror(this.errno));
