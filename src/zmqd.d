@@ -145,7 +145,7 @@ Corresponds_to:
 Tuple!(int, "major", int, "minor", int, "patch") zmqVersion() nothrow
 {
     typeof(return) v;
-    trusted!zmq_version(&v.major, &v.minor, &v.patch);
+    scopedTrusted!zmq_version(&v.major, &v.minor, &v.patch);
     return v;
 }
 
@@ -620,9 +620,9 @@ struct Socket
         of $(D tryReceive)).
 
     */
-    size_t receive(ubyte[] data)
+    size_t receive(scope ubyte[] data)
     {
-        immutable len = trusted!zmq_recv(m_socket, ptr(data), data.length, 0);
+        immutable len = scopedTrusted!zmq_recv(m_socket, ptr(data), data.length, 0);
         if (len >= 0) {
             import std.conv;
             return to!size_t(len);
@@ -3636,12 +3636,11 @@ struct SharedResource
         nothrowDetach();
     }
 
-    ref SharedResource opAssign(SharedResource rhs)
+    void opAssign(SharedResource rhs)
     {
         detach();
         m_payload = rhs.m_payload;
         rhs.m_payload = null;
-        return this;
     }
 
     void detach()
@@ -3856,6 +3855,11 @@ version(unittest) private string uniqueUrl(string p, int n = __LINE__)
 
 
 private auto trusted(alias func, Args...)(auto ref Args args) @trusted
+{
+    return func(args);
+}
+
+private auto scopedTrusted(alias func, Args...)(auto ref scope Args args) @trusted
 {
     return func(args);
 }
