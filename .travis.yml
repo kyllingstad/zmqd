@@ -13,6 +13,7 @@ install:
   - ZEROMQ_VERSION=4.3.2
   - curl -fsSL https://github.com/zeromq/libzmq/archive/v${ZEROMQ_VERSION}.tar.gz | tar -zxf -
   - pushd libzmq-${ZEROMQ_VERSION}
+  - ./autogen.sh
   - ./configure --prefix=${HOME}
   - make install -j2
   - popd
