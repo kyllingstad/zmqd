@@ -95,9 +95,6 @@ version(Windows) {
     import core.sys.windows.winsock2: SOCKET;
 }
 
-// Include ZMQ >= 4.1 features?
-private enum ZMQ41 = ZMQ_MAKE_VERSION(4, 1, 0);
-
 // Compile with debug=ZMQD_DisableCurveTests to be able to successfully
 // run unittests even if the local ZMQ library is not compiled with Curve
 // support.
@@ -150,22 +147,20 @@ Tuple!(int, "major", int, "minor", int, "patch") zmqVersion() nothrow
 }
 
 
-static if (ZMQ_VERSION >= ZMQ41) {
-    /**
-    Checks for a $(ZMQ) capability.
+/**
+Checks for a $(ZMQ) capability.
 
-    Corresponds_to:
-        $(ZMQREF zmq_has())
-    */
-    bool zmqHas(const char[] capability) nothrow
-    {
-        return 0 != trusted!zmq_has(zeroTermString(capability));
-    }
+Corresponds_to:
+    $(ZMQREF zmq_has())
+*/
+bool zmqHas(const char[] capability) nothrow
+{
+    return 0 != trusted!zmq_has(zeroTermString(capability));
+}
 
-    unittest
-    {
-        assert (!zmqHas("this ain't a capability"));
-    }
+unittest
+{
+    assert (!zmqHas("this ain't a capability"));
 }
 
 
@@ -378,16 +373,12 @@ struct Socket
         }
     }
 
-    // TODO: Remove version(Posix) and change to INPROC when updating to ZMQ 4.1.
-    //       IPC does not work on Windows, and unbind() does not work with INPROC.
-    //       See: https://github.com/zeromq/libzmq/issues/949
-    ///
-    version (Posix) unittest
+    unittest
     {
         auto s = Socket(SocketType.pub);
-        s.bind("ipc://zmqd_unbind_example");
+        s.bind("inproc://zmqd_unbind_example");
         // Do some work...
-        s.unbind("ipc://zmqd_unbind_example");
+        s.unbind("inproc://zmqd_unbind_example");
     }
 
     /**
@@ -1172,57 +1163,55 @@ struct Socket
     /// ditto
     @property void zapDomain(const char[] value) { setArrayOption(ZMQ_ZAP_DOMAIN, value); }
 
-    static if (ZMQ_VERSION >= ZMQ41) {
-        /// ditto
-        @property void routerHandover(bool value) { setOption(ZMQ_ROUTER_HANDOVER, value ? 1 : 0); }
+    /// ditto
+    @property void routerHandover(bool value) { setOption(ZMQ_ROUTER_HANDOVER, value ? 1 : 0); }
 
-        /// ditto
-        @property void connectionRID(const ubyte[] value) { setArrayOption(ZMQ_CONNECT_RID, value); }
+    /// ditto
+    @property void connectionRID(const ubyte[] value) { setArrayOption(ZMQ_CONNECT_RID, value); }
 
-        /// ditto
-        @property int typeOfService() { return getOption!int(ZMQ_TOS); }
-        /// ditto
-        @property void typeOfService(int value) { setOption(ZMQ_TOS, value); }
+    /// ditto
+    @property int typeOfService() { return getOption!int(ZMQ_TOS); }
+    /// ditto
+    @property void typeOfService(int value) { setOption(ZMQ_TOS, value); }
 
-        /// ditto
-        @property bool gssapiPlaintext() { return !!getOption!int(ZMQ_GSSAPI_PLAINTEXT); }
-        /// ditto
-        @property void gssapiPlaintext(bool value) { setOption(ZMQ_GSSAPI_PLAINTEXT, value ? 1 : 0); }
+    /// ditto
+    @property bool gssapiPlaintext() { return !!getOption!int(ZMQ_GSSAPI_PLAINTEXT); }
+    /// ditto
+    @property void gssapiPlaintext(bool value) { setOption(ZMQ_GSSAPI_PLAINTEXT, value ? 1 : 0); }
 
-        /// ditto
-        @property char[] gssapiPrincipal() { return getGssapiPrincipal(new char[256]); }
-        /// ditto
-        char[] getGssapiPrincipal(char[] dest) { return getCStringOption(ZMQ_GSSAPI_PRINCIPAL, dest); }
-        /// ditto
-        @property void gssapiPrincipal(const char[] value) { setArrayOption(ZMQ_GSSAPI_PRINCIPAL, value); }
+    /// ditto
+    @property char[] gssapiPrincipal() { return getGssapiPrincipal(new char[256]); }
+    /// ditto
+    char[] getGssapiPrincipal(char[] dest) { return getCStringOption(ZMQ_GSSAPI_PRINCIPAL, dest); }
+    /// ditto
+    @property void gssapiPrincipal(const char[] value) { setArrayOption(ZMQ_GSSAPI_PRINCIPAL, value); }
 
-        /// ditto
-        @property bool gssapiServer() { return !!getOption!int(ZMQ_GSSAPI_SERVER); }
-        /// ditto
-        @property void gssapiServer(bool value) { setOption(ZMQ_GSSAPI_SERVER, value ? 1 : 0); }
+    /// ditto
+    @property bool gssapiServer() { return !!getOption!int(ZMQ_GSSAPI_SERVER); }
+    /// ditto
+    @property void gssapiServer(bool value) { setOption(ZMQ_GSSAPI_SERVER, value ? 1 : 0); }
 
-        /// ditto
-        @property char[] gssapiServicePrincipal() { return getGssapiServicePrincipal(new char[256]); }
-        /// ditto
-        char[] getGssapiServicePrincipal(char[] dest) { return getCStringOption(ZMQ_GSSAPI_SERVICE_PRINCIPAL, dest); }
-        /// ditto
-        @property void gssapiServicePrincipal(const char[] value) { setArrayOption(ZMQ_GSSAPI_SERVICE_PRINCIPAL, value); }
+    /// ditto
+    @property char[] gssapiServicePrincipal() { return getGssapiServicePrincipal(new char[256]); }
+    /// ditto
+    char[] getGssapiServicePrincipal(char[] dest) { return getCStringOption(ZMQ_GSSAPI_SERVICE_PRINCIPAL, dest); }
+    /// ditto
+    @property void gssapiServicePrincipal(const char[] value) { setArrayOption(ZMQ_GSSAPI_SERVICE_PRINCIPAL, value); }
 
-        /// ditto
-        @property Duration handshakeInterval()
-        {
-            const auto value = getOption!int(ZMQ_HANDSHAKE_IVL);
-            return value == 0 ? infiniteDuration : msecs(value);
-        }
-        /// ditto
-        @property void handshakeInterval(Duration value)
-        {
-            import std.conv: to;
-            setOption(
-                ZMQ_HANDSHAKE_IVL,
-                value == infiniteDuration ? 0 : to!int(value.total!"msecs"()));
-        }
-    } // static if (ZMQ_VERSION >= ZMQ41)
+    /// ditto
+    @property Duration handshakeInterval()
+    {
+        const auto value = getOption!int(ZMQ_HANDSHAKE_IVL);
+        return value == 0 ? infiniteDuration : msecs(value);
+    }
+    /// ditto
+    @property void handshakeInterval(Duration value)
+    {
+        import std.conv: to;
+        setOption(
+            ZMQ_HANDSHAKE_IVL,
+            value == infiniteDuration ? 0 : to!int(value.total!"msecs"()));
+    }
 
     // deprecated options
     deprecated("Use the 'immediate' property instead")
@@ -1328,22 +1317,20 @@ struct Socket
         assert(s.mechanism == Security.none);
         s.zapDomain = "my_zap_domain";
         assert(s.zapDomain == "my_zap_domain");
-        static if (ZMQ_VERSION >= ZMQ41) {
-            s.typeOfService = 1;
-            assert(s.typeOfService == 1);
-            if (zmqHas("gssapi")) {
-                s.gssapiPlaintext = true;
-                assert(s.gssapiPlaintext);
-                s.gssapiPrincipal = "myPrincipal";
-                assert(s.gssapiPrincipal == "myPrincipal");
-                s.gssapiServer = true;
-                assert(s.gssapiServer);
-                s.gssapiServicePrincipal = "myServicePrincipal";
-                assert(s.gssapiServicePrincipal == "myServicePrincipal");
-            }
-            s.handshakeInterval = 60000.msecs;
-            assert(s.handshakeInterval == 60000.msecs);
+        s.typeOfService = 1;
+        assert(s.typeOfService == 1);
+        if (zmqHas("gssapi")) {
+            s.gssapiPlaintext = true;
+            assert(s.gssapiPlaintext);
+            s.gssapiPrincipal = "myPrincipal";
+            assert(s.gssapiPrincipal == "myPrincipal");
+            s.gssapiServer = true;
+            assert(s.gssapiServer);
+            s.gssapiServicePrincipal = "myServicePrincipal";
+            assert(s.gssapiServicePrincipal == "myServicePrincipal");
         }
+        s.handshakeInterval = 60000.msecs;
+        assert(s.handshakeInterval == 60000.msecs);
 
         // Test write-only options
         s.conflate = true;
@@ -1403,10 +1390,8 @@ struct Socket
         auto rt = Socket(SocketType.router);
         rt.routerMandatory = true;
         rt.probeRouter = true;
-        static if (ZMQ_VERSION >= ZMQ41) {
-            rt.routerHandover = true;
-            rt.connectionRID = cast(ubyte[]) [ 10, 20, 30 ];
-        }
+        rt.routerHandover = true;
+        rt.connectionRID = cast(ubyte[]) [ 10, 20, 30 ];
         auto xp = Socket(SocketType.xpub);
         xp.xpubVerbose = true;
         auto rq = Socket(SocketType.req);
@@ -1730,8 +1715,6 @@ void proxy(ref Socket frontend, ref Socket backend, ref Socket capture)
 }
 
 
-static if (ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 0, 5)) {
-
 /**
 Starts the built-in $(ZMQ) proxy with _control flow.
 
@@ -1741,9 +1724,6 @@ comes before the $(D capture) socket.  Furthermore, unlike in $(ZMQ),
 $(D control) is mandatory.  (Without the _control socket one can simply
 use $(FREF proxy).)
 
-Versions:
-    This function is only available when using the bindings for ZeroMQ
-    4.0.5 or later.
 Throws:
     $(REF ZmqException) if $(ZMQ) reports an error.
 Corresponds_to:
@@ -1838,8 +1818,6 @@ void steerableProxy(ref Socket frontend, ref Socket backend, ref Socket control,
     controller.send("TERMINATE");
     t.join();
 }
-
-} // end static if (version >= 4.0.5)
 
 
 deprecated("zmqd.poll() has a new signature as of v0.4")
@@ -2486,79 +2464,77 @@ struct Frame
         return !!trusted!zmq_msg_more(&m_msg);
     }
 
-    static if (ZMQ_VERSION >= ZMQ41) {
-        /**
-        The file descriptor of the socket the message was read from.
+    /**
+    The file descriptor of the socket the message was read from.
 
-        Throws:
-            $(REF ZmqException) if $(ZMQ) reports an error.
-        Corresponds_to:
-            $(ZMQREF zmq_msg_get()) with $(D ZMQ_SRCFD).
-        */
-        @property FD sourceFD()
-        {
-            return cast(FD) getProperty(ZMQ_SRCFD);
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_get()) with $(D ZMQ_SRCFD).
+    */
+    @property FD sourceFD()
+    {
+        return cast(FD) getProperty(ZMQ_SRCFD);
+    }
+
+    /**
+    Whether the message MAY share underlying storage with another copy.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_get()) with $(D ZMQ_SHARED).
+    */
+    @property bool sharedStorage()
+    {
+        return !!getProperty(ZMQ_SHARED);
+    }
+
+    unittest
+    {
+        import std.string: representation;
+        auto msg1 = Frame(100); // Big message to avoid small-string optimisation
+        msg1.data[0 .. 3] = "foo".representation;
+        assert (!msg1.sharedStorage);
+        auto msg2 = msg1.copy();
+        assert (msg2.sharedStorage); // Warning: The ZMQ docs only say that this MAY be true
+        assert (msg2.data[0 .. 3].asString() == "foo");
+    }
+
+    /**
+    Gets message _metadata.
+
+    $(D metadataUnsafe()) is faster than $(D metadata()) because it
+    directly returns the array which comes from $(ZMQREF zmq_msg_gets()),
+    whereas the latter returns a freshly GC-allocated copy of it.  However,
+    the array returned by $(D metadataUnsafe()) is owned by the underlying
+    $(ZMQ) message and gets destroyed along with it, so care must be
+    taken when using this function.
+
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_msg_gets())
+    */
+    char[] metadata(const char[] property) @trusted
+        in { assert(m_initialized); }
+        body
+    {
+        return metadataUnsafe(property).dup;
+    }
+
+    /// ditto
+    const(char)[] metadataUnsafe(const char[] property) @system
+        in { assert(m_initialized); }
+        body
+    {
+        if (auto value = zmq_msg_gets(handle, zeroTermString(property))) {
+            import std.string: fromStringz;
+            return fromStringz(value);
+        } else {
+            throw new ZmqException();
         }
-
-        /**
-        Whether the message MAY share underlying storage with another copy.
-
-        Throws:
-            $(REF ZmqException) if $(ZMQ) reports an error.
-        Corresponds_to:
-            $(ZMQREF zmq_msg_get()) with $(D ZMQ_SHARED).
-        */
-        @property bool sharedStorage()
-        {
-            return !!getProperty(ZMQ_SHARED);
-        }
-
-        unittest
-        {
-            import std.string: representation;
-            auto msg1 = Frame(100); // Big message to avoid small-string optimisation
-            msg1.data[0 .. 3] = "foo".representation;
-            assert (!msg1.sharedStorage);
-            auto msg2 = msg1.copy();
-            assert (msg2.sharedStorage); // Warning: The ZMQ docs only say that this MAY be true
-            assert (msg2.data[0 .. 3].asString() == "foo");
-        }
-
-        /**
-        Gets message _metadata.
-
-        $(D metadataUnsafe()) is faster than $(D metadata()) because it
-        directly returns the array which comes from $(ZMQREF zmq_msg_gets()),
-        whereas the latter returns a freshly GC-allocated copy of it.  However,
-        the array returned by $(D metadataUnsafe()) is owned by the underlying
-        $(ZMQ) message and gets destroyed along with it, so care must be
-        taken when using this function.
-
-        Throws:
-            $(REF ZmqException) if $(ZMQ) reports an error.
-        Corresponds_to:
-            $(ZMQREF zmq_msg_gets())
-        */
-        char[] metadata(const char[] property) @trusted
-            in { assert(m_initialized); }
-            body
-        {
-            return metadataUnsafe(property).dup;
-        }
-
-        /// ditto
-        const(char)[] metadataUnsafe(const char[] property) @system
-            in { assert(m_initialized); }
-            body
-        {
-            if (auto value = zmq_msg_gets(handle, zeroTermString(property))) {
-                import std.string: fromStringz;
-                return fromStringz(value);
-            } else {
-                throw new ZmqException();
-            }
-        }
-    } // static if (ZMQ_VERSION >= ZMQ41)
+    }
 
     /**
     A pointer to the underlying $(D zmq_msg_t).
@@ -2930,54 +2906,52 @@ struct Context
         assert (ctx.maxSockets == 512);
     }
 
-    static if (ZMQ_VERSION >= ZMQ41) {
-        /**
-        The largest configurable number of sockets.
+    /**
+    The largest configurable number of sockets.
 
-        Throws:
-            $(REF ZmqException) if $(ZMQ) reports an error.
-        Corresponds_to:
-            $(ZMQREF zmq_ctx_get()) with $(D ZMQ_SOCKET_LIMIT).
-        */
-        @property int socketLimit()
-        {
-            return getOption(ZMQ_SOCKET_LIMIT);
-        }
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_get()) with $(D ZMQ_SOCKET_LIMIT).
+    */
+    @property int socketLimit()
+    {
+        return getOption(ZMQ_SOCKET_LIMIT);
+    }
 
-        ///
-        unittest
-        {
-            auto ctx = Context();
-            assert (ctx.socketLimit > 0);
-        }
+    ///
+    unittest
+    {
+        auto ctx = Context();
+        assert (ctx.socketLimit > 0);
+    }
 
-        /**
-        IPv6 option.
+    /**
+    IPv6 option.
 
-        Throws:
-            $(REF ZmqException) if $(ZMQ) reports an error.
-        Corresponds_to:
-            $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
-            $(D ZMQ_IPV6).
-        */
-        @property bool ipv6()
-        {
-            return !!getOption(ZMQ_IPV6);
-        }
+    Throws:
+        $(REF ZmqException) if $(ZMQ) reports an error.
+    Corresponds_to:
+        $(ZMQREF zmq_ctx_get()) and $(ZMQREF zmq_ctx_set()) with
+        $(D ZMQ_IPV6).
+    */
+    @property bool ipv6()
+    {
+        return !!getOption(ZMQ_IPV6);
+    }
 
-        /// ditto
-        @property void ipv6(bool value)
-        {
-            setOption(ZMQ_IPV6, value ? 1 : 0);
-        }
+    /// ditto
+    @property void ipv6(bool value)
+    {
+        setOption(ZMQ_IPV6, value ? 1 : 0);
+    }
 
-        ///
-        unittest
-        {
-            auto ctx = Context();
-            ctx.ipv6 = true;
-            assert (ctx.ipv6 == true);
-        }
+    ///
+    unittest
+    {
+        auto ctx = Context();
+        ctx.ipv6 = true;
+        assert (ctx.ipv6 == true);
     }
 
     /**
@@ -3109,58 +3083,18 @@ See_also:
 */
 Event receiveEvent(ref Socket socket) @system
 {
-    // The monitor event message format underwent some changes between ZMQ
-    // versions 3.2, 3.3 (unreleased) and 4.0.  Furthermore, the zmq_event_t
-    // type was removed as of ZMQ 4.1.  We try to support all versions >= 3.2.
-    immutable ver = zmqVersion();
-    immutable usePackedData = ver.major >= 4;
-    immutable useNewLayout = ZMQ_MAKE_VERSION(ver.major, ver.minor, ver.patch)
-        >= ZMQ_MAKE_VERSION(3, 3, 0);
-    assert (useNewLayout || !usePackedData);
-
-    struct OldEventStruct {
-        int event;
-        const(char*) addr;
-        int value;
-    }
-    struct NewEventStruct {
-        ushort event;
-        int value;
-    }
-    immutable eventFrameSize =
-        usePackedData ? (ushort.sizeof + int.sizeof)
-                      : (useNewLayout ? NewEventStruct.sizeof : OldEventStruct.sizeof);
-
+    enum eventFrameSize = ushort.sizeof + int.sizeof;
     auto eventFrame = Frame();
     if (socket.receive(eventFrame) != eventFrameSize) {
         throw new InvalidEventException;
     }
-    const data = eventFrame.data.ptr;
+    auto addrFrame = Frame();
+    socket.receive(addrFrame);
     try {
         import std.conv: to;
-        EventType event;
-        int value;
-        string addr;
-        if (useNewLayout) {
-            if (usePackedData) {
-                event = to!EventType(*(cast(const(ushort)*) data));
-                value = *(cast(const(int)*) data + ushort.sizeof);
-            } else {
-                const eventStruct = cast(const(NewEventStruct)*) data;
-                event = to!EventType(eventStruct.event);
-                value = eventStruct.value;
-            }
-            auto addrFrame = Frame();
-            socket.receive(addrFrame);
-            addr = (cast(char[]) addrFrame.data).idup;
-        } else {
-            const eventStruct = cast(const(OldEventStruct)*) data;
-            event = to!EventType(eventStruct.event);
-            value = eventStruct.value;
-            addr = eventStruct.addr !is null
-                ? to!string(eventStruct.addr)
-                : null;
-        }
+        immutable event = to!EventType(*(cast(const(ushort)*) eventFrame.data.ptr));
+        immutable value = *(cast(const(int)*) eventFrame.data.ptr + ushort.sizeof);
+        immutable addr = (cast(char[]) addrFrame.data).idup;
         return Event(event, addr, value);
     } catch (Exception e) {
         // Any exception thrown within the try block signifies that there
@@ -3169,9 +3103,8 @@ Event receiveEvent(ref Socket socket) @system
     }
 }
 
-// TODO: Remove version(Posix) and change to INPROC when updating to ZMQ 4.1.
-//       IPC does not work on Windows, and unbind() does not work with INPROC.
-//       See: https://github.com/zeromq/libzmq/issues/949
+// Socket monitoring only works for connection-oriented sockets, and
+// IPC is not supported on Windows.
 version (Posix) @system unittest
 {
     Event[] events;
@@ -3582,9 +3515,6 @@ Tuple!(char[], "publicKey", char[], "secretKey")
     if (secretKeyBuf is null)           secretKeyBuf = new char[41];
     else if (secretKeyBuf.length < 41)  throw new RangeError;
 
-    static if (ZMQ_VERSION < ZMQ_MAKE_VERSION(4, 1, 0)) {
-        import deimos.zmq.utils: zmq_curve_keypair;
-    }
     if (trusted!zmq_curve_keypair(ptr(publicKeyBuf), ptr(secretKeyBuf)) != 0) {
         throw new ZmqException;
     }
