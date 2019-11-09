@@ -58,11 +58,11 @@ $(LINK2 https://github.com/kyllingstad/zmqd/tree/master/examples,$(D examples))
 subdirectory of the $(ZMQD) source repository.
 
 Version:
-    1.1.2 (compatible with $(ZMQ) >= 4.0.0)
+    1.2.0 (compatible with $(ZMQ) >= 4.3.0)
 Authors:
     $(LINK2 http://github.com/kyllingstad,Lars T. Kyllingstad)
 Copyright:
-    Copyright (c) 2013–2016, Lars T. Kyllingstad. All rights reserved.
+    Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
 License:
     $(ZMQD) is released under the terms of the
     $(LINK2 https://www.mozilla.org/MPL/2.0/index.txt,Mozilla Public License v. 2.0).$(BR)
@@ -3050,7 +3050,43 @@ enum EventType
     closed          = ZMQ_EVENT_CLOSED,         /// Corresponds to $(D ZMQ_EVENT_CLOSED).
     closeFailed     = ZMQ_EVENT_CLOSE_FAILED,   /// Corresponds to $(D ZMQ_EVENT_CLOSE_FAILED).
     disconnected    = ZMQ_EVENT_DISCONNECTED,   /// Corresponds to $(D ZMQ_EVENT_DISCONNECTED).
-    all             = ZMQ_EVENT_ALL             /// Corresponds to $(D ZMQ_EVENT_ALL).
+    monitorStopped  = ZMQ_EVENT_MONITOR_STOPPED,/// Corresponds to $(D ZMQ_EVENT_MONITOR_STOPPED).
+    all             = ZMQ_EVENT_ALL,            /// Corresponds to $(D ZMQ_EVENT_ALL).
+    handshakeFailedNoDetail = ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL, /// Corresponds to $(D ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL).
+    handshakeSucceeded      = ZMQ_EVENT_HANDSHAKE_SUCCEEDED,        /// Corresponds to $(D ZMQ_EVENT_HANDSHAKE_SUCCEEDED).
+    handshakeFailedProtocol = ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL,  /// Corresponds to $(D ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL).
+    handshakeFailedAuth     = ZMQ_EVENT_HANDSHAKE_FAILED_AUTH,      /// Corresponds to $(D ZMQ_EVENT_HANDSHAKE_FAILED_AUTH).
+}
+
+
+/**
+Protocol error codes.
+
+These may be returned from $(FREF Event.protocolError), and are described
+in the $(ZMQREF zmq_socket_monitor()) reference.
+*/
+enum ProtocolError
+{
+    zmtpUnspecified                 = ZMQ_PROTOCOL_ERROR_ZMTP_UNSPECIFIED,                  /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_UNSPECIFIED).
+    zmtpUnexpectedCommand           = ZMQ_PROTOCOL_ERROR_ZMTP_UNEXPECTED_COMMAND,           /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_UNEXPECTED_COMMAND).
+    zmtpInvalidSequence             = ZMQ_PROTOCOL_ERROR_ZMTP_INVALID_SEQUENCE,             /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_INVALID_SEQUENCE).
+    zmtpKeyExchange                 = ZMQ_PROTOCOL_ERROR_ZMTP_KEY_EXCHANGE,                 /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_KEY_EXCHANGE).
+    zmtpMalformedCommandUnspecified = ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_UNSPECIFIED,/// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_UNSPECIFIED).
+    zmtpMalformedCommandMessage     = ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_MESSAGE,    /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_MESSAGE).
+    zmtpMalformedCommandHello       = ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_HELLO,      /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_HELLO).
+    zmtpMalformedCommandInitiate    = ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_INITIATE,   /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_INITIATE).
+    zmtpMalformedCommandError       = ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_ERROR,      /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_ERROR).
+    zmtpMalformedCommandReady       = ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_READY,      /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_READY).
+    zmtpMalformedCommandWelcome     = ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_WELCOME,    /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_WELCOME).
+    zmtpInvalidMetadata             = ZMQ_PROTOCOL_ERROR_ZMTP_INVALID_METADATA,             /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_INVALID_METADATA).
+    zmtpCryptographic               = ZMQ_PROTOCOL_ERROR_ZMTP_CRYPTOGRAPHIC,                /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_CRYPTOGRAPHIC).
+    zmtpMechanismMismatch           = ZMQ_PROTOCOL_ERROR_ZMTP_MECHANISM_MISMATCH,           /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZMTP_MECHANISM_MISMATCH).
+    zapUnspecified                  = ZMQ_PROTOCOL_ERROR_ZAP_UNSPECIFIED,                   /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZAP_UNSPECIFIED).
+    zapMalformedReply               = ZMQ_PROTOCOL_ERROR_ZAP_MALFORMED_REPLY,               /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZAP_MALFORMED_REPLY).
+    zapBadRequestID                 = ZMQ_PROTOCOL_ERROR_ZAP_BAD_REQUEST_ID,                /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZAP_BAD_REQUEST_ID).
+    zapBadVersion                   = ZMQ_PROTOCOL_ERROR_ZAP_BAD_VERSION,                   /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZAP_BAD_VERSION).
+    zapInvalidStatusCode            = ZMQ_PROTOCOL_ERROR_ZAP_INVALID_STATUS_CODE,           /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZAP_INVALID_STATUS_CODE).
+    zapInvalidMetadata              = ZMQ_PROTOCOL_ERROR_ZAP_INVALID_METADATA,              /// Corresponds to $(D ZMQ_PROTOCOL_ERROR_ZAP_INVALID_METADATA).
 }
 
 
@@ -3167,13 +3203,14 @@ version (Posix) @system unittest
     }
     eventGenerator();
     collector.join();
-    assert (events.length == 3);
+    assert (events.length == 4);
     foreach (ev; events) {
         assert (ev.address == "ipc://zmqd_receiveEvent_unittest");
     }
     assert (events[0].type == EventType.listening);
     assert (events[1].type == EventType.accepted);
-    assert (events[2].type == EventType.closed);
+    assert (events[2].type == EventType.handshakeSucceeded);
+    assert (events[3].type == EventType.closed);
     import std.exception;
     assertNotThrown!Error(events[0].fd);
     assertThrown!Error(events[0].errno);
@@ -3213,26 +3250,34 @@ struct Event
     @property FD fd() const pure nothrow
     {
         final switch (m_type) {
-            case EventType.connected     :
-            case EventType.listening     :
-            case EventType.accepted      :
-            case EventType.closed        :
-            case EventType.disconnected  : return cast(typeof(return)) m_value;
+            case EventType.connected:
+            case EventType.listening:
+            case EventType.accepted:
+            case EventType.closed:
+            case EventType.disconnected:
+                return cast(typeof(return)) m_value;
             case EventType.connectDelayed:
             case EventType.connectRetried:
-            case EventType.bindFailed    :
-            case EventType.acceptFailed  :
-            case EventType.closeFailed   : throw invalidProperty();
-            case EventType.all           :
+            case EventType.bindFailed:
+            case EventType.acceptFailed:
+            case EventType.closeFailed:
+            case EventType.monitorStopped:
+            case EventType.handshakeFailedNoDetail:
+            case EventType.handshakeSucceeded:
+            case EventType.handshakeFailedProtocol:
+            case EventType.handshakeFailedAuth:
+                throw invalidProperty();
+            case EventType.all:
+                assert (false);
         }
-        assert (false);
     }
 
     /**
     The $(D _errno) code for the error which triggered the event.
 
     This property function may only be called if $(REF Event.type) is either
-    $(D bindFailed), $(D acceptFailed) or $(D closeFailed).
+    $(D bindFailed), $(D acceptFailed), $(D closeFailed) or
+    $(D handshakeFailedNoDetail).
 
     Throws:
         $(D Error) if the property is called for a wrong event type.
@@ -3240,19 +3285,26 @@ struct Event
     @property int errno() const pure nothrow
     {
         final switch (m_type) {
-            case EventType.bindFailed    :
-            case EventType.acceptFailed  :
-            case EventType.closeFailed   : return m_value;
-            case EventType.connected     :
+            case EventType.bindFailed:
+            case EventType.acceptFailed:
+            case EventType.closeFailed:
+            case EventType.handshakeFailedNoDetail:
+                return m_value;
+            case EventType.connected:
             case EventType.connectDelayed:
             case EventType.connectRetried:
-            case EventType.listening     :
-            case EventType.accepted      :
-            case EventType.closed        :
-            case EventType.disconnected  : throw invalidProperty();
-            case EventType.all           :
+            case EventType.listening:
+            case EventType.accepted:
+            case EventType.closed:
+            case EventType.disconnected:
+            case EventType.monitorStopped:
+            case EventType.handshakeSucceeded:
+            case EventType.handshakeFailedProtocol:
+            case EventType.handshakeFailedAuth:
+                throw invalidProperty();
+            case EventType.all:
+                assert (false);
         }
-        assert (false);
     }
 
     /**
@@ -3267,19 +3319,95 @@ struct Event
     @property Duration interval() const pure nothrow
     {
         final switch (m_type) {
-            case EventType.connectRetried: return m_value.msecs;
-            case EventType.connected     :
+            case EventType.connectRetried:
+                return m_value.msecs;
+            case EventType.connected:
             case EventType.connectDelayed:
-            case EventType.listening     :
-            case EventType.bindFailed    :
-            case EventType.accepted      :
-            case EventType.acceptFailed  :
-            case EventType.closed        :
-            case EventType.closeFailed   :
-            case EventType.disconnected  : throw invalidProperty();
-            case EventType.all           :
+            case EventType.listening:
+            case EventType.bindFailed:
+            case EventType.accepted:
+            case EventType.acceptFailed:
+            case EventType.closed:
+            case EventType.closeFailed:
+            case EventType.disconnected:
+            case EventType.monitorStopped:
+            case EventType.handshakeFailedNoDetail:
+            case EventType.handshakeSucceeded:
+            case EventType.handshakeFailedProtocol:
+            case EventType.handshakeFailedAuth:
+                throw invalidProperty();
+            case EventType.all:
+                assert (false);
         }
-        assert (false);
+    }
+
+    /**
+    The protocol error code.
+
+    This property function may only be called if $(REF Event.type) is
+    $(D handshakeFailedProtocol).
+
+    Throws:
+        $(D Error) if the property is called for a wrong event type.
+    */
+    @property ProtocolError protocolError() const pure
+    {
+        final switch (m_type) {
+            case EventType.handshakeFailedProtocol:
+                import std.conv: to;
+                return to!ProtocolError(m_value);
+            case EventType.connectRetried:
+            case EventType.connected:
+            case EventType.connectDelayed:
+            case EventType.listening:
+            case EventType.bindFailed:
+            case EventType.accepted:
+            case EventType.acceptFailed:
+            case EventType.closed:
+            case EventType.closeFailed:
+            case EventType.disconnected:
+            case EventType.monitorStopped:
+            case EventType.handshakeFailedNoDetail:
+            case EventType.handshakeSucceeded:
+            case EventType.handshakeFailedAuth:
+                throw invalidProperty();
+            case EventType.all:
+                assert (false);
+        }
+    }
+
+    /**
+    The status code returned by the ZAP handler.
+
+    This property function may only be called if $(REF Event.type) is
+    $(D handshakeFailedAuth).
+
+    Throws:
+        $(D Error) if the property is called for a wrong event type.
+    */
+    @property int statusCode() const pure
+    {
+        final switch (m_type) {
+            case EventType.handshakeFailedAuth:
+                return m_value;
+            case EventType.connectRetried:
+            case EventType.connected:
+            case EventType.connectDelayed:
+            case EventType.listening:
+            case EventType.bindFailed:
+            case EventType.accepted:
+            case EventType.acceptFailed:
+            case EventType.closed:
+            case EventType.closeFailed:
+            case EventType.disconnected:
+            case EventType.monitorStopped:
+            case EventType.handshakeFailedNoDetail:
+            case EventType.handshakeSucceeded:
+            case EventType.handshakeFailedProtocol:
+                throw invalidProperty();
+            case EventType.all:
+                assert (false);
+        }
     }
 
 private:
