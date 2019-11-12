@@ -38,6 +38,8 @@ them as [issues](https://github.com/kyllingstad/zmqd/issues) on GitHub.
 Bug fixes in the form of [pull requests](https://github.com/kyllingstad/zmqd/pulls)
 are very welcome.
 
+Build status: [![builds.sr.ht status](https://builds.sr.ht/~kyllingstad/zmqd.svg)](https://builds.sr.ht/~kyllingstad/zmqd?)
+
 ## Requirements ##
 
 What you need is:
