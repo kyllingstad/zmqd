@@ -1,0 +1,15 @@
+image: freebsd/latest
+packages:
+  - dub
+  - ldc
+  - libzmq4
+  - pkgconf
+sources:
+  - https://github.com/kyllingstad/zmqd.git
+tasks:
+  - build: |
+      cd zmqd
+      dub build --compiler=ldc2
+  - test: |
+      cd zmqd
+      dub test --compiler=ldc2
