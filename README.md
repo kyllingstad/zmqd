@@ -1,8 +1,10 @@
 zmqd – a ZeroMQ wrapper for the D programming language
-===================================================
+======================================================
 
-zmqd is a [D](http://dlang.org) library that wraps the low-level C API of
-the [ZeroMQ](http://zeromq.org) messaging framework.
+[![builds.sr.ht status](https://builds.sr.ht/~kyllingstad/zmqd.svg)](https://builds.sr.ht/~kyllingstad/zmqd?)
+
+zmqd is a [D](https://dlang.org) library that wraps the low-level C API of
+the [ZeroMQ](https://zeromq.org) messaging framework.
 It is a rather thin wrapper that maps closely to the C API, while making it
 safer, easier and more pleasant to use.  Here's how:
 
@@ -20,16 +22,21 @@ both familiar to ZeroMQ users and natural to D users.
 ## Documentation ##
 
 The API documentation may be browsed online at
-http://kyllingstad.github.io/zmqd/.
+https://kyllingstad.github.io/zmqd/.
+
+To build the documentation from source using [Dub](https://dub.pm/) and
+[DDOX](https://github.com/rejectedsoftware/ddox), run the following command:
+
+    dub build --build=ddox
 
 ## Terms of use ##
 
 zmqd is free and open-source software, released under the terms of the
-[Mozilla Public License v. 2.0](http://mozilla.org/MPL/2.0/).  This allows
-you to mix it with other files under a different, even proprietary licence.
+[Mozilla Public License v. 2.0](https://www.mozilla.org/en-US/MPL/2.0/).
+This allows you to mix it with other files under a different, even proprietary licence.
 However, the source code files of zmqd itself, and any modifications you make
 to them,  must remain under the MPL and freely available in source form.  For
-more information, see Mozilla's MPL [FAQ](http://www.mozilla.org/MPL/2.0/FAQ.html).
+more information, see Mozilla's MPL [FAQ](https://www.mozilla.org/en-US/MPL/2.0/FAQ/).
 
 ## Support and contributions ##
 
@@ -38,22 +45,20 @@ them as [issues](https://github.com/kyllingstad/zmqd/issues) on GitHub.
 Bug fixes in the form of [pull requests](https://github.com/kyllingstad/zmqd/pulls)
 are very welcome.
 
-Build status: [![builds.sr.ht status](https://builds.sr.ht/~kyllingstad/zmqd.svg)](https://builds.sr.ht/~kyllingstad/zmqd?)
-
 ## Requirements ##
 
 What you need is:
 
-  * A somewhat up-to-date [D compiler](http://wiki.dlang.org/Compilers)
-  * The [ZeroMQ libraries](http://zeromq.org/intro:get-the-software) v4.x
+  * A somewhat up-to-date [D compiler](https://dlang.org/download.html)
+  * The [ZeroMQ libraries](https://zeromq.org/download/)
   * The [ZeroMQ C library bindings](https://github.com/D-Programming-Deimos/ZeroMQ)
-    from Deimos.
+    from Deimos
 
 Tell the compiler where to find the libraries and the import files, and
 you're good to go.
 
-It is of course also possible to use [Dub](http://code.dlang.org/) to install
-[the zmqd package](http://code.dlang.org/packages/zmqd) and its dependencies,
+It is of course also possible to use [Dub](https://dub.pm/) to install
+[the zmqd package](https://code.dlang.org/packages/zmqd) and its dependencies,
 or to use it to build zmqd from source.
 
 ### A word of caution about the C library bindings ###
