@@ -1,6 +1,4 @@
-*.o
 *.swp
-deimos
-*.html
 .dub
-__test__library__
+dub.selections.json
+/gh-pages
