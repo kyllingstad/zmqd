@@ -29,6 +29,9 @@ To build the documentation from source using [Dub](https://dub.pm/) and
 
     dub build --build=ddox
 
+See the [changelog](./CHANGELOG.md) for a list of the features that have
+been added or changed, and the bugs that have been fixed, in each new version.
+
 ## Terms of use ##
 
 zmqd is free and open-source software, released under the terms of the
