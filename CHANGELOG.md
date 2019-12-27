@@ -1,4 +1,4 @@
-# Change log
+# Changelog
 
 This file documents all notable changes to zmqd.  This includes major
 new features, important bug fixes and breaking changes.  For a more
@@ -20,11 +20,11 @@ Version numbers adhere to the [Semantic Versioning](https://semver.org/) scheme.
 ## [1.1.2] – 2019-09-30
 ### Fixed
   - Use `zmq_errno()` rather than plain `errno` to obtain error codes
-    ([issue #22])
+    ([issue #22]).
 
 ## [1.1.1] – 2017-11-13
 ### Fixed
-  - Got rid of some deprecation warnings ([issue #21])
+  - Got rid of some deprecation warnings ([issue #21]).
 
 ## [1.1.0] – 2016-05-17
 ### Added
@@ -32,16 +32,16 @@ Version numbers adhere to the [Semantic Versioning](https://semver.org/) scheme.
     including new functions (`Frame.metadata()`, `Context.terminate()`),
     context options (`socketLimit`, `ipv6`),
     frame options (`sharedStorage`, `sourceFD`) and
-    a whole bunch of socket options ([issue #13])
+    a whole bunch of socket options ([issue #13]).
   - `steerableProxy()`, a wrapper for `zmq_proxy_steerable()`,
-    introduced in ZeroMQ 4.0.5 ([issue #15])
-  - `infiniteDuration`, used to disable timeouts in some functions
+    introduced in ZeroMQ 4.0.5 ([issue #15]).
+  - `infiniteDuration`, used to disable timeouts in some functions.
 ### Changed
-  - `Frame.opCall()` now accepts a custom deleter ([issue #16])
-  - `Frame.opCall(ubyte[])` and `Frame.rebuild(ubyte[])` are now `@system`
+  - `Frame.opCall()` now accepts a custom deleter ([issue #16]).
+  - `Frame.opCall(ubyte[])` and `Frame.rebuild(ubyte[])` are now `@system`.
 ### Fixed
   - Got rid of deprecation warning about `std.c.windows.winsock`
-    ([issue #19])
+    ([issue #19]).
 
 ## 1.0.0 – 2015-08-16
 First stable release, with full support for ZeroMQ 4.0.
