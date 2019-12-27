@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Function receiveEvent</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Function receiveEvent</h1><p>Receives a message on the given socket and interprets it as a socket
+state change event.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<a href="../zmqd/Event.html"><span class="typ">Event</span></a> <span class="pln">receiveEvent</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="kwd">ref </span><a href="../zmqd/Socket.html"><span class="typ">Socket</span></a> <span class="pln">socket</span>
+			<br/>
+			<span class="pun">)</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p><code class="lang-d"><a href="../zmqd/receiveEvent.html#socket"><span class="pln">socket</span></a></code> must be a PAIR socket which is connected to an endpoint
+created via a <code class="lang-d"><a href="#Socket.monitor"><a href="../zmqd/Socket.monitor.html"><span class="typ">Socket<wbr/></span><span class="pun">.</span><span class="pln">monitor</span></a><span class="pun">()</span></a></code> call.  <code class="lang-d"><span class="pln">receiveEvent</span><span class="pun">()</span></code> receives
+one message on the socket, parses its contents according to the
+specification in the <code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_socket_monitor()"><span class="pln">zmq_socket_monitor</span><span class="pun">()</span></a></code> reference,
+and returns the event information as an <code class="lang-d"><a href="#Event"><a href="../zmqd/Event.html"><span class="typ">Event</span></a></a></code> object.
+</p>
+</section>
+
+			<section><h2>Throws</h2>
+<p><code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error.
+    <code class="lang-d"><a href="#InvalidEventException"><a href="../zmqd/InvalidEventException.html"><span class="typ">InvalidEventException</span></a></a></code> if the received message could not
+    be interpreted as an event message.
+</p>
+</section>
+<section><h2>See also</h2>
+<p><code class="lang-d"><a href="#Socket.monitor"><a href="../zmqd/Socket.monitor.html"><span class="typ">Socket<wbr/></span><span class="pun">.</span><span class="pln">monitor</span></a><span class="pun">()</span></a></code>, for monitoring socket state changes.
+</p>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

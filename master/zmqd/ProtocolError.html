@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Enum ProtocolError</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Enum ProtocolError</h1><p>Protocol error codes.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">enum</span> <span class="typ">ProtocolError</span>
+			 <span class="pun">:</span> <span class="typ">int</span> <span class="pun">{ ... }</span>
+					</div>
+				</code>
+			</div>
+			<section><p>These may be returned from <code class="lang-d"><a href="#Event.protocolError"><a href="../zmqd/Event.protocolError.html"><span class="typ">Event<wbr/></span><span class="pun">.</span><span class="pln">protocolError</span></a><span class="pun">()</span></a></code>, and are described
+in the <code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_socket_monitor()"><span class="pln">zmq_socket_monitor</span><span class="pun">()</span></a></code> reference.
+</p>
+</section>
+
+			<section><h2>Enum members</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td id="zapBadRequestID">
+							<code>zapBadRequestID</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZAP_BAD_REQUEST_ID</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zapBadVersion">
+							<code>zapBadVersion</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZAP_BAD_VERSION</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zapInvalidMetadata">
+							<code>zapInvalidMetadata</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZAP_INVALID_METADATA</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zapInvalidStatusCode">
+							<code>zapInvalidStatusCode</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZAP_INVALID_STATUS_CODE</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zapMalformedReply">
+							<code>zapMalformedReply</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZAP_MALFORMED_REPLY</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zapUnspecified">
+							<code>zapUnspecified</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZAP_UNSPECIFIED</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpCryptographic">
+							<code>zmtpCryptographic</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_CRYPTOGRAPHIC</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpInvalidMetadata">
+							<code>zmtpInvalidMetadata</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_INVALID_METADATA</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpInvalidSequence">
+							<code>zmtpInvalidSequence</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_INVALID_SEQUENCE</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpKeyExchange">
+							<code>zmtpKeyExchange</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_KEY_EXCHANGE</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpMalformedCommandError">
+							<code>zmtpMalformedCommandError</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_ERROR</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpMalformedCommandHello">
+							<code>zmtpMalformedCommandHello</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_HELLO</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpMalformedCommandInitiate">
+							<code>zmtpMalformedCommandInitiate</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_INITIATE</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpMalformedCommandMessage">
+							<code>zmtpMalformedCommandMessage</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_MESSAGE</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpMalformedCommandReady">
+							<code>zmtpMalformedCommandReady</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_READY</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpMalformedCommandUnspecified">
+							<code>zmtpMalformedCommandUnspecified</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_UNSPECIFIED</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpMalformedCommandWelcome">
+							<code>zmtpMalformedCommandWelcome</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_WELCOME</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpMechanismMismatch">
+							<code>zmtpMechanismMismatch</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_MECHANISM_MISMATCH</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpUnexpectedCommand">
+							<code>zmtpUnexpectedCommand</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_UNEXPECTED_COMMAND</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td id="zmtpUnspecified">
+							<code>zmtpUnspecified</code>
+						</td>
+						<td>Corresponds to <code class="lang-d"><span class="pln">ZMQ_PROTOCOL_ERROR_ZMTP_UNSPECIFIED</span></code>.
+</td>
+					</tr>
+				</table>
+			</section>
+			
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

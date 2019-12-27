@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Struct Frame</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Struct Frame</h1><p>An object that encapsulates a ZeroMQ message frame.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">struct</span> <span class="typ">Frame</span>
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>This <code class="lang-d"><span class="kwd">struct</span></code> is a wrapper around a <code class="lang-d"><span class="pln">zmq_msg_t</span></code> object.
+A default-initialized <code class="lang-d"><span class="typ">Frame</span></code> is not a valid ZeroMQ message frame; it
+should always be explicitly initialized upon construction using
+<code class="lang-d"><a href="#Frame.opCall"><a href="../zmqd/Frame.opCall.html"><span class="typ">Frame<wbr/></span><span class="pun">.</span><span class="pln">opCall</span></a><span class="pun">()</span></a></code>.  Alternatively, it may be initialized later with
+<code class="lang-d"><a href="#Frame.rebuild"><a href="../zmqd/Frame.rebuild.html"><span class="typ">Frame<wbr/></span><span class="pun">.</span><span class="pln">rebuild</span></a><span class="pun">()</span></a></code>.
+</p>
+<pre class="code"><code class="lang-d"><span class="typ">Frame </span><span class="pln">msg1</span><span class="pun">;                 </span><span class="com">// Invalid frame
+</span><span class="kwd">auto </span><span class="pln">msg2 </span><span class="pun">= </span><span class="typ">Frame</span><span class="pun">();        </span><span class="com">// Empty frame
+</span><span class="kwd">auto </span><span class="pln">msg3 </span><span class="pun">= </span><span class="typ">Frame</span><span class="pun">(</span><span class="lit">1024</span><span class="pun">);    </span><span class="com">// 1K frame
+</span><span class="pln">msg1<wbr/></span><span class="pun">.</span><span class="pln">rebuild</span><span class="pun">(</span><span class="lit">2048</span><span class="pun">);         </span><span class="com">// msg1 now has size 2K
+</span><span class="pln">msg2<wbr/></span><span class="pun">.</span><span class="pln">rebuild</span><span class="pun">(</span><span class="lit">2048</span><span class="pun">);         </span><span class="com">// ...and so does msg2</span></code></pre>
+<p>When a <code class="lang-d"><span class="typ">Frame</span></code> object is destroyed, <code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_close()"><span class="pln">zmq_msg_close</span><span class="pun">()</span></a></code> is
+called on the underlying <code class="lang-d"><span class="pln">zmq_msg_t</span></code>.
+</p>
+
+<p>A <code class="lang-d"><span class="typ">Frame</span></code> cannot be copied by normal assignment; use <code class="lang-d"><a href="#Frame.copy"><a href="../zmqd/Frame.copy.html"><span class="typ">Frame<wbr/></span><span class="pun">.</span><span class="pln">copy</span></a><span class="pun">()</span></a></code>
+for this.
+</p>
+</section>
+
+			<section><h2>Properties</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.data.html" class="public property"><code>data</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">ubyte</span><span class="pun">[]</span></code></td><td>Retrieves the message frame content.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.handle.html" class="public property"><code>handle</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="kwd">inout</span><span class="pun">(</span><span class="pln">deimos<wbr/></span><span class="pun">.</span><span class="pln">zmq<wbr/></span><span class="pun">.</span><span class="pln">zmq<wbr/></span><span class="pun">.</span><span class="pln">zmq_msg_t</span><span class="pun">)</span><span class="pun">*</span></code></td><td>A pointer to the underlying <code class="lang-d"><span class="pln">zmq_msg_t</span></code>.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.more.html" class="public property"><code>more</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td>Whether there are more message frames to retrieve.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.sharedStorage.html" class="public property"><code>sharedStorage</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td>Whether the message MAY share underlying storage with another copy.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.size.html" class="public property"><code>size</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">ulong</span></code></td><td>The message frame content size in bytes.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.sourceFD.html" class="public property"><code>sourceFD</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td>The file descriptor of the socket the message was read from.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.close.html" class="public">
+								<code>close</code>
+							</a>
+						</td>
+						<td>Releases the ZeroMQ message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.copy.html" class="public">
+								<code>copy</code>
+							</a>
+						</td>
+						<td>Copies frame content to another message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.copyTo.html" class="public">
+								<code>copyTo</code>
+							</a>
+						</td>
+						<td>Copies frame content to another message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.metadata.html" class="public">
+								<code>metadata</code>
+							</a>
+						</td>
+						<td>Gets message metadata.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.metadataUnsafe.html" class="public">
+								<code>metadataUnsafe</code>
+							</a>
+						</td>
+						<td>Gets message metadata.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.move.html" class="public">
+								<code>move</code>
+							</a>
+						</td>
+						<td>Moves frame content to another message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.moveTo.html" class="public">
+								<code>moveTo</code>
+							</a>
+						</td>
+						<td>Moves frame content to another message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.opCall.html" class="public">
+								<code>opCall</code>
+							</a>
+						</td>
+						<td>Initializes an empty ZeroMQ message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.opCall.html" class="public">
+								<code>opCall</code>
+							</a>
+						</td>
+						<td><span id="Frame.opCall_size"></span>
+    Initializes a ZeroMQ message frame of the specified size.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.opCall.html" class="public">
+								<code>opCall</code>
+							</a>
+						</td>
+						<td><span id="Frame.opCall_data"></span>
+    Initializes a ZeroMQ message frame from a supplied buffer.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.rebuild.html" class="public">
+								<code>rebuild</code>
+							</a>
+						</td>
+						<td>Reinitializes the Frame object as an empty message.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.rebuild.html" class="public">
+								<code>rebuild</code>
+							</a>
+						</td>
+						<td>Reinitializes the Frame object to a specified size.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.rebuild.html" class="public">
+								<code>rebuild</code>
+							</a>
+						</td>
+						<td>Reinitializes the Frame object from a supplied buffer.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Aliases</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Frame.FreeData.html" class="public">
+								<code>FreeData</code>
+							</a>
+						</td>
+						<td>The function pointer type for memory-freeing callback functions passed to
+    <code class="lang-d"><a href="#Frame.opCall_data"><a href="../zmqd/Frame.html"><span class="typ">Frame</span></a><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">[], </span><span class="typ">FreeData</span><span class="pun">, </span><span class="typ">void</span><span class="pun">*)</span></a></code>.
+</td>
+					</tr>
+				</table>
+			</section>
+			
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

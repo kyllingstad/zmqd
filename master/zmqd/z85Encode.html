@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Function z85Encode</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Function z85Encode</h1><p>Encodes a binary key as Z85 printable text.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="typ">char</span><span class="pun">[]</span> <span class="pln">z85Encode</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">ubyte</span><span class="pun">[]</span> <span class="pln">data</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">char</span><span class="pun">[]</span> <span class="pln">dest</span>
+			<br/>
+			<span class="pun">)</span><span class="pln"> </span><span class="kwd">@safe</span><span class="pun">;</span>
+			<br/>
+			<br/>
+			<span class="typ">char</span><span class="pun">[]</span> <span class="pln">z85Encode</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">ubyte</span><span class="pun">[]</span> <span class="pln">data</span>
+			<br/>
+			<span class="pun">)</span><span class="pln"> </span><span class="kwd">@safe</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p><code class="lang-d"><a href="../zmqd/z85Encode.html#dest"><span class="pln">dest</span></a></code> must be an array whose length is at least <code class="lang-d"><span class="lit">5</span><span class="pun">*</span><span class="pln">data<wbr/></span><span class="pun">.</span><span class="pln">length</span><span class="pun">/</span><span class="lit">4 </span><span class="pun">+ </span><span class="lit">1</span></code>,
+which will be used to store the return value plus a terminating zero byte.
+If <code class="lang-d"><a href="../zmqd/z85Encode.html#dest"><span class="pln">dest</span></a></code> is omitted, a new array will be created.
+</p>
+</section>
+
+			<section><h2>Returns</h2>
+<p>An array of size <code class="lang-d"><span class="lit">5</span><span class="pun">*</span><span class="pln">data<wbr/></span><span class="pun">.</span><span class="pln">length</span><span class="pun">/</span><span class="lit">4</span></code> which contains the Z85-encoded text,
+    excluding the terminating zero byte.  This will be a slice of <code class="lang-d"><a href="../zmqd/z85Encode.html#dest"><span class="pln">dest</span></a></code> if
+    it is provided.
+</p>
+</section>
+<section><h2>Throws</h2>
+<p><code class="lang-d"><a href="http://dlang.org/phobos/core_exception.html#.RangeError"><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">exception<wbr/></span><span class="pun">.</span><span class="typ">RangeError</span></a></code> if <code class="lang-d"><a href="../zmqd/z85Encode.html#dest"><span class="pln">dest</span></a></code> is given but is too small.
+    <code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error (i.e., if <code class="lang-d"><span class="pln">data<wbr/></span><span class="pun">.</span><span class="pln">length</span></code>
+    is not a multiple of 4).
+</p>
+</section>
+<section><h2>Corresponds to</h2>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_z85_encode()"><span class="pln">zmq_z85_encode</span><span class="pun">()</span></a></code>
+</p>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

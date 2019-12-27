@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Frame.opCall - multiple declarations</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Frame.opCall - multiple declarations</h1>
+			<nav class="page-nav">
+				<ul>
+					<li>
+						<a href="#0">
+							Function <code>Frame.opCall</code>
+						</a>
+					</li>
+					<li>
+						<a href="#1">
+							Function <code>Frame.opCall</code>
+						</a>
+					</li>
+					<li>
+						<a href="#2">
+							Function <code>Frame.opCall</code>
+						</a>
+					</li>
+				</ul>
+			</nav><h2 id="0">Function Frame.opCall</h2><p>Initializes an empty ZeroMQ message frame.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">static </span><a href="../zmqd/Frame.html"><span class="typ">Frame</span></a> <span class="pln">opCall</span><span class="pun">(</span><span class="pun">)</span><span class="pln"> </span><span class="kwd">@safe</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section></section>
+
+			<section><h3>Throws</h3>
+<p><code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error.
+</p>
+</section>
+<section><h3>Corresponds to</h3>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_init()"><span class="pln">zmq_msg_init</span><span class="pun">()</span></a></code>
+</p>
+</section>
+<section><h3>Example</h3>
+
+<pre class="code"><code class="lang-d"><span class="kwd">auto </span><span class="pln">msg </span><span class="pun">= <a href="../zmqd/Frame.html"></span><span class="typ">Frame</span></a><span class="pun">();
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="lit">0</span><span class="pun">);
+
+</span></code></pre>
+</section>
+<h2 id="1">Function Frame.opCall</h2><p><span id="Frame.opCall_size"></span>
+    Initializes a ZeroMQ message frame of the specified size.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">static </span><a href="../zmqd/Frame.html"><span class="typ">Frame</span></a> <span class="pln">opCall</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">ulong</span> <span class="pln">size</span>
+			<br/>
+			<span class="pun">)</span><span class="pln"> </span><span class="kwd">@safe</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section></section>
+
+			<section><h3>Throws</h3>
+<p><code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error.
+</p>
+</section>
+<section><h3>Corresponds to</h3>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_init_size()"><span class="pln">zmq_msg_init_size</span><span class="pun">()</span></a></code>
+</p>
+</section>
+<section><h3>Example</h3>
+
+<pre class="code"><code class="lang-d"><span class="kwd">auto </span><span class="pln">msg </span><span class="pun">= <a href="../zmqd/Frame.html"></span><span class="typ">Frame</span></a><span class="pun">(</span><span class="lit">123</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="lit">123</span><span class="pun">);
+
+</span></code></pre>
+</section>
+<h2 id="2">Function Frame.opCall</h2><p><span id="Frame.opCall_data"></span>
+    Initializes a ZeroMQ message frame from a supplied buffer.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">static </span><a href="../zmqd/Frame.html"><span class="typ">Frame</span></a> <span class="pln">opCall</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">ubyte</span><span class="pun">[]</span> <span class="pln">data</span>
+			<br/>
+			<span class="pun">)</span><span class="pun">;</span>
+			<br/>
+			<br/>
+			<span class="kwd">static </span><a href="../zmqd/Frame.html"><span class="typ">Frame</span></a> <span class="pln">opCall</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">ubyte</span><span class="pun">[]</span> <span class="pln">data</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="kwd">nothrow</span> <span class="kwd">extern</span><span class="pun">(</span><span class="pln">C</span><span class="pun">)</span> <span class="typ">void</span> <span class="kwd">function</span><span class="pun">(</span><span class="typ">void</span><span class="pun">*</span><span class="pun">, </span><span class="typ">void</span><span class="pun">*</span><span class="pun">)</span> <span class="pln">free</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">void</span><span class="pun">*</span> <span class="pln">hint</span> <span class="pun">=</span> <span class="kwd">null</span>
+			<br/>
+			<span class="pun">)</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>If <code class="lang-d"><a href="../zmqd/Frame.opCall.html#free"><span class="pln">free</span></a></code> is not specified, <code class="lang-d"><a href="../zmqd/Frame.opCall.html#data"><span class="pln">data</span></a></code> <em>must</em> refer to a slice of
+    memory which has been allocated by the garbage collector (typically using
+    operator <code class="lang-d"><span class="kwd">new</span></code>).  Ownership will then be transferred temporarily to
+    ZeroMQ, and then transferred back to the GC when ZeroMQ is done using the
+    buffer.
+</p>
+
+<p>    For memory which is <em>not</em> garbage collected, the argument <code class="lang-d"><a href="../zmqd/Frame.opCall.html#free"><span class="pln">free</span></a></code>
+    must be a pointer to a function that will release the memory, which will
+    be called when ZeroMQ no longer needs the buffer.  <code class="lang-d"><a href="../zmqd/Frame.opCall.html#free"><span class="pln">free</span></a></code> must point to
+    a function with the following signature:
+</p>
+<pre class="code"><code class="lang-d"><span class="kwd">extern</span><span class="pun">(</span><span class="pln">C</span><span class="pun">) </span><span class="typ">void </span><span class="pln">f</span><span class="pun">(</span><span class="typ">void</span><span class="pun">* </span><span class="pln">d</span><span class="pun">, </span><span class="typ">void</span><span class="pun">* </span><span class="pln">h</span><span class="pun">) </span><span class="kwd">nothrow</span><span class="pun">;</span></code></pre>
+<p>    When it is called, <code class="lang-d"><span class="pln">d</span></code> will be equal to <code class="lang-d"><span class="pln">data<wbr/></span><span class="pun">.</span><span class="pln">ptr</span></code>, while <code class="lang-d"><span class="pln">h</span></code> will
+    be equal to <code class="lang-d"><a href="../zmqd/Frame.opCall.html#hint"><span class="pln">hint</span></a></code> (which is optional and null by default).
+</p>
+
+<p>    <code class="lang-d"><a href="../zmqd/Frame.opCall.html#free"><span class="pln">free</span></a></code> is passed directly to the underlying ZeroMQ C function, which is
+    why it needs to be <code class="lang-d"><span class="kwd">extern</span><span class="pun">(</span><span class="pln">C</span><span class="pun">)</span></code>.
+</p>
+</section>
+
+			<section><h3>Warning</h3>
+<p>Some care must be taken when using this function, as there is no telling
+        when, whether, or in which thread ZeroMQ relinquishes ownership of the
+        buffer.  Client code should therefore avoid retaining any references to
+        it, including slices that contain, overlap with or are contained in
+        <code class="lang-d"><a href="../zmqd/Frame.opCall.html#data"><span class="pln">data</span></a></code>.  For the "non-GC" version, client code should in general not
+        retain slices or pointers to any memory which will be released when
+        <code class="lang-d"><a href="../zmqd/Frame.opCall.html#free"><span class="pln">free</span></a></code> is called.
+</p>
+</section>
+<section><h3>See Also</h3>
+<p><code class="lang-d"><a href="#Frame.FreeData"><a href="../zmqd/Frame.FreeData.html"><span class="typ">Frame<wbr/></span><span class="pun">.</span><span class="typ">FreeData</span></a></a></code>
+</p>
+</section>
+<section><h3>Throws</h3>
+<p><code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error.
+</p>
+</section>
+<section><h3>Corresponds to</h3>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_init_data()"><span class="pln">zmq_msg_init_data</span><span class="pun">()</span></a></code>
+</p>
+</section>
+<section><h3>Example</h3>
+
+<pre class="code"><code class="lang-d"><span class="com">// Garbage-collected memory
+</span><span class="kwd">auto </span><span class="pln">buf </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">ubyte</span><span class="pun">[</span><span class="lit">123</span><span class="pun">];
+</span><span class="kwd">auto </span><span class="pln">msg </span><span class="pun">= <a href="../zmqd/Frame.html"></span><span class="typ">Frame</span></a><span class="pun">(</span><span class="pln">buf</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="pln">buf<wbr/></span><span class="pun">.</span><span class="pln">length</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">data<wbr/></span><span class="pun">.</span><span class="pln">ptr </span><span class="pun">== </span><span class="pln">buf<wbr/></span><span class="pun">.</span><span class="pln">ptr</span><span class="pun">);
+
+</span></code></pre>
+</section>
+<section><h3>Example</h3>
+
+<pre class="code"><code class="lang-d"><span class="com">// Manually managed memory
+</span><span class="kwd">import </span><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">stdc<wbr/></span><span class="pun">.</span><span class="pln">stdlib</span><span class="pun">: </span><span class="pln">malloc</span><span class="pun">, <a href="../zmqd/Frame.opCall.html#free"></span><span class="pln">free</span></a><span class="pun">;
+</span><span class="kwd">static extern</span><span class="pun">(</span><span class="pln">C</span><span class="pun">) </span><span class="typ">void </span><span class="pln">myFree</span><span class="pun">(</span><span class="typ">void</span><span class="pun">* <a href="../zmqd/Frame.opCall.html#data"></span><span class="pln">data</span></a><span class="pun">, </span><span class="typ">void</span><span class="pun">* <a href="../zmqd/Frame.opCall.html#hint"></span><span class="pln">hint</span></a><span class="pun">) </span><span class="kwd">nothrow </span><span class="pun">{ <a href="../zmqd/Frame.opCall.html#free"></span><span class="pln">free</span></a><span class="pun">(<a href="../zmqd/Frame.opCall.html#data"></span><span class="pln">data</span></a><span class="pun">); }
+</span><span class="kwd">auto </span><span class="pln">buf </span><span class="pun">= (</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">*) </span><span class="pln">malloc</span><span class="pun">(</span><span class="lit">10</span><span class="pun">))[</span><span class="lit">0 </span><span class="pun">.. </span><span class="lit">10</span><span class="pun">];
+</span><span class="kwd">auto </span><span class="pln">msg </span><span class="pun">= <a href="../zmqd/Frame.html"></span><span class="typ">Frame</span></a><span class="pun">(</span><span class="pln">buf</span><span class="pun">, &amp;</span><span class="pln">myFree</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="pln">buf<wbr/></span><span class="pun">.</span><span class="pln">length</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">data<wbr/></span><span class="pun">.</span><span class="pln">ptr </span><span class="pun">== </span><span class="pln">buf<wbr/></span><span class="pun">.</span><span class="pln">ptr</span><span class="pun">);
+
+</span></code></pre>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

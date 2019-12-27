@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Function curveKeyPair</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Function curveKeyPair</h1><p>Generates a new Curve key pair.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">typecons<wbr/></span><span class="pun">.</span><span class="typ">Tuple</span>!(char[],"publicKey",char[],"secretKey") <span class="pln">curveKeyPair</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">char</span><span class="pun">[]</span> <span class="pln">publicKeyBuf</span> <span class="pun">=</span> <span class="kwd">null</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">char</span><span class="pun">[]</span> <span class="pln">secretKeyBuf</span> <span class="pun">=</span> <span class="kwd">null</span>
+			<br/>
+			<span class="pun">)</span><span class="pln"> </span><span class="kwd">@safe</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>To avoid a memory allocation, preallocated buffers may optionally be supplied
+for the two keys.  Each of these must have a length of at least 41 bytes, enough
+for a 40-character Z85-encoded key plus a terminating zero byte.  If either
+buffer is omitted/<code class="lang-d"><span class="kwd">null</span></code>, a new one will be created.
+</p>
+</section>
+
+			<section><h2>Returns</h2>
+<p>A tuple that contains the two keys.  Each of these will have a length of
+    40 characters, and will be slices of the input buffers if such have been
+    provided.
+</p>
+</section>
+<section><h2>Throws</h2>
+<p><code class="lang-d"><a href="http://dlang.org/phobos/core_exception.html#.RangeError"><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">exception<wbr/></span><span class="pun">.</span><span class="typ">RangeError</span></a></code> if <code class="lang-d"><a href="../zmqd/curveKeyPair.html#publicKeyBuf"><span class="pln">publicKeyBuf</span></a></code> or <code class="lang-d"><a href="../zmqd/curveKeyPair.html#secretKeyBuf"><span class="pln">secretKeyBuf</span></a></code> are
+        not <code class="lang-d"><span class="kwd">null</span></code> but have a length of less than 41 characters.
+    <code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error.
+</p>
+</section>
+<section><h2>Corresponds to</h2>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_curve_keypair()"><span class="pln">zmq_curve_keypair</span><span class="pun">()</span></a></code>
+</p>
+</section>
+<section><h2>Example</h2>
+
+<pre class="code"><code class="lang-d"><span class="kwd">auto </span><span class="pln">server </span><span class="pun">= <a href="../zmqd/Socket.html"></span><span class="typ">Socket</span></a><span class="pun">(<a href="../zmqd/SocketType.html#rep"></span><span class="typ">SocketType<wbr/></span><span class="pun">.</span><span class="pln">rep</span></a><span class="pun">);
+</span><span class="kwd">auto </span><span class="pln">serverKeys </span><span class="pun">= </span><span class="pln">curveKeyPair</span><span class="pun">();
+</span><span class="pln">server<wbr/></span><span class="pun">.</span><span class="pln">curveServer </span><span class="pun">= </span><span class="kwd">true</span><span class="pun">;
+</span><span class="pln">server<wbr/></span><span class="pun">.</span><span class="pln">curveSecretKeyZ85 </span><span class="pun">= </span><span class="pln">serverKeys<wbr/></span><span class="pun">.</span><span class="pln">secretKey</span><span class="pun">;
+</span><span class="pln">server<wbr/></span><span class="pun">.</span><span class="pln">bind</span><span class="pun">(</span><span class="str">"inproc://curveKeyPair_test"</span><span class="pun">);
+
+</span><span class="kwd">auto </span><span class="pln">client </span><span class="pun">= <a href="../zmqd/Socket.html"></span><span class="typ">Socket</span></a><span class="pun">(<a href="../zmqd/SocketType.html#req"></span><span class="typ">SocketType<wbr/></span><span class="pun">.</span><span class="pln">req</span></a><span class="pun">);
+</span><span class="kwd">auto </span><span class="pln">clientKeys </span><span class="pun">= </span><span class="pln">curveKeyPair</span><span class="pun">();
+</span><span class="pln">client<wbr/></span><span class="pun">.</span><span class="pln">curvePublicKeyZ85 </span><span class="pun">= </span><span class="pln">clientKeys<wbr/></span><span class="pun">.</span><span class="pln">publicKey</span><span class="pun">;
+</span><span class="pln">client<wbr/></span><span class="pun">.</span><span class="pln">curveSecretKeyZ85 </span><span class="pun">= </span><span class="pln">clientKeys<wbr/></span><span class="pun">.</span><span class="pln">secretKey</span><span class="pun">;
+</span><span class="pln">client<wbr/></span><span class="pun">.</span><span class="pln">curveServerKeyZ85 </span><span class="pun">= </span><span class="pln">serverKeys<wbr/></span><span class="pun">.</span><span class="pln">publicKey</span><span class="pun">;
+</span><span class="pln">client<wbr/></span><span class="pun">.</span><span class="pln">connect</span><span class="pun">(</span><span class="str">"inproc://curveKeyPair_test"</span><span class="pun">);
+</span><span class="pln">client<wbr/></span><span class="pun">.</span><span class="pln">send</span><span class="pun">(</span><span class="str">"hello"</span><span class="pun">);
+
+</span><span class="typ">ubyte</span><span class="pun">[</span><span class="lit">5</span><span class="pun">] </span><span class="pln">buf</span><span class="pun">;
+</span><span class="kwd">assert </span><span class="pun">(</span><span class="pln">server<wbr/></span><span class="pun">.</span><span class="pln">receive</span><span class="pun">(</span><span class="pln">buf</span><span class="pun">) == </span><span class="lit">5</span><span class="pun">);
+</span><span class="kwd">assert </span><span class="pun">(</span><span class="pln">buf<wbr/></span><span class="pun">.</span><span class="pln">asString</span><span class="pun">() == </span><span class="str">"hello"</span><span class="pun">);
+</span></code></pre>
+</section>
+<section><h2>Example</h2>
+
+<pre class="code"><code class="lang-d"><span class="kwd">auto </span><span class="pln">server </span><span class="pun">= <a href="../zmqd/Socket.html"></span><span class="typ">Socket</span></a><span class="pun">(<a href="../zmqd/SocketType.html#rep"></span><span class="typ">SocketType<wbr/></span><span class="pun">.</span><span class="pln">rep</span></a><span class="pun">);
+</span><span class="kwd">auto </span><span class="pln">serverKeys </span><span class="pun">= </span><span class="pln">curveKeyPair</span><span class="pun">();
+</span><span class="pln">server<wbr/></span><span class="pun">.</span><span class="pln">curveServer </span><span class="pun">= </span><span class="kwd">true</span><span class="pun">;
+</span><span class="pln">server<wbr/></span><span class="pun">.</span><span class="pln">curveSecretKeyZ85 </span><span class="pun">= </span><span class="pln">serverKeys<wbr/></span><span class="pun">.</span><span class="pln">secretKey</span><span class="pun">;
+</span><span class="pln">server<wbr/></span><span class="pun">.</span><span class="pln">bind</span><span class="pun">(</span><span class="str">"inproc://curveKeyPair_test"</span><span class="pun">);
+
+</span><span class="kwd">auto </span><span class="pln">client </span><span class="pun">= <a href="../zmqd/Socket.html"></span><span class="typ">Socket</span></a><span class="pun">(<a href="../zmqd/SocketType.html#req"></span><span class="typ">SocketType<wbr/></span><span class="pun">.</span><span class="pln">req</span></a><span class="pun">);
+</span><span class="kwd">auto </span><span class="pln">clientKeys </span><span class="pun">= </span><span class="pln">curveKeyPair</span><span class="pun">();
+</span><span class="pln">client<wbr/></span><span class="pun">.</span><span class="pln">curvePublicKeyZ85 </span><span class="pun">= </span><span class="pln">clientKeys<wbr/></span><span class="pun">.</span><span class="pln">publicKey</span><span class="pun">;
+</span><span class="pln">client<wbr/></span><span class="pun">.</span><span class="pln">curveSecretKeyZ85 </span><span class="pun">= </span><span class="pln">clientKeys<wbr/></span><span class="pun">.</span><span class="pln">secretKey</span><span class="pun">;
+</span><span class="pln">client<wbr/></span><span class="pun">.</span><span class="pln">curveServerKeyZ85 </span><span class="pun">= </span><span class="pln">serverKeys<wbr/></span><span class="pun">.</span><span class="pln">publicKey</span><span class="pun">;
+</span><span class="pln">client<wbr/></span><span class="pun">.</span><span class="pln">connect</span><span class="pun">(</span><span class="str">"inproc://curveKeyPair_test"</span><span class="pun">);
+</span><span class="pln">client<wbr/></span><span class="pun">.</span><span class="pln">send</span><span class="pun">(</span><span class="str">"hello"</span><span class="pun">);
+
+</span><span class="typ">ubyte</span><span class="pun">[</span><span class="lit">5</span><span class="pun">] </span><span class="pln">buf</span><span class="pun">;
+</span><span class="kwd">assert </span><span class="pun">(</span><span class="pln">server<wbr/></span><span class="pun">.</span><span class="pln">receive</span><span class="pun">(</span><span class="pln">buf</span><span class="pun">) == </span><span class="lit">5</span><span class="pun">);
+</span><span class="kwd">assert </span><span class="pun">(</span><span class="pln">buf<wbr/></span><span class="pun">.</span><span class="pln">asString</span><span class="pun">() == </span><span class="str">"hello"</span><span class="pun">);
+</span></code></pre>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>
