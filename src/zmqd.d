@@ -80,7 +80,7 @@ Macros:
     STDREF = $(D $(LINK2 http://dlang.org/phobos/std_$1.html#.$2,std.$1.$2))
     ANCHOR = <span id="$1"></span>
     ZMQ    = ZeroMQ
-    ZMQAPI = $(LINK2 http://api.zeromq.org/4-0:$1,$+)
+    ZMQAPI = $(LINK2 http://api.zeromq.org/4-3:$1,$+)
     ZMQD   = $(EM zmqd)
     ZMQREF = $(D $(ZMQAPI $1,$1))
 */
