@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Function poll</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Function poll</h1><p>Input/output multiplexing.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="typ">uint</span> <span class="pln">poll</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<a href="../zmqd/PollItem.html"><span class="typ">PollItem</span></a><span class="pun">[]</span> <span class="pln">items</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">time<wbr/></span><span class="pun">.</span><span class="typ">Duration</span> <span class="pln">timeout</span> <span class="pun">=</span> <span class="typ">Duration</span><span class="pun">(</span><span class="lit">9223372036854775807L</span><span class="pun">)</span>
+			<br/>
+			<span class="pun">)</span><span class="pln"> </span><span class="kwd">@trusted</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>The <code class="lang-d"><a href="../zmqd/poll.html#timeout"><span class="pln">timeout</span></a></code> parameter may have the special value <code class="lang-d"><a href="#infiniteDuration"><a href="../zmqd/infiniteDuration.html"><span class="pln">infiniteDuration</span></a></a></code>
+which means no timeout.  This is translated to an argument value of -1 in the
+C API.
+</p>
+</section>
+
+			<section><h2>Returns</h2>
+<p>The number of <code class="lang-d"><a href="#PollItem"><a href="../zmqd/PollItem.html"><span class="typ">PollItem</span></a></a></code> structures with events signalled in
+    <code class="lang-d"><a href="#PollItem.returnedEvents"><a href="../zmqd/PollItem.returnedEvents.html"><span class="typ">PollItem<wbr/></span><span class="pun">.</span><span class="pln">returnedEvents</span></a></a></code>, or 0 if no events have been signalled.
+</p>
+</section>
+<section><h2>Throws</h2>
+<p><code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error.
+</p>
+</section>
+<section><h2>Corresponds to</h2>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_poll()"><span class="pln">zmq_poll</span><span class="pun">()</span></a></code>
+</p>
+</section>
+<section><h2>Example</h2>
+
+<pre class="code"><code class="lang-d"><span class="kwd">auto </span><span class="pln">socket1 </span><span class="pun">= <a href="../zmqd/Socket.html" title="zmqd.Socket"></span><span class="typ">Socket</span></a><span class="pun">(<a href="../zmqd/SocketType.html#pull" title="zmqd.SocketType.pull"></span><span class="typ">SocketType<wbr/></span><span class="pun">.</span><span class="pln">pull</span></a><span class="pun">);
+</span><span class="pln">socket1<wbr/></span><span class="pun">.</span><span class="pln">bind</span><span class="pun">(</span><span class="str">"inproc://zmqd_poll_example"</span><span class="pun">);
+
+</span><span class="kwd">import </span><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">socket</span><span class="pun">;
+</span><span class="kwd">auto </span><span class="pln">socket2 </span><span class="pun">= </span><span class="kwd">new </span><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">socket<wbr/></span><span class="pun">.</span><span class="typ">Socket</span><span class="pun">(
+    </span><span class="typ">AddressFamily<wbr/></span><span class="pun">.</span><span class="pln">INET</span><span class="pun">,
+    </span><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">socket<wbr/></span><span class="pun">.</span><span class="typ">SocketType<wbr/></span><span class="pun">.</span><span class="pln">DGRAM</span><span class="pun">);
+</span><span class="pln">socket2<wbr/></span><span class="pun">.</span><span class="pln">bind</span><span class="pun">(</span><span class="kwd">new </span><span class="typ">InternetAddress</span><span class="pun">(</span><span class="typ">InternetAddress<wbr/></span><span class="pun">.</span><span class="pln">ADDR_ANY</span><span class="pun">, </span><span class="lit">5678</span><span class="pun">));
+
+</span><span class="kwd">auto </span><span class="pln">socket3 </span><span class="pun">= <a href="../zmqd/Socket.html" title="zmqd.Socket"></span><span class="typ">Socket</span></a><span class="pun">(<a href="../zmqd/SocketType.html#push" title="zmqd.SocketType.push"></span><span class="typ">SocketType<wbr/></span><span class="pun">.</span><span class="pln">push</span></a><span class="pun">);
+</span><span class="pln">socket3<wbr/></span><span class="pun">.</span><span class="pln">connect</span><span class="pun">(</span><span class="str">"inproc://zmqd_poll_example"</span><span class="pun">);
+</span><span class="pln">socket3<wbr/></span><span class="pun">.</span><span class="pln">send</span><span class="pun">(</span><span class="str">"test"</span><span class="pun">);
+
+</span><span class="kwd">import </span><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">thread</span><span class="pun">: </span><span class="typ">Thread</span><span class="pun">;
+</span><span class="typ">Thread<wbr/></span><span class="pun">.</span><span class="pln">sleep</span><span class="pun">(</span><span class="lit">10<wbr/></span><span class="pun">.</span><span class="pln">msecs</span><span class="pun">);
+
+</span><span class="kwd">auto <a href="../zmqd/poll.html#items"></span><span class="pln">items</span></a><span class="pln"> </span><span class="pun">= [
+    <a href="../zmqd/PollItem.html"></span><span class="typ">PollItem</span></a><span class="pun">(</span><span class="pln">socket1</span><span class="pun">, <a href="../zmqd/PollFlags.html#pollIn"></span><span class="typ">PollFlags<wbr/></span><span class="pun">.</span><span class="pln">pollIn</span></a><span class="pun">),
+    <a href="../zmqd/PollItem.html"></span><span class="typ">PollItem</span></a><span class="pun">(</span><span class="pln">socket2</span><span class="pun">, <a href="../zmqd/PollFlags.html#pollIn"></span><span class="typ">PollFlags<wbr/></span><span class="pun">.</span><span class="pln">pollIn</span></a><span class="pln"> </span><span class="pun">| <a href="../zmqd/PollFlags.html#pollOut"></span><span class="typ">PollFlags<wbr/></span><span class="pun">.</span><span class="pln">pollOut</span></a><span class="pun">),
+    <a href="../zmqd/PollItem.html"></span><span class="typ">PollItem</span></a><span class="pun">(</span><span class="pln">socket3</span><span class="pun">, <a href="../zmqd/PollFlags.html#pollIn"></span><span class="typ">PollFlags<wbr/></span><span class="pun">.</span><span class="pln">pollIn</span></a><span class="pun">),
+];
+
+</span><span class="kwd">const </span><span class="pln">n </span><span class="pun">= </span><span class="pln">poll</span><span class="pun">(<a href="../zmqd/poll.html#items"></span><span class="pln">items</span></a><span class="pun">, </span><span class="lit">100<wbr/></span><span class="pun">.</span><span class="pln">msecs</span><span class="pun">);
+</span><span class="kwd">assert </span><span class="pun">(</span><span class="pln">n </span><span class="pun">== </span><span class="lit">2</span><span class="pun">);
+</span><span class="kwd">assert </span><span class="pun">(<a href="../zmqd/poll.html#items"></span><span class="pln">items</span></a><span class="pun">[</span><span class="lit">0</span><span class="pun">]<wbr/>.</span><span class="pln">returnedEvents </span><span class="pun">== <a href="../zmqd/PollFlags.html#pollIn"></span><span class="typ">PollFlags<wbr/></span><span class="pun">.</span><span class="pln">pollIn</span></a><span class="pun">);
+</span><span class="kwd">assert </span><span class="pun">(<a href="../zmqd/poll.html#items"></span><span class="pln">items</span></a><span class="pun">[</span><span class="lit">1</span><span class="pun">]<wbr/>.</span><span class="pln">returnedEvents </span><span class="pun">== <a href="../zmqd/PollFlags.html#pollOut"></span><span class="typ">PollFlags<wbr/></span><span class="pun">.</span><span class="pln">pollOut</span></a><span class="pun">);
+</span><span class="kwd">assert </span><span class="pun">(<a href="../zmqd/poll.html#items"></span><span class="pln">items</span></a><span class="pun">[</span><span class="lit">2</span><span class="pun">]<wbr/>.</span><span class="pln">returnedEvents </span><span class="pun">== </span><span class="lit">0</span><span class="pun">);
+</span><span class="pln">socket2<wbr/></span><span class="pun">.</span><span class="pln">close</span><span class="pun">();
+</span></code></pre>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>
