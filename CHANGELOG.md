@@ -8,7 +8,7 @@ This will take you to the relevant sections of the project's
 
 Version numbers adhere to the [Semantic Versioning](https://semver.org/) scheme.
 
-## [Unreleased]
+## [1.2.0] – 2020-02-20
 ### Added
   - Support for new event types from ZeroMQ 4.3, in the form of additions to
     `Event` and `EventType` as well as the new `ProtocolError` type.
@@ -50,6 +50,7 @@ First stable release, with full support for ZeroMQ 4.0.
 [1.1.0]: https://github.com/kyllingstad/zmqd/compare/v1.0.0...v1.1.0
 [1.1.1]: https://github.com/kyllingstad/zmqd/compare/v1.1.0...v1.1.1
 [1.1.2]: https://github.com/kyllingstad/zmqd/compare/v1.1.1...v1.1.2
+[1.2.0]: https://github.com/kyllingstad/zmqd/compare/v1.1.2...v1.2.0
 [Unreleased]: https://github.com/kyllingstad/zmqd/compare/v1.1.2...master
 [issue #13]: https://github.com/kyllingstad/zmqd/issues/13
 [issue #15]: https://github.com/kyllingstad/zmqd/issues/15
