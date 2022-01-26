@@ -1,3 +1,5 @@
+module wuserver;
+
 // Weather update server
 // Binds PUB socket to tcp://*:5556
 // Publishes random weather updates
@@ -13,7 +15,7 @@ void main()
 
     while (true) {
         // Get values that will fool the boss
-        auto zipcode = uniform(0, 100000);
+        auto zipcode = uniform(0, 100_000);
         auto temperature = uniform(-80, 135);
         auto relhumidity = uniform(10, 60);
 
@@ -21,4 +23,3 @@ void main()
         publisher.send(format("%05d %d %d", zipcode, temperature, relhumidity));
     }
 }
-

@@ -1,3 +1,5 @@
+module msreader;
+
 // Reading from multiple sockets
 // This version uses a simple recv loop
 import core.thread, core.time;
@@ -16,7 +18,6 @@ void main()
 
     // Process messages from both sockets
     // We prioritize traffic from the task ventilator
-    int nt;
     while (true) {
         ubyte[256] msg;
         while (true) {
@@ -39,4 +40,3 @@ void main()
         Thread.sleep(1.msecs);
     }
 }
-

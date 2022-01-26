@@ -11,10 +11,10 @@ void main()
     auto requester = Socket(SocketType.req);
     requester.connect("tcp://localhost:5559");
 
-    for (int requestNbr = 0; requestNbr != 10; ++requestNbr) {
+    foreach (int requestNbr; 1..11) 
+    {
         requester.send("Hello");
         auto str = sRecv(requester);
         writefln("Received reply %d [%s]", requestNbr, str);
     }
 }
-

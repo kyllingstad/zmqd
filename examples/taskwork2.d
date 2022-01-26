@@ -34,6 +34,7 @@ void main()
             sender.send("");                    // Send results to sink
         }
         // Any waiting controller command acts as 'KILL'
-        if (items[1].returnedEvents & PollFlags.pollIn) break; // Exit loop
+        if (items[1].returnedEvents & PollFlags.pollIn) 
+            break; // Exit loop
     }
 }

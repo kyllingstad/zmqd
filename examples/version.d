@@ -1,8 +1,10 @@
-// Report 0MQ version
+import std.stdio : writefln;
+
+import zmqd;
 
 void main()
 {
-    import std.stdio, zmqd;
-    const ver = zmqVersion();
-    writefln("Current 0MQ version is %d.%d.%d", ver.major, ver.minor, ver.patch);
+    auto info = zmqVersion();
+    writefln("Current ØMQ version in %s.%s.%s",
+        info.major, info.minor, info.patch);
 }
