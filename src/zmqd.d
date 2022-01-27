@@ -2338,8 +2338,7 @@ struct Frame
         $(ZMQREF zmq_msg_copy())
     */
     Frame copy()
-        in { assert(m_initialized); }
-        do
+        in(m_initialized)
     {
         auto cp = Frame();
         copyTo(cp);
@@ -2348,8 +2347,7 @@ struct Frame
 
     /// ditto
     void copyTo(ref Frame dest)
-        in { assert(m_initialized); }
-        do
+        in(m_initialized)
     {
         if (trusted!zmq_msg_copy(&dest.m_msg, &m_msg) != 0) {
             throw new ZmqException;
@@ -2379,8 +2377,7 @@ struct Frame
         $(ZMQREF zmq_msg_move())
     */
     Frame move()
-        in { assert(m_initialized); }
-        do
+        in(m_initialized)
     {
         auto m = Frame();
         moveTo(m);
@@ -2389,8 +2386,7 @@ struct Frame
 
     /// ditto
     void moveTo(ref Frame dest)
-        in { assert(m_initialized); }
-        do
+        in(m_initialized)
     {
         if (trusted!zmq_msg_move(&dest.m_msg, &m_msg) != 0) {
             throw new ZmqException;
@@ -2415,8 +2411,7 @@ struct Frame
         $(ZMQREF zmq_msg_size())
     */
     @property size_t size() nothrow
-        in { assert(m_initialized); }
-        do
+        in(m_initialized)
     {
         return trusted!zmq_msg_size(&m_msg);
     }
@@ -2435,8 +2430,7 @@ struct Frame
         $(ZMQREF zmq_msg_data())
     */
     @property ubyte[] data() @trusted nothrow
-        in { assert(m_initialized); }
-        do
+        in(m_initialized)
     {
         return (cast(ubyte*) zmq_msg_data(&m_msg))[0 .. size];
     }
@@ -2458,8 +2452,7 @@ struct Frame
         $(ZMQREF zmq_msg_more())
     */
     @property bool more() nothrow
-        in { assert(m_initialized); }
-        do
+        in(m_initialized)
     {
         return !!trusted!zmq_msg_more(&m_msg);
     }
@@ -2517,16 +2510,14 @@ struct Frame
         $(ZMQREF zmq_msg_gets())
     */
     char[] metadata(const char[] property) @trusted
-        in { assert(m_initialized); }
-        do
+        in(m_initialized)
     {
         return metadataUnsafe(property).dup;
     }
 
     /// ditto
     const(char)[] metadataUnsafe(const char[] property) @system
-        in { assert(m_initialized); }
-        do
+        in(m_initialized)
     {
         if (auto value = zmq_msg_gets(handle, zeroTermString(property))) {
             import std.string: fromStringz;
@@ -2546,9 +2537,8 @@ struct Frame
 
 private:
     private void init()
-        in { assert (!m_initialized); }
-        out { assert (m_initialized); }
-        do
+        in(!m_initialized)
+        out(; m_initialized)
     {
         if (trusted!zmq_msg_init(&m_msg) != 0) {
             throw new ZmqException;
@@ -2557,9 +2547,8 @@ private:
     }
 
     private void init(size_t size)
-        in { assert (!m_initialized); }
-        out { assert (m_initialized); }
-        do
+        in(!m_initialized)
+        out(; m_initialized)
     {
         if (trusted!zmq_msg_init_size(&m_msg, size) != 0) {
             throw new ZmqException;
@@ -2568,9 +2557,8 @@ private:
     }
 
     private void init(ubyte[] data) @system
-        in { assert (!m_initialized); }
-        out { assert (m_initialized); }
-        do
+        in(!m_initialized)
+        out(; m_initialized)
     {
         import core.memory;
         static extern(C) void zmqd_Frame_init_gcFree(void* dataPtr, void* block) nothrow
@@ -2591,9 +2579,8 @@ private:
     }
 
     void init(ubyte[] data, FreeData free, void* hint) @system
-        in { assert (!m_initialized); }
-        out { assert (m_initialized); }
-        do
+        in(!m_initialized)
+        out(; m_initialized)
     {
         if (zmq_msg_init_data(&m_msg, data.ptr, data.length, free, hint) != 0) {
             throw new ZmqException;
@@ -3677,7 +3664,7 @@ struct SharedResource
     alias Exception function(shared(void)*) nothrow Release;
 
     this(shared(void)* ptr, Release release) nothrow
-        in { assert(ptr); } do
+        in(ptr)
     {
         m_payload = new shared(Payload)(1, ptr, release);
     }
@@ -3745,8 +3732,7 @@ private:
     }
 
     Exception nothrowDetach() @trusted nothrow
-        out { assert (m_payload is null); }
-        do
+        out(; m_payload is null)
     {
         if (m_payload) {
             scope(exit) m_payload = null;
