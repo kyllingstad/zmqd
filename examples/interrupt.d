@@ -46,7 +46,7 @@ void main()
                 // Use non-blocking so we can continue to check self-pipe via zmq_poll
                 auto result = socket.tryReceive(buffer);
 
-                // on EAGAIN the result is false, all other errors throw
+                // on EAGAIN and EINTR the result is false, all other errors throw
                 if (!result[1]) {
                     continue;
                 }
@@ -55,17 +55,7 @@ void main()
                 // Now send message back.
                 // ...
             }
-        } catch (ZmqException e)
-        {
-            import core.stdc.errno : EINTR;
-
-            // EAGAIN is automatically handled my zmqd
-            if (e.errno != EINTR)
-                throw new Exception("error");
-            else
-                writeln("EINTR, continue");
-
-        }
+        } 
     }
     writeln("W: fin");
 }
