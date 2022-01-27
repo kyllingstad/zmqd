@@ -1,3 +1,5 @@
+module tasksink;
+
 // Task sink
 // Binds PULL socket to tcp://localhost:5558
 // Collects results from workers via that socket
@@ -14,12 +16,13 @@ void main()
     sRecv(receiver);
 
     // Start our clock now
-    import std.datetime;
+    import std.datetime.stopwatch : StopWatch;
     StopWatch watch;
     watch.start();
 
     // Process 100 confirmations
-    for (int taskNbr = 0; taskNbr < 100; ++taskNbr) {
+    foreach (int taskNbr; 0 .. 100)
+    {
         sRecv(receiver);
         if ((taskNbr / 10) * 10 == taskNbr) {
             write(":");
@@ -30,5 +33,5 @@ void main()
     }
     // Calculate and report duration of batch
     watch.stop();
-    writefln("Total elapsed time: %d msec\n", watch.peek().msecs);
+    writefln("Total elapsed time: %s", watch.peek());
 }

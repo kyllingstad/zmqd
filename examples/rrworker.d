@@ -25,4 +25,3 @@ void main()
     }
     // We never get here
 }
-

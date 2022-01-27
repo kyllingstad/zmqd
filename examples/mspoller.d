@@ -1,10 +1,13 @@
+module mspoller;
+
+import zmqd;
+
 // Reading from multiple sockets
 // This version uses poll()
 
 void main()
 {
     // Connect to task ventilator
-    import zmqd;
     auto receiver = Socket(SocketType.pull);
     receiver.connect("tcp://localhost:5557");
 

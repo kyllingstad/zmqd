@@ -1,13 +1,13 @@
+module zhelpers;
+
+
 /**
 Helper module for example applications.
-
 This module is a partial port of the C header file
 $(LINK2 https://github.com/imatix/zguide/blob/master/examples/C/zhelpers.h,zhelpers.h).
 */
-module zhelpers;
 
 import zmqd;
-
 
 
 string sRecv(ref Socket socket)

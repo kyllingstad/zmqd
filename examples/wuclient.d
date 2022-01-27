@@ -1,3 +1,5 @@
+module wuclient;
+
 // Weather update client
 // Connects SUB socket to tcp://localhost:5556
 // Collects weather updates and finds avg temp in zipcode
@@ -17,9 +19,11 @@ void main (string[] args)
     subscriber.subscribe(filter);
 
     // Process 100 updates
-    int updateNbr;
     long totalTemp;
-    for (updateNbr = 0; updateNbr < 100; ++updateNbr) {
+    int updateNbr;
+    foreach (_; 0 .. 100)
+    {
+        updateNbr += 1;
         auto str = sRecv(subscriber);
 
         int zipcode, temperature, relhumidity;
