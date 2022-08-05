@@ -2535,7 +2535,7 @@ struct Frame
     /**
     A pointer to the underlying $(D zmq_msg_t).
     */
-    @property inout(zmq_msg_t)* handle() inout pure nothrow
+    @property inout(zmq_msg_t)* handle() inout return pure nothrow
     {
         return &m_msg;
     }
