@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Function Socket.monitor</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Function Socket.monitor</h1><p>Spawns a PAIR socket that publishes socket state changes (events) over
+    the INPROC transport to the given endpoint.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="typ">void</span> <span class="pln">monitor</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="kwd">const</span><span class="pun">(</span><span class="typ">char</span><span class="pun">[]</span><span class="pun">)</span> <span class="pln">endpoint</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<a href="../zmqd/EventType.html"><span class="typ">EventType</span></a> <span class="pln">events</span> <span class="pun">=</span> <span class="typ">EventType<wbr/></span><span class="pun">.</span><span class="pln">all</span>
+			<br/>
+			<span class="pun">)</span><span class="pln"> </span><span class="kwd">@safe</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>Which event types should be published may be selected by bitwise-ORing
+    together different <code class="lang-d"><a href="#EventType"><a href="../zmqd/EventType.html"><span class="typ">EventType</span></a></a></code> flags in the <code class="lang-d"><a href="../zmqd/Socket.monitor.html#events"><span class="pln">events</span></a></code> parameter.
+</p>
+</section>
+
+			<section><h2>Throws</h2>
+<p><code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error.
+</p>
+</section>
+<section><h2>Corresponds to</h2>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_socket_monitor()"><span class="pln">zmq_socket_monitor</span><span class="pun">()</span></a></code>
+</p>
+</section>
+<section><h2>See also</h2>
+<p><code class="lang-d"><a href="#receiveEvent"><a href="../zmqd/receiveEvent.html"><span class="pln">receiveEvent</span></a><span class="pun">()</span></a></code>, which receives and parses event messages.
+</p>
+</section>
+<section><h2>Example</h2>
+
+<pre class="code"><code class="lang-d"><span class="kwd">auto </span><span class="pln">sck </span><span class="pun">= <a href="../zmqd/Socket.html"></span><span class="typ">Socket</span></a><span class="pun">(<a href="../zmqd/SocketType.html#pub"></span><span class="typ">SocketType<wbr/></span><span class="pun">.</span><span class="pln">pub</span></a><span class="pun">);
+</span><span class="pln">sck<wbr/></span><span class="pun">.</span><span class="pln">monitor</span><span class="pun">(</span><span class="str">"inproc://zmqd_monitor_unittest"</span><span class="pun">,
+            <a href="../zmqd/EventType.html#accepted"></span><span class="typ">EventType<wbr/></span><span class="pun">.</span><span class="pln">accepted</span></a><span class="pln"> </span><span class="pun">| <a href="../zmqd/EventType.html#closed"></span><span class="typ">EventType<wbr/></span><span class="pun">.</span><span class="pln">closed</span></a><span class="pun">);
+
+</span></code></pre>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

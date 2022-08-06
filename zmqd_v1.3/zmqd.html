@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Module zmqd</title>
+		<link rel="stylesheet" type="text/css" href="./styles/ddox.css"/>
+		<link rel="stylesheet" href="./prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="./scripts/jquery.js">/**/</script><script type="text/javascript" src="./scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="./symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "./";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="./zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Module zmqd</h1><p><em>zmqd</em> – a thin wrapper around the low-level C API of the
+<a href="http://zeromq.org">ZeroMQ</a> messaging framework.
+</p><section><p>Most functions in this module have a one-to-one relationship with functions
+in the underlying C API.  Some adaptations have been made to make the API
+safer, easier and more pleasant to use; most importantly:
+<ul>    <li>        Errors are signalled by means of exceptions rather than return
+        codes.  The <code class="lang-d"><a href="#ZmqException"><a href="./zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> class provides
+        a standard textual message for any error condition, but it also
+        provides access to the <code class="lang-d"><span class="pln">errno</span></code> code set by the C function
+        that reported the error.</li>
+    <li>        Functions are marked with <code class="lang-d"><span class="kwd">@safe</span></code>, <code class="lang-d"><span class="kwd">pure</span></code> and <code class="lang-d"><span class="kwd">nothrow</span></code>
+        as appropriate, thus facilitating their use in high-level D code.</li>
+    <li>        Memory and resources (i.e. contexts, sockets and messages) are
+        automatically managed, thus preventing leaks.</li>
+    <li>        Context, socket and message options are implemented as properties.</li>
+</ul>
+The names of functions and types in <em>zmqd</em> are very similar to those in
+ZeroMQ, but they follow the D naming conventions.  Thus, the library should
+feel both familiar to ZeroMQ users and natural to D users.  A notable
+deviation from the C API is that message parts are consistently called
+"frames".  For example, <code class="lang-d"><span class="pln">zmq_msg_send</span><span class="pun">()</span></code> becomes <code class="lang-d"><span class="pln">zmqd<wbr/></span><span class="pun">.</span><span class="typ">Frame<wbr/></span><span class="pun">.</span><span class="pln">send</span><span class="pun">()</span></code>
+and so on.  (Multipart messages were a late addition to ZeroMQ, and the "msg"
+function names were well established at that point.  The library's
+developers have admitted that this is somewhat confusing, and the newer
+CZMQ API consistently uses "frame" in function names.)
+</p>
+
+<p>Due to the close correspondence with the C API, this documentation has
+intentionally been kept sparse. There is really no reason to repeat the
+contents of the <a href="http://api.zeromq.org/4-3:_start">ZeroMQ reference manual</a> here.
+Instead, the documentation for each function contains a "Corresponds to"
+section that links to the appropriate pages in the ZeroMQ reference.  Any
+details given in the present documentation mostly concern the D-specific
+adaptations that have been made.
+</p>
+
+<p>Also note that the examples generally only use the INPROC transport.  The
+reason for this is that the examples double as unittests, and we want to
+avoid firewall troubles and other issues that could arise with the use of
+network protocols such as TCP, PGM, etc., and the IPC protocol is not
+supported on Windows.  Anyway, they are only short
+snippets that demonstrate the syntax; for more comprehensive and realistic
+examples, please refer to the <a href="http://zguide.zeromq.org/page:all">ZeroMQ Guide</a>.  Many of the examples in the Guide have been translated to
+D, and can be found in the
+<a href="https://github.com/kyllingstad/zmqd/tree/master/examples"><code class="lang-d"><span class="pln">examples</span></code></a>
+subdirectory of the <em>zmqd</em> source repository.
+</p>
+</section>
+
+			<section><section><h2>Version</h2>
+<p>1.3.0 (compatible with ZeroMQ &gt;= 4.3.0)
+</p>
+</section>
+</section>
+			<section>
+				<h2>Functions</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="asString" class="public" href="./zmqd/asString.html">asString</a><span class="tableEntryAnnotation">(data)</span>
+							</code>
+						</td>
+						<td>Utility function which interprets and validates a byte array as a UTF-8 string.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="curveKeyPair" class="public" href="./zmqd/curveKeyPair.html">curveKeyPair</a><span class="tableEntryAnnotation">(publicKeyBuf, secretKeyBuf)</span>
+							</code>
+						</td>
+						<td>Generates a new Curve key pair.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="defaultContext" class="public" href="./zmqd/defaultContext.html">defaultContext</a><span class="tableEntryAnnotation">()</span>
+							</code>
+						</td>
+						<td>A global context which is used by default by all sockets, unless they are
+explicitly constructed with a different context.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="poll" class="public" href="./zmqd/poll.html">poll</a><span class="tableEntryAnnotation">(items, timeout)</span>
+							</code>
+						</td>
+						<td>Input/output multiplexing.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="proxy" class="public" href="./zmqd/proxy.html">proxy</a><span class="tableEntryAnnotation">(frontend, backend)</span>
+							</code>
+						</td>
+						<td>Starts the built-in ZeroMQ proxy.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="receiveEvent" class="public" href="./zmqd/receiveEvent.html">receiveEvent</a><span class="tableEntryAnnotation">(socket)</span>
+							</code>
+						</td>
+						<td>Receives a message on the given socket and interprets it as a socket
+state change event.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="steerableProxy" class="public" href="./zmqd/steerableProxy.html">steerableProxy</a><span class="tableEntryAnnotation">(frontend, backend, control)</span>
+							</code>
+						</td>
+						<td>Starts the built-in ZeroMQ proxy with control flow.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="z85Decode" class="public" href="./zmqd/z85Decode.html">z85Decode</a><span class="tableEntryAnnotation">(text, dest)</span>
+							</code>
+						</td>
+						<td>Decodes a binary key from Z85 printable text.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="z85Encode" class="public" href="./zmqd/z85Encode.html">z85Encode</a><span class="tableEntryAnnotation">(data, dest)</span>
+							</code>
+						</td>
+						<td>Encodes a binary key as Z85 printable text.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="zmqHas" class="public" href="./zmqd/zmqHas.html">zmqHas</a><span class="tableEntryAnnotation">(capability)</span>
+							</code>
+						</td>
+						<td>Checks for a ZeroMQ capability.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="zmqVersion" class="public" href="./zmqd/zmqVersion.html">zmqVersion</a><span class="tableEntryAnnotation">()</span>
+							</code>
+						</td>
+						<td>Reports the ZeroMQ library version.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section>
+				<h2>Classes</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="InvalidEventException" class="public" href="./zmqd/InvalidEventException.html">InvalidEventException</a>
+							</code>
+						</td>
+						<td>Exception thrown by <code class="lang-d"><a href="#receiveEvent"><a href="./zmqd/receiveEvent.html"><span class="pln">receiveEvent</span></a><span class="pun">()</span></a></code> on failure to interpret a
+received message as an event description.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="ZmqException" class="public" href="./zmqd/ZmqException.html">ZmqException</a>
+							</code>
+						</td>
+						<td>A class for exceptions thrown when any of the underlying ZeroMQ C functions
+report an error.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section>
+				<h2>Structs</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="Context" class="public" href="./zmqd/Context.html">Context</a>
+							</code>
+						</td>
+						<td>An object that encapsulates a ZeroMQ context.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="Event" class="public" href="./zmqd/Event.html">Event</a>
+							</code>
+						</td>
+						<td>Information about a socket state change.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="Frame" class="public" href="./zmqd/Frame.html">Frame</a>
+							</code>
+						</td>
+						<td>An object that encapsulates a ZeroMQ message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="PollItem" class="public" href="./zmqd/PollItem.html">PollItem</a>
+							</code>
+						</td>
+						<td>A structure that specifies a socket to be monitored by <code class="lang-d"><a href="#poll"><a href="./zmqd/poll.html"><span class="pln">poll</span></a><span class="pun">()</span></a></code> as well
+as the events to poll for, and, when <code class="lang-d"><a href="#poll"><a href="./zmqd/poll.html"><span class="pln">poll</span></a><span class="pun">()</span></a></code> returns, the events that
+occurred.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="Socket" class="public" href="./zmqd/Socket.html">Socket</a>
+							</code>
+						</td>
+						<td>An object that encapsulates a ZeroMQ socket.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section>
+				<h2>Enums</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="EventType" class="public" href="./zmqd/EventType.html">EventType</a>
+							</code>
+						</td>
+						<td>Socket event types.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="PollFlags" class="public" href="./zmqd/PollFlags.html">PollFlags</a>
+							</code>
+						</td>
+						<td><code class="lang-d"><a href="#poll"><a href="./zmqd/poll.html"><span class="pln">poll</span></a><span class="pun">()</span></a></code> event flags.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="ProtocolError" class="public" href="./zmqd/ProtocolError.html">ProtocolError</a>
+							</code>
+						</td>
+						<td>Protocol error codes.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="Security" class="public" href="./zmqd/Security.html">Security</a>
+							</code>
+						</td>
+						<td>Security mechanisms.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="SocketType" class="public" href="./zmqd/SocketType.html">SocketType</a>
+							</code>
+						</td>
+						<td>The various socket types.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section>
+				<h2>Manifest constants</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a id="infiniteDuration" class="public" href="./zmqd/infiniteDuration.html">
+								<code>infiniteDuration</code>
+							</a>
+						</td>
+						<td>
+						</td>
+						<td>A special <code class="lang-d"><a href="http://dlang.org/phobos/core_time.html#.Duration"><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">time<wbr/></span><span class="pun">.</span><span class="typ">Duration</span></a></code> value used to signify an infinite
+timeout or time interval in certain contexts.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section>
+				<h2>Aliases</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a id="FD" class="public" href="./zmqd/FD.html">
+								<code>FD</code>
+							</a>
+						</td>
+						<td>
+							<code class="prettyprint lang-d"><span class="typ">int</span></code>
+						</td>
+						<td>The native socket file descriptor type.
+</td>
+					</tr>
+				</table>
+			</section>
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

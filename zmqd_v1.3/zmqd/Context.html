@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Struct Context</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Struct Context</h1><p>An object that encapsulates a ZeroMQ context.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">struct</span> <span class="typ">Context</span>
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>In most programs, it is not necessary to use this type directly,
+as <code class="lang-d"><a href="#Socket"><a href="../zmqd/Socket.html"><span class="typ">Socket</span></a></a></code> will use a default global context if not explicitly
+provided with one.  See <code class="lang-d"><a href="#defaultContext"><a href="../zmqd/defaultContext.html"><span class="pln">defaultContext</span></a><span class="pun">()</span></a></code> for details.
+</p>
+
+<p>A default-initialized <code class="lang-d"><span class="typ">Context</span></code> is not a valid ZeroMQ context; it
+must always be explicitly initialized with <code class="lang-d"><a href="#Context.opCall"><a href="../zmqd/Context.opCall.html"><span class="typ">Context<wbr/></span><span class="pun">.</span><span class="pln">opCall</span></a><span class="pun">()</span></a></code>:
+</p>
+<pre class="code"><code class="lang-d"><span class="typ">Context </span><span class="pln">ctx</span><span class="pun">;        </span><span class="com">// Not a valid context yet
+</span><span class="pln">ctx </span><span class="pun">= </span><span class="typ">Context</span><span class="pun">();    </span><span class="com">// ...but now it is.</span></code></pre>
+<p><code class="lang-d"><span class="typ">Context</span></code> objects can be passed around by value, and two copies will
+refer to the same context.  The underlying context is managed using
+reference counting, so that when the last copy of a <code class="lang-d"><span class="typ">Context</span></code> goes
+out of scope, the context is automatically destroyed.  The reference
+counting is performed in a thread safe manner, so that the same context
+can be shared between multiple threads.  (ZeroMQ guarantees the thread
+safety of other context operations.)
+</p>
+</section>
+
+			<section><h2>Properties</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Context.handle.html" class="public property"><code>handle</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="kwd">inout</span><span class="pun">(</span><span class="typ">void</span><span class="pun">)</span><span class="pun">*</span></code></td><td>The <code class="lang-d"><span class="typ">void</span><span class="pun">*</span></code> pointer used by the underlying C API to refer to the context.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Context.initialized.html" class="public property"><code>initialized</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td>Whether this <code class="lang-d"><a href="#Context"><a href="../zmqd/Context.html"><span class="typ">Context</span></a></a></code> object has been initialized, i.e. whether it
+    refers to a valid ZeroMQ context.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Context.ioThreads.html" class="public property"><code>ioThreads</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td>The number of I/O threads.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Context.ipv6.html" class="public property"><code>ipv6</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td>IPv6 option.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Context.maxSockets.html" class="public property"><code>maxSockets</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td>The maximum number of sockets.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Context.socketLimit.html" class="public property"><code>socketLimit</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td>The largest configurable number of sockets.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Context.detach.html" class="public">
+								<code>detach</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Detaches from the ZeroMQ context.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Context.opCall.html" class="public">
+								<code>opCall</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Creates a new ZeroMQ context.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Context.terminate.html" class="public">
+								<code>terminate</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Forcefully terminates the context.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>See also</h2>
+<p><code class="lang-d"><a href="#defaultContext"><a href="../zmqd/defaultContext.html"><span class="pln">defaultContext</span></a><span class="pun">()</span></a></code>
+</p>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

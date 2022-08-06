@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Struct Socket</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Struct Socket</h1><p>An object that encapsulates a ZeroMQ socket.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">struct</span> <span class="typ">Socket</span>
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>A default-initialized <code class="lang-d"><span class="typ">Socket</span></code> is not a valid ZeroMQ socket; it
+must always be explicitly initialized with a constructor (see
+<code class="lang-d"><a href="#Socket.this"><span class="typ">Socket<wbr/></span><span class="pun">.</span><span class="kwd">this</span><span class="pun">()</span></a></code>):
+</p>
+<pre class="code"><code class="lang-d"><span class="typ">Socket </span><span class="pln">s</span><span class="pun">;                     </span><span class="com">// Not a valid socket yet
+</span><span class="pln">s </span><span class="pun">= </span><span class="typ">Socket</span><span class="pun">(<a href="../zmqd/SocketType.html#push"></span><span class="typ">SocketType<wbr/></span><span class="pun">.</span><span class="pln">push</span></a><span class="pun">);  </span><span class="com">// ...but now it is.</span></code></pre>
+<p>This <code class="lang-d"><span class="kwd">struct</span></code> is noncopyable, which means that a socket is always
+uniquely managed by a single <code class="lang-d"><span class="typ">Socket</span></code> object.  Functions that will
+inspect or use the socket, but not take ownership of it, should take
+a <code class="lang-d"><span class="kwd">ref </span><span class="typ">Socket</span></code> parameter.  Use <code class="lang-d"><a href="http://dlang.org/phobos/std_algorithm.html#.move"><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">algorithm<wbr/></span><span class="pun">.</span><span class="pln">move</span></a></code> to move
+a <code class="lang-d"><span class="typ">Socket</span></code> to a different location (e.g. into a sink function that
+takes it by value, or into a new variable).
+</p>
+
+<p>The socket is automatically closed when the <code class="lang-d"><span class="typ">Socket</span></code> object goes out
+of scope.
+</p>
+</section>
+
+			<section><h2>Constructors</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.this.html" class="public">
+								<code>this</code>
+							</a>
+							<span class="tableEntryAnnotation">(type)</span>
+						</td>
+						<td>Creates a new ZeroMQ socket.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Properties</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.backlog.html" class="public property"><code>backlog</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.conflate.html" class="public property"><code>conflate</code></a><span class="tableEntryAnnotation">[set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.connectionRID.html" class="public property"><code>connectionRID</code></a><span class="tableEntryAnnotation">[set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="kwd">const</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">[]</span><span class="pun">)</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.curvePublicKey.html" class="public property"><code>curvePublicKey</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">ubyte</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.curvePublicKeyZ85.html" class="public property"><code>curvePublicKeyZ85</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">char</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.curveSecretKey.html" class="public property"><code>curveSecretKey</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">ubyte</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.curveSecretKeyZ85.html" class="public property"><code>curveSecretKeyZ85</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">char</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.curveServer.html" class="public property"><code>curveServer</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.curveServerKey.html" class="public property"><code>curveServerKey</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">ubyte</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.curveServerKeyZ85.html" class="public property"><code>curveServerKeyZ85</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">char</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.events.html" class="public property"><code>events</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../zmqd/PollFlags.html"><span class="typ">PollFlags</span></a></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.fd.html" class="public property"><code>fd</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.gssapiPlaintext.html" class="public property"><code>gssapiPlaintext</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.gssapiPrincipal.html" class="public property"><code>gssapiPrincipal</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">char</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.gssapiServer.html" class="public property"><code>gssapiServer</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.gssapiServicePrincipal.html" class="public property"><code>gssapiServicePrincipal</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">char</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.handle.html" class="public property"><code>handle</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="kwd">inout</span><span class="pun">(</span><span class="typ">void</span><span class="pun">)</span><span class="pun">*</span></code></td><td>The <code class="lang-d"><span class="typ">void</span><span class="pun">*</span></code> pointer used by the underlying C API to refer to the socket.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.handshakeInterval.html" class="public property"><code>handshakeInterval</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">time<wbr/></span><span class="pun">.</span><span class="typ">Duration</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.identity.html" class="public property"><code>identity</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">ubyte</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.immediate.html" class="public property"><code>immediate</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.initialized.html" class="public property"><code>initialized</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td>Whether this <code class="lang-d"><a href="#Socket"><a href="../zmqd/Socket.html"><span class="typ">Socket</span></a></a></code> object has been initialized, i.e. whether it
+    refers to a valid ZeroMQ socket.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.ipv6.html" class="public property"><code>ipv6</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.lastEndpoint.html" class="public property"><code>lastEndpoint</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">char</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.linger.html" class="public property"><code>linger</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">time<wbr/></span><span class="pun">.</span><span class="typ">Duration</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.maxMsgSize.html" class="public property"><code>maxMsgSize</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">long</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.maxReconnectionInterval.html" class="public property"><code>maxReconnectionInterval</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">time<wbr/></span><span class="pun">.</span><span class="typ">Duration</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.mechanism.html" class="public property"><code>mechanism</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../zmqd/Security.html"><span class="typ">Security</span></a></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.more.html" class="public property"><code>more</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td>Whether there are more message frames to follow.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.multicastHops.html" class="public property"><code>multicastHops</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.plainPassword.html" class="public property"><code>plainPassword</code></a><span class="tableEntryAnnotation">[set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="kwd">const</span><span class="pun">(</span><span class="typ">char</span><span class="pun">)</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.plainServer.html" class="public property"><code>plainServer</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.plainUsername.html" class="public property"><code>plainUsername</code></a><span class="tableEntryAnnotation">[set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="kwd">const</span><span class="pun">(</span><span class="typ">char</span><span class="pun">)</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.probeRouter.html" class="public property"><code>probeRouter</code></a><span class="tableEntryAnnotation">[set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.rate.html" class="public property"><code>rate</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.receiveBufferSize.html" class="public property"><code>receiveBufferSize</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.receiveHWM.html" class="public property"><code>receiveHWM</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.receiveTimeout.html" class="public property"><code>receiveTimeout</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">time<wbr/></span><span class="pun">.</span><span class="typ">Duration</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.reconnectionInterval.html" class="public property"><code>reconnectionInterval</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">time<wbr/></span><span class="pun">.</span><span class="typ">Duration</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.recoveryInterval.html" class="public property"><code>recoveryInterval</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">time<wbr/></span><span class="pun">.</span><span class="typ">Duration</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.reqCorrelate.html" class="public property"><code>reqCorrelate</code></a><span class="tableEntryAnnotation">[set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.reqRelaxed.html" class="public property"><code>reqRelaxed</code></a><span class="tableEntryAnnotation">[set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.routerHandover.html" class="public property"><code>routerHandover</code></a><span class="tableEntryAnnotation">[set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.routerMandatory.html" class="public property"><code>routerMandatory</code></a><span class="tableEntryAnnotation">[set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.sendBufferSize.html" class="public property"><code>sendBufferSize</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.sendHWM.html" class="public property"><code>sendHWM</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.sendTimeout.html" class="public property"><code>sendTimeout</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">time<wbr/></span><span class="pun">.</span><span class="typ">Duration</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.tcpKeepalive.html" class="public property"><code>tcpKeepalive</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.tcpKeepaliveCnt.html" class="public property"><code>tcpKeepaliveCnt</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.tcpKeepaliveIdle.html" class="public property"><code>tcpKeepaliveIdle</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.tcpKeepaliveIntvl.html" class="public property"><code>tcpKeepaliveIntvl</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.threadAffinity.html" class="public property"><code>threadAffinity</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">ulong</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.type.html" class="public property"><code>type</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../zmqd/SocketType.html"><span class="typ">SocketType</span></a></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.typeOfService.html" class="public property"><code>typeOfService</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">int</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.xpubVerbose.html" class="public property"><code>xpubVerbose</code></a><span class="tableEntryAnnotation">[set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.zapDomain.html" class="public property"><code>zapDomain</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">char</span><span class="pun">[]</span></code></td><td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.bind.html" class="public">
+								<code>bind</code>
+							</a>
+							<span class="tableEntryAnnotation">(endpoint)</span>
+						</td>
+						<td>Starts accepting incoming connections on <code class="lang-d"><a href="../zmqd/Socket.bind.html#endpoint"><span class="pln">endpoint</span></a></code>.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.close.html" class="public">
+								<code>close</code>
+							</a>
+							<span class="tableEntryAnnotation">()</span>
+						</td>
+						<td>Closes the ZeroMQ socket.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.connect.html" class="public">
+								<code>connect</code>
+							</a>
+							<span class="tableEntryAnnotation">(endpoint)</span>
+						</td>
+						<td>Creates an outgoing connection to <code class="lang-d"><a href="../zmqd/Socket.connect.html#endpoint"><span class="pln">endpoint</span></a></code>.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.disconnect.html" class="public">
+								<code>disconnect</code>
+							</a>
+							<span class="tableEntryAnnotation">(endpoint)</span>
+						</td>
+						<td>Disconnects the socket from <code class="lang-d"><a href="../zmqd/Socket.disconnect.html#endpoint"><span class="pln">endpoint</span></a></code>.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getCurvePublicKey.html" class="public">
+								<code>getCurvePublicKey</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getCurvePublicKeyZ85.html" class="public">
+								<code>getCurvePublicKeyZ85</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getCurveSecretKey.html" class="public">
+								<code>getCurveSecretKey</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getCurveSecretKeyZ85.html" class="public">
+								<code>getCurveSecretKeyZ85</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getCurveServerKey.html" class="public">
+								<code>getCurveServerKey</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getCurveServerKeyZ85.html" class="public">
+								<code>getCurveServerKeyZ85</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getGssapiPrincipal.html" class="public">
+								<code>getGssapiPrincipal</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getGssapiServicePrincipal.html" class="public">
+								<code>getGssapiServicePrincipal</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getIdentity.html" class="public">
+								<code>getIdentity</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getPlainPassword.html" class="public">
+								<code>getPlainPassword</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getPlainUsername.html" class="public">
+								<code>getPlainUsername</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.getZapDomain.html" class="public">
+								<code>getZapDomain</code>
+							</a>
+							<span class="tableEntryAnnotation">(dest)</span>
+						</td>
+						<td><span id="Socket.misc_options"></span>
+    Miscellaneous socket options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.monitor.html" class="public">
+								<code>monitor</code>
+							</a>
+							<span class="tableEntryAnnotation">(endpoint, events)</span>
+						</td>
+						<td>Spawns a PAIR socket that publishes socket state changes (events) over
+    the INPROC transport to the given endpoint.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.receive.html" class="public">
+								<code>receive</code>
+							</a>
+							<span class="tableEntryAnnotation">(data)</span>
+						</td>
+						<td>Receives a message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.receive.html" class="public">
+								<code>receive</code>
+							</a>
+							<span class="tableEntryAnnotation">(msg)</span>
+						</td>
+						<td>Receives a message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.send.html" class="public">
+								<code>send</code>
+							</a>
+							<span class="tableEntryAnnotation">(data, more)</span>
+						</td>
+						<td>Sends a message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.send.html" class="public">
+								<code>send</code>
+							</a>
+							<span class="tableEntryAnnotation">(msg, more)</span>
+						</td>
+						<td>Sends a message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.sendConst.html" class="public">
+								<code>sendConst</code>
+							</a>
+							<span class="tableEntryAnnotation">(data, more)</span>
+						</td>
+						<td>Sends a constant-memory message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.subscribe.html" class="public">
+								<code>subscribe</code>
+							</a>
+							<span class="tableEntryAnnotation">(filterPrefix)</span>
+						</td>
+						<td>Establishes a message filter.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.tryReceive.html" class="public">
+								<code>tryReceive</code>
+							</a>
+							<span class="tableEntryAnnotation">(msg)</span>
+						</td>
+						<td>Receives a message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.tryReceive.html" class="public">
+								<code>tryReceive</code>
+							</a>
+							<span class="tableEntryAnnotation">(data)</span>
+						</td>
+						<td>Receives a message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.trySend.html" class="public">
+								<code>trySend</code>
+							</a>
+							<span class="tableEntryAnnotation">(msg, more)</span>
+						</td>
+						<td>Sends a message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.trySend.html" class="public">
+								<code>trySend</code>
+							</a>
+							<span class="tableEntryAnnotation">(data, more)</span>
+						</td>
+						<td>Sends a message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.trySendConst.html" class="public">
+								<code>trySendConst</code>
+							</a>
+							<span class="tableEntryAnnotation">(data, more)</span>
+						</td>
+						<td>Sends a constant-memory message frame.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.unbind.html" class="public">
+								<code>unbind</code>
+							</a>
+							<span class="tableEntryAnnotation">(endpoint)</span>
+						</td>
+						<td>Stops accepting incoming connections on <code class="lang-d"><a href="../zmqd/Socket.unbind.html#endpoint"><span class="pln">endpoint</span></a></code>.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/Socket.unsubscribe.html" class="public">
+								<code>unsubscribe</code>
+							</a>
+							<span class="tableEntryAnnotation">(filterPrefix)</span>
+						</td>
+						<td>Removes a message filter.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Linger period</h2>
+<p>Note that Socket by default sets the socket's linger period to zero.
+This deviates from the ZeroMQ default (which is an infinite linger period).
+</p>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

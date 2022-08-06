@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Struct PollItem</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Struct PollItem</h1><p>A structure that specifies a socket to be monitored by <code class="lang-d"><a href="#poll"><a href="../zmqd/poll.html"><span class="pln">poll</span></a><span class="pun">()</span></a></code> as well
+as the events to poll for, and, when <code class="lang-d"><a href="#poll"><a href="../zmqd/poll.html"><span class="pln">poll</span></a><span class="pun">()</span></a></code> returns, the events that
+occurred.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">struct</span> <span class="typ">PollItem</span>
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section></section>
+
+			<section><h2>Constructors</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/PollItem.this.html" class="public">
+								<code>this</code>
+							</a>
+							<span class="tableEntryAnnotation">(socket, events)</span>
+						</td>
+						<td>Constructs a <code class="lang-d"><a href="#PollItem"><a href="../zmqd/PollItem.html"><span class="typ">PollItem</span></a></a></code> for monitoring a ZeroMQ socket.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/PollItem.this.html" class="public">
+								<code>this</code>
+							</a>
+							<span class="tableEntryAnnotation">(socket, events)</span>
+						</td>
+						<td>Constructs a <code class="lang-d"><a href="#PollItem"><a href="../zmqd/PollItem.html"><span class="typ">PollItem</span></a></a></code> for monitoring a standard socket referenced
+    by a <code class="lang-d"><a href="http://dlang.org/phobos/std_socket.html#.Socket"><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">socket<wbr/></span><span class="pun">.</span><span class="typ">Socket</span></a></code>.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/PollItem.this.html" class="public">
+								<code>this</code>
+							</a>
+							<span class="tableEntryAnnotation">(fd, events)</span>
+						</td>
+						<td>Constructs a <code class="lang-d"><a href="#PollItem"><a href="../zmqd/PollItem.html"><span class="typ">PollItem</span></a></a></code> for monitoring a standard socket referenced
+    by a native file descriptor.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Properties</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/PollItem.requestedEvents.html" class="public property"><code>requestedEvents</code></a><span class="tableEntryAnnotation">[get, set]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../zmqd/PollFlags.html"><span class="typ">PollFlags</span></a></code></td><td>Requested events.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../zmqd/PollItem.returnedEvents.html" class="public property"><code>returnedEvents</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../zmqd/PollFlags.html"><span class="typ">PollFlags</span></a></code></td><td>Returned events.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Warning</h2>
+<p><code class="lang-d"><span class="typ">PollItem</span></code> objects do not store <code class="lang-d"><a href="http://dlang.org/phobos/std_socket.html#.Socket"><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">socket<wbr/></span><span class="pun">.</span><span class="typ">Socket</span></a></code> references,
+    only the corresponding native file descriptors.  This means that the
+    references have to be stored elsewhere, or the objects may be garbage
+    collected, invalidating the sockets before or while <code class="lang-d"><a href="#poll"><a href="../zmqd/poll.html"><span class="pln">poll</span></a><span class="pun">()</span></a></code> executes.
+</p>
+<pre class="code"><code class="lang-d"><span class="com">// Not OK
+</span><span class="kwd">auto </span><span class="pln">p1 </span><span class="pun">= </span><span class="typ">PollItem</span><span class="pun">(</span><span class="kwd">new </span><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">socket<wbr/></span><span class="pun">.</span><span class="typ">Socket</span><span class="pun">(</span><span class="com">/*...*/</span><span class="pun">), <a href="../zmqd/PollFlags.html#pollIn"></span><span class="typ">PollFlags<wbr/></span><span class="pun">.</span><span class="pln">pollIn</span></a><span class="pun">);
+
+</span><span class="com">// OK
+</span><span class="kwd">auto </span><span class="pln">s </span><span class="pun">= </span><span class="kwd">new </span><span class="pln">std<wbr/></span><span class="pun">.</span><span class="pln">socket<wbr/></span><span class="pun">.</span><span class="typ">Socket</span><span class="pun">(</span><span class="com">/*...*/</span><span class="pun">);
+</span><span class="kwd">auto </span><span class="pln">p2 </span><span class="pun">= </span><span class="typ">PollItem</span><span class="pun">(</span><span class="pln">s</span><span class="pun">, <a href="../zmqd/PollFlags.html#pollIn"></span><span class="typ">PollFlags<wbr/></span><span class="pun">.</span><span class="pln">pollIn</span></a><span class="pun">);</span></code></pre>
+</section>
+<section><h2>Corresponds to</h2>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_poll"><span class="pln">zmq_pollitem_t</span></a></code>
+</p>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

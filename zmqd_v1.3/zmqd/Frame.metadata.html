@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Function Frame.metadata</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Function Frame.metadata</h1><p>Gets message metadata.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="typ">char</span><span class="pun">[]</span> <span class="pln">metadata</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="kwd">const</span><span class="pun">(</span><span class="typ">char</span><span class="pun">[]</span><span class="pun">)</span> <span class="pln">property</span>
+			<br/>
+			<span class="pun">)</span><span class="pln"> </span><span class="kwd">@trusted</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p><code class="lang-d"><a href="../zmqd/Frame.metadataUnsafe.html"><span class="pln">metadataUnsafe</span></a><span class="pun">()</span></code> is faster than <code class="lang-d"><span class="pln">metadata</span><span class="pun">()</span></code> because it
+    directly returns the array which comes from <code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_gets()"><span class="pln">zmq_msg_gets</span><span class="pun">()</span></a></code>,
+    whereas the latter returns a freshly GC-allocated copy of it.  However,
+    the array returned by <code class="lang-d"><a href="../zmqd/Frame.metadataUnsafe.html"><span class="pln">metadataUnsafe</span></a><span class="pun">()</span></code> is owned by the underlying
+    ZeroMQ message and gets destroyed along with it, so care must be
+    taken when using this function.
+</p>
+</section>
+
+			<section><h2>Throws</h2>
+<p><code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error.
+</p>
+</section>
+<section><h2>Corresponds to</h2>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_gets()"><span class="pln">zmq_msg_gets</span><span class="pun">()</span></a></code>
+</p>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

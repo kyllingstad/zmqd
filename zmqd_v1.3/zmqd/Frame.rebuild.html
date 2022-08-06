@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Frame.rebuild - multiple declarations</title>
+		<link rel="stylesheet" type="text/css" href="../styles/ddox.css"/>
+		<link rel="stylesheet" href="../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../scripts/jquery.js">/**/</script><script type="text/javascript" src="../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../zmqd.html">zmqd</a>
+					</div>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Frame.rebuild - multiple declarations</h1>
+			<nav class="page-nav">
+				<ul>
+					<li>
+						<a href="#0">
+							Function <code>Frame.rebuild</code>
+						</a>
+					</li>
+					<li>
+						<a href="#1">
+							Function <code>Frame.rebuild</code>
+						</a>
+					</li>
+					<li>
+						<a href="#2">
+							Function <code>Frame.rebuild</code>
+						</a>
+					</li>
+				</ul>
+			</nav><h2 id="0">Function Frame.rebuild</h2><p>Reinitializes the Frame object as an empty message.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="typ">void</span> <span class="pln">rebuild</span><span class="pun">(</span><span class="pun">)</span><span class="pln"> </span><span class="kwd">@safe</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>This function will first call <code class="lang-d"><a href="#Frame.close"><a href="../zmqd/Frame.close.html"><span class="typ">Frame<wbr/></span><span class="pun">.</span><span class="pln">close</span></a><span class="pun">()</span></a></code> to release the
+    resources associated with the message frame, and then it will
+    initialize it anew, exactly as if it were constructed  with
+    <code class="lang-d"><a href="#Frame.opCall"><a href="../zmqd/Frame.html"><span class="typ">Frame</span></a><span class="pun">()</span></a></code>.
+</p>
+</section>
+
+			<section><h3>Throws</h3>
+<p><code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error.
+</p>
+</section>
+<section><h3>Corresponds to</h3>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_close()"><span class="pln">zmq_msg_close</span><span class="pun">()</span></a></code> followed by <code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_init()"><span class="pln">zmq_msg_init</span><span class="pun">()</span></a></code>
+</p>
+</section>
+<section><h3>Example</h3>
+
+<pre class="code"><code class="lang-d"><span class="kwd">auto </span><span class="pln">msg </span><span class="pun">= <a href="../zmqd/Frame.html"></span><span class="typ">Frame</span></a><span class="pun">(</span><span class="lit">256</span><span class="pun">);
+</span><span class="kwd">assert </span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="lit">256</span><span class="pun">);
+</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">rebuild</span><span class="pun">();
+</span><span class="kwd">assert </span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="lit">0</span><span class="pun">);
+
+</span></code></pre>
+</section>
+<h2 id="1">Function Frame.rebuild</h2><p>Reinitializes the Frame object to a specified size.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="typ">void</span> <span class="pln">rebuild</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">ulong</span> <span class="pln">size</span>
+			<br/>
+			<span class="pun">)</span><span class="pln"> </span><span class="kwd">@safe</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>This function will first call <code class="lang-d"><a href="#Frame.close"><a href="../zmqd/Frame.close.html"><span class="typ">Frame<wbr/></span><span class="pun">.</span><span class="pln">close</span></a><span class="pun">()</span></a></code> to release the
+    resources associated with the message frame, and then it will
+    initialize it anew, exactly as if it were constructed  with
+    <code class="lang-d"><a href="#Frame.opCall_size"><a href="../zmqd/Frame.html"><span class="typ">Frame</span></a><span class="pun">(<a href="../zmqd/Frame.rebuild.html#size"></span><span class="pln">size</span></a><span class="pun">)</span></a></code>.
+</p>
+</section>
+
+			<section><h3>Throws</h3>
+<p><code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error.
+</p>
+</section>
+<section><h3>Corresponds to</h3>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_close()"><span class="pln">zmq_msg_close</span><span class="pun">()</span></a></code> followed by <code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_init_size()"><span class="pln">zmq_msg_init_size</span><span class="pun">()</span></a></code>.
+</p>
+</section>
+<section><h3>Example</h3>
+
+<pre class="code"><code class="lang-d"><span class="kwd">auto </span><span class="pln">msg </span><span class="pun">= <a href="../zmqd/Frame.html"></span><span class="typ">Frame</span></a><span class="pun">(</span><span class="lit">256</span><span class="pun">);
+</span><span class="kwd">assert </span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="lit">256</span><span class="pun">);
+</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">rebuild</span><span class="pun">(</span><span class="lit">1024</span><span class="pun">);
+</span><span class="kwd">assert </span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="lit">1024</span><span class="pun">);
+
+</span></code></pre>
+</section>
+<h2 id="2">Function Frame.rebuild</h2><p>Reinitializes the Frame object from a supplied buffer.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="typ">void</span> <span class="pln">rebuild</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">ubyte</span><span class="pun">[]</span> <span class="pln">data</span>
+			<br/>
+			<span class="pun">)</span><span class="pun">;</span>
+			<br/>
+			<br/>
+			<span class="typ">void</span> <span class="pln">rebuild</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">ubyte</span><span class="pun">[]</span> <span class="pln">data</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="kwd">nothrow</span> <span class="kwd">extern</span><span class="pun">(</span><span class="pln">C</span><span class="pun">)</span> <span class="typ">void</span> <span class="kwd">function</span><span class="pun">(</span><span class="typ">void</span><span class="pun">*</span><span class="pun">, </span><span class="typ">void</span><span class="pun">*</span><span class="pun">)</span> <span class="pln">free</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">void</span><span class="pun">*</span> <span class="pln">hint</span> <span class="pun">=</span> <span class="kwd">null</span>
+			<br/>
+			<span class="pun">)</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>This function will first call <code class="lang-d"><a href="#Frame.close"><a href="../zmqd/Frame.close.html"><span class="typ">Frame<wbr/></span><span class="pun">.</span><span class="pln">close</span></a><span class="pun">()</span></a></code> to release the
+    resources associated with the message frame, and then it will
+    initialize it anew, exactly as if it were constructed  with
+    <code class="lang-d"><a href="../zmqd/Frame.html"><span class="typ">Frame</span></a><span class="pun">(<a href="../zmqd/Frame.rebuild.html#data"></span><span class="pln">data</span></a><span class="pun">)</span></code> or <code class="lang-d"><a href="../zmqd/Frame.html"><span class="typ">Frame</span></a><span class="pun">(<a href="../zmqd/Frame.rebuild.html#data"></span><span class="pln">data</span></a><span class="pun">, <a href="../zmqd/Frame.rebuild.html#free"></span><span class="pln">free</span></a><span class="pun">, <a href="../zmqd/Frame.rebuild.html#hint"></span><span class="pln">hint</span></a><span class="pun">)</span></code>.
+</p>
+
+<p>    Some care must be taken when using these functions.  Please read the
+    <code class="lang-d"><a href="#Frame.opCall_data"><a href="../zmqd/Frame.html"><span class="typ">Frame</span></a><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">[])</span></a></code> documentation.
+</p>
+</section>
+
+			<section><h3>Throws</h3>
+<p><code class="lang-d"><a href="#ZmqException"><a href="../zmqd/ZmqException.html"><span class="typ">ZmqException</span></a></a></code> if ZeroMQ reports an error.
+</p>
+</section>
+<section><h3>Corresponds to</h3>
+<p><code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_close()"><span class="pln">zmq_msg_close</span><span class="pun">()</span></a></code> followed by <code class="lang-d"><a href="http://api.zeromq.org/4-3:zmq_msg_init_data()"><span class="pln">zmq_msg_init_data</span><span class="pun">()</span></a></code>.
+</p>
+</section>
+<section><h3>Example</h3>
+
+<pre class="code"><code class="lang-d"><span class="com">// Garbage-collected memory
+</span><span class="kwd">auto </span><span class="pln">msg </span><span class="pun">= <a href="../zmqd/Frame.html"></span><span class="typ">Frame</span></a><span class="pun">(</span><span class="lit">256</span><span class="pun">);
+</span><span class="kwd">assert </span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="lit">256</span><span class="pun">);
+</span><span class="kwd">auto </span><span class="pln">buf </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">ubyte</span><span class="pun">[</span><span class="lit">123</span><span class="pun">];
+</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">rebuild</span><span class="pun">(</span><span class="pln">buf</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="pln">buf<wbr/></span><span class="pun">.</span><span class="pln">length</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">data<wbr/></span><span class="pun">.</span><span class="pln">ptr </span><span class="pun">== </span><span class="pln">buf<wbr/></span><span class="pun">.</span><span class="pln">ptr</span><span class="pun">);
+
+</span></code></pre>
+</section>
+<section><h3>Example</h3>
+
+<pre class="code"><code class="lang-d"><span class="com">// Manually managed memory
+</span><span class="kwd">import </span><span class="pln">core<wbr/></span><span class="pun">.</span><span class="pln">stdc<wbr/></span><span class="pun">.</span><span class="pln">stdlib</span><span class="pun">: </span><span class="pln">malloc</span><span class="pun">, <a href="../zmqd/Frame.rebuild.html#free"></span><span class="pln">free</span></a><span class="pun">;
+</span><span class="kwd">static extern</span><span class="pun">(</span><span class="pln">C</span><span class="pun">) </span><span class="typ">void </span><span class="pln">myFree</span><span class="pun">(</span><span class="typ">void</span><span class="pun">* <a href="../zmqd/Frame.rebuild.html#data"></span><span class="pln">data</span></a><span class="pun">, </span><span class="typ">void</span><span class="pun">* <a href="../zmqd/Frame.rebuild.html#hint"></span><span class="pln">hint</span></a><span class="pun">) </span><span class="kwd">nothrow </span><span class="pun">{ <a href="../zmqd/Frame.rebuild.html#free"></span><span class="pln">free</span></a><span class="pun">(<a href="../zmqd/Frame.rebuild.html#data"></span><span class="pln">data</span></a><span class="pun">); }
+
+</span><span class="kwd">auto </span><span class="pln">msg </span><span class="pun">= <a href="../zmqd/Frame.html"></span><span class="typ">Frame</span></a><span class="pun">(</span><span class="lit">256</span><span class="pun">);
+</span><span class="kwd">assert </span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="lit">256</span><span class="pun">);
+</span><span class="kwd">auto </span><span class="pln">buf </span><span class="pun">= (</span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">ubyte</span><span class="pun">*) </span><span class="pln">malloc</span><span class="pun">(</span><span class="lit">10</span><span class="pun">))[</span><span class="lit">0 </span><span class="pun">.. </span><span class="lit">10</span><span class="pun">];
+</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">rebuild</span><span class="pun">(</span><span class="pln">buf</span><span class="pun">, &amp;</span><span class="pln">myFree</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">size </span><span class="pun">== </span><span class="pln">buf<wbr/></span><span class="pun">.</span><span class="pln">length</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">msg<wbr/></span><span class="pun">.</span><span class="pln">data<wbr/></span><span class="pun">.</span><span class="pln">ptr </span><span class="pun">== </span><span class="pln">buf<wbr/></span><span class="pun">.</span><span class="pln">ptr</span><span class="pun">);
+
+</span></code></pre>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p><a href="http://github.com/kyllingstad">Lars T. Kyllingstad</a>
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>Copyright (c) 2013–2019, Lars T. Kyllingstad. All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p><em>zmqd</em> is released under the terms of the
+    <a href="https://www.mozilla.org/MPL/2.0/index.txt">Mozilla Public License v. 2.0</a>.
+    Please refer to the <a href="http://zeromq.org/area:licensing">ZeroMQ site</a>
+    for details about ZeroMQ licensing.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>
